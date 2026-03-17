@@ -88,44 +88,53 @@ export async function getTodayCard(
     return { ...MOCK_CARD, recipientId: userId };
   }
 
-  const { data, error } = await supabase
+  const { data: cardData, error: cardError } = await supabase
     .from('roulette_cards')
-    .select('*, track:tracks(*)')
+    .select('*')
     .eq('recipient_id', userId)
-    .in('status', ['pending', 'delivered', 'opened'])
+    .in('status', ['pending', 'delivered', 'opened', 'feedback_given'])
     .order('created_at', { ascending: false })
     .limit(1)
     .single();
 
-  if (error || !data) return null;
+  if (cardError || !cardData) return null;
 
-  // Map snake_case DB columns to camelCase
+  // Fetch track metadata separately (no FK relationship for join)
+  let track: Track | undefined;
+  const { data: trackData } = await supabase
+    .from('tracks')
+    .select('*')
+    .eq('spotify_id', cardData.track_id)
+    .single();
+
+  if (trackData) {
+    track = {
+      spotifyId: trackData.spotify_id,
+      title: trackData.title,
+      artist: trackData.artist,
+      album: trackData.album,
+      coverUrl: trackData.cover_url,
+      spotifyUrl: trackData.spotify_url,
+      artistId: trackData.artist_id,
+      genres: trackData.genres ?? [],
+      popularity: trackData.popularity,
+      moodTags: trackData.mood_tags ?? [],
+      updatedAt: trackData.updated_at,
+    };
+  }
+
   return {
-    id: data.id,
-    recipientId: data.recipient_id,
-    recommenderId: data.recommender_id,
-    trackId: data.track_id,
-    reason: data.reason,
-    tasteDistance: data.taste_distance,
-    status: data.status,
-    deliveredAt: data.delivered_at,
-    openedAt: data.opened_at,
-    createdAt: data.created_at,
-    track: data.track
-      ? {
-          spotifyId: data.track.spotify_id,
-          title: data.track.title,
-          artist: data.track.artist,
-          album: data.track.album,
-          coverUrl: data.track.cover_url,
-          spotifyUrl: data.track.spotify_url,
-          artistId: data.track.artist_id,
-          genres: data.track.genres ?? [],
-          popularity: data.track.popularity,
-          moodTags: data.track.mood_tags ?? [],
-          updatedAt: data.track.updated_at,
-        }
-      : undefined,
+    id: cardData.id,
+    recipientId: cardData.recipient_id,
+    recommenderId: cardData.recommender_id,
+    trackId: cardData.track_id,
+    reason: cardData.reason,
+    tasteDistance: cardData.taste_distance,
+    status: cardData.status,
+    deliveredAt: cardData.delivered_at,
+    openedAt: cardData.opened_at,
+    createdAt: cardData.created_at,
+    track,
   };
 }
 

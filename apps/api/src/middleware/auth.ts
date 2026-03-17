@@ -1,9 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
-
 // Extend Express Request to include authenticated user
 declare global {
   namespace Express {
@@ -21,6 +18,10 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
   }
 
   const token = authHeader.slice(7);
+
+  // Read env lazily (dotenv loads after imports)
+  const supabaseUrl = process.env.SUPABASE_URL || '';
+  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
 
   // Create a per-request client with the user's token to verify it
   const supabase = createClient(supabaseUrl, supabaseAnonKey, {

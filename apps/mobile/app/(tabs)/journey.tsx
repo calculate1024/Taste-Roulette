@@ -97,7 +97,7 @@ export default function JourneyScreen() {
 
         {/* Badges section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{'\u6210\u5C31\u5F7D\u7AE0'}</Text>
+          <Text style={styles.sectionTitle}>{'\u6210\u5C31\u5FBD\u7AE0'}</Text>
           <BadgeGrid stats={stats} />
         </View>
       </ScrollView>
