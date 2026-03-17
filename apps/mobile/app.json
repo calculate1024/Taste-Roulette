@@ -19,10 +19,12 @@
           "icon": "./assets/icon.png",
           "color": "#6C5CE7"
         }
-      ]
+      ],
+      "@sentry/react-native"
     ],
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.tasteroulette.app",
       "infoPlist": {
         "UIBackgroundModes": [
           "remote-notification"
@@ -30,6 +32,7 @@
       }
     },
     "android": {
+      "package": "com.tasteroulette.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",

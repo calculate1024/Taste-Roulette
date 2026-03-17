@@ -35,6 +35,7 @@ export default function RecommendScreen() {
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [gotBonusCard, setGotBonusCard] = useState(false);
 
   // Success animation
   const successScale = useSharedValue(0);
@@ -67,8 +68,9 @@ export default function RecommendScreen() {
     if (!selectedTrack || !reason.trim() || !userId) return;
     setSubmitting(true);
     try {
-      await submitRecommendation(userId, selectedTrack.spotifyId, reason.trim());
+      const result = await submitRecommendation(userId, selectedTrack.spotifyId, reason.trim());
       setSubmitted(true);
+      if (result.bonus_card) setGotBonusCard(true);
       // Play success animation
       successOpacity.value = withTiming(1, { duration: 300 });
       successScale.value = withSequence(
@@ -101,6 +103,11 @@ export default function RecommendScreen() {
           <Text style={styles.successSubtitle}>
             某位陌生人即將收到你的推薦
           </Text>
+          {gotBonusCard && (
+            <Text style={styles.bonusText}>
+              🎁 你獲得了一張 Bonus 卡片！
+            </Text>
+          )}
         </Animated.View>
       </SafeAreaView>
     );
@@ -472,5 +479,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#8E8E93',
     textAlign: 'center',
+  },
+  bonusText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1DB954',
+    textAlign: 'center',
+    marginTop: 16,
   },
 });

@@ -215,20 +215,33 @@ export async function searchTracks(query: string): Promise<Track[]> {
 }
 
 /**
- * Submit a recommendation from the user.
+ * Submit a recommendation from the user via API (triggers bonus card incentive).
  */
 export async function submitRecommendation(
   userId: string,
   trackId: string,
   reason: string
-): Promise<void> {
-  if (!isSupabaseConfigured()) return;
+): Promise<{ ok: boolean; bonus_card?: { id: string; track_id: string } }> {
+  if (!isSupabaseConfigured()) return { ok: true };
 
-  await supabase.from('user_recommendations').insert({
-    user_id: userId,
-    track_id: trackId,
-    reason,
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+  const session = await supabase.auth.getSession();
+  const token = session.data.session?.access_token;
+
+  const response = await fetch(`${apiUrl}/api/recommend/submit`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ track_id: trackId, reason }),
   });
+
+  if (!response.ok) {
+    throw new Error('Failed to submit recommendation');
+  }
+
+  return response.json();
 }
 
 /**

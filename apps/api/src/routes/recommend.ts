@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { supabaseAdmin } from '../services/supabase';
 import { searchTracks as spotifySearch, ensureTrackCached } from '../services/spotify';
+import { curatorFallback } from '../services/matching';
 import { getTodayStartUTC8 } from '../utils/date';
 
 const router = Router();
@@ -58,7 +59,30 @@ router.post('/submit', async (req: Request, res: Response) => {
     return;
   }
 
-  res.json({ ok: true });
+  // Grant a bonus card as incentive for recommending back
+  let bonusCard: { id: string; track_id: string } | undefined;
+  try {
+    const fallback = await curatorFallback(userId);
+    if (fallback) {
+      const { data: card } = await supabaseAdmin
+        .from('roulette_cards')
+        .insert({
+          recipient_id: userId,
+          recommender_id: null,
+          track_id: fallback.trackId,
+          reason: fallback.reason || 'Bonus: thanks for recommending!',
+          taste_distance: null,
+          status: 'pending',
+        })
+        .select('id, track_id')
+        .single();
+      if (card) bonusCard = { id: card.id, track_id: card.track_id };
+    }
+  } catch {
+    // Bonus card is best-effort; don't fail the recommendation
+  }
+
+  res.json({ ok: true, bonus_card: bonusCard });
 });
 
 // GET /api/recommend/prompt — check if user should be prompted to recommend back

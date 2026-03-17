@@ -394,7 +394,10 @@ REVENUECAT_API_KEY=
 ## 備註
 
 - MVP 階段不需要 Web 版
-- 音訊播放採 Spotify Embed 方案：用 WebView 嵌入 `https://open.spotify.com/embed/track/{id}`，不需 API 認證，用戶可在 app 內直接聽歌
+- 音訊播放採 Spotify Embed 方案：用 WebView 嵌入 `https://open.spotify.com/embed/track/{id}`，不需 API 認證，用戶可在 app 內直接聽歌。若 Embed 不可用則 fallback 至 "Open in Spotify" deep link
 - Spotify Audio Features API 已不可用 (403)，品味向量改用 genre + artist 資訊 + onboarding 反應建立
+- Apple/Google Sign-In 延後至 post-MVP，目前使用 Email + Spotify OAuth
+- Python recommender service 為備用架構，目前配對邏輯完全在 TypeScript API 中執行
+- 推薦回推激勵：提交推薦後自動獲得一張 Bonus 卡片（curator fallback）
 - 所有用戶間互動匿名，不暴露個人資訊
 - GDPR compliant from Day 1（Supabase 支援歐洲 region）

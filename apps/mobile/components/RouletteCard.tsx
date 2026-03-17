@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Pressable,
   Image,
+  Linking,
   useWindowDimensions,
 } from 'react-native';
 import Animated, {
@@ -124,7 +125,7 @@ export default function RouletteCard({ card, onFeedback }: RouletteCardProps) {
           )}
 
           {/* Spotify Embed player */}
-          {spotifyEmbedUrl && (
+          {spotifyEmbedUrl ? (
             <View style={styles.playerContainer}>
               <WebView
                 source={{ uri: spotifyEmbedUrl }}
@@ -134,6 +135,15 @@ export default function RouletteCard({ card, onFeedback }: RouletteCardProps) {
                 mediaPlaybackRequiresUserAction={false}
               />
             </View>
+          ) : track?.spotifyId ? (
+            <Pressable
+              style={styles.openSpotifyButton}
+              onPress={() => Linking.openURL(`https://open.spotify.com/track/${track.spotifyId}`)}
+            >
+              <Text style={styles.openSpotifyText}>Open in Spotify</Text>
+            </Pressable>
+          ) : (
+            <Text style={styles.noPreviewText}>No preview available</Text>
           )}
 
           {/* Feedback button */}
@@ -274,6 +284,25 @@ const styles = StyleSheet.create({
   player: {
     flex: 1,
     backgroundColor: 'transparent',
+  },
+
+  openSpotifyButton: {
+    backgroundColor: '#1DB954',
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  openSpotifyText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  noPreviewText: {
+    fontSize: 13,
+    color: '#8E8E93',
+    textAlign: 'center',
+    marginBottom: 16,
   },
 
   feedbackButton: {

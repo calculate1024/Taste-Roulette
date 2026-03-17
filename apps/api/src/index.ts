@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import * as Sentry from '@sentry/node';
+import { PostHog } from 'posthog-node';
 import { authMiddleware } from './middleware/auth';
 import onboardingRouter from './routes/onboarding';
 import notificationsRouter from './routes/notifications';
@@ -15,6 +17,22 @@ import shareRouter from './routes/share';
 import twinsRouter from './routes/twins';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+
+// Initialize Sentry
+const SENTRY_DSN = process.env.SENTRY_DSN || '';
+if (SENTRY_DSN) {
+  Sentry.init({
+    dsn: SENTRY_DSN,
+    tracesSampleRate: 0.2,
+    environment: process.env.NODE_ENV || 'development',
+  });
+}
+
+// Initialize PostHog
+const POSTHOG_API_KEY = process.env.POSTHOG_API_KEY || '';
+export const posthog = POSTHOG_API_KEY
+  ? new PostHog(POSTHOG_API_KEY, { host: process.env.POSTHOG_HOST || 'https://us.i.posthog.com' })
+  : null;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -43,6 +61,19 @@ app.use('/api/share', shareRouter);
 app.use('/api/admin', matchingRouter);
 app.use('/api/notifications', notificationsRouter);
 
-app.listen(PORT, () => {
-  console.log(`Taste Roulette API running on port ${PORT}`);
-});
+// Sentry error handler (must be after routes)
+if (SENTRY_DSN) {
+  Sentry.setupExpressErrorHandler(app);
+}
+
+// Flush PostHog on shutdown
+process.on('SIGTERM', () => { posthog?.shutdown(); });
+
+// Only listen when running locally (not on Vercel serverless)
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Taste Roulette API running on port ${PORT}`);
+  });
+}
+
+export default app;
