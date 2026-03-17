@@ -20,7 +20,7 @@
           "color": "#6C5CE7"
         }
       ],
-      "@sentry/react-native"
+      ["@sentry/react-native", { "organization": "taste-roulette", "project": "taste-roulette-mobile" }]
     ],
     "ios": {
       "supportsTablet": true,
@@ -43,6 +43,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "e52ddfed-75db-418a-aad1-b9d8d365f29f"
+      }
+    },
+    "owner": "calculate1024"
   }
 }
