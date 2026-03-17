@@ -1,0 +1,116 @@
+import { Router, Request, Response } from 'express';
+import { supabaseAdmin } from '../services/supabase';
+import { computeTasteVector, curatorFallback } from '../services/matching';
+
+const router = Router();
+
+// GET /api/onboarding/tracks — get onboarding tracks from DB
+router.get('/tracks', async (_req: Request, res: Response) => {
+  const { data, error } = await supabaseAdmin
+    .from('tracks')
+    .select('spotify_id, title, artist, album, cover_url, spotify_url, genres')
+    .limit(30); // Fetch extra to allow shuffling
+
+  if (error) {
+    res.status(500).json({ error: 'Failed to fetch onboarding tracks' });
+    return;
+  }
+
+  // Randomize and return a subset
+  const shuffled = (data || []).sort(() => Math.random() - 0.5).slice(0, 15);
+
+  res.json({ tracks: shuffled });
+});
+
+// POST /api/onboarding/responses — submit swipe responses
+router.post('/responses', async (req: Request, res: Response) => {
+  const userId = req.userId!;
+  const { responses } = req.body;
+
+  if (!responses || !Array.isArray(responses)) {
+    res.status(400).json({ error: 'responses[] required' });
+    return;
+  }
+
+  // Validate reaction values
+  const validReactions = ['love', 'okay', 'not_for_me'];
+  const invalid = responses.find((r: any) => !validReactions.includes(r.reaction));
+  if (invalid) {
+    res.status(400).json({ error: `Invalid reaction: ${invalid.reaction}` });
+    return;
+  }
+
+  const rows = responses.map((r: { track_id: string; reaction: string }) => ({
+    user_id: userId,
+    track_id: r.track_id,
+    reaction: r.reaction,
+  }));
+
+  const { error } = await supabaseAdmin
+    .from('onboarding_responses')
+    .insert(rows);
+
+  if (error) {
+    res.status(500).json({ error: 'Failed to save onboarding responses' });
+    return;
+  }
+
+  res.json({ ok: true, count: rows.length });
+});
+
+// POST /api/onboarding/complete — mark onboarding as done
+router.post('/complete', async (req: Request, res: Response) => {
+  const userId = req.userId!;
+
+  // Check idempotency — if already completed, return early
+  const { data: existing } = await supabaseAdmin
+    .from('profiles')
+    .select('onboarding_completed')
+    .eq('id', userId)
+    .single();
+
+  if (existing?.onboarding_completed) {
+    res.json({ message: 'Already completed', already_completed: true });
+    return;
+  }
+
+  // Compute taste vector from onboarding responses
+  const tasteVector = await computeTasteVector(userId);
+
+  // Mark onboarding complete and store taste vector
+  const { error } = await supabaseAdmin
+    .from('profiles')
+    .update({ onboarding_completed: true, taste_vector: tasteVector })
+    .eq('id', userId);
+
+  if (error) {
+    res.status(500).json({ error: 'Failed to complete onboarding' });
+    return;
+  }
+
+  // Immediately issue the user's first card via curator fallback
+  let firstCard = null;
+  const fallback = await curatorFallback(userId);
+  if (fallback) {
+    const { data: card, error: cardError } = await supabaseAdmin
+      .from('roulette_cards')
+      .insert({
+        recipient_id: userId,
+        recommender_id: null,
+        track_id: fallback.trackId,
+        reason: fallback.reason,
+        taste_distance: null,
+        status: 'pending',
+      })
+      .select('id')
+      .single();
+
+    if (!cardError && card) {
+      firstCard = card.id;
+    }
+  }
+
+  res.json({ ok: true, taste_vector_dims: tasteVector.length, first_card_id: firstCard });
+});
+
+export default router;

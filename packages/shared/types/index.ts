@@ -4,13 +4,15 @@ export type Reaction = 'love' | 'okay' | 'not_for_me';
 export type FeedbackReaction = 'surprised' | 'okay' | 'not_for_me';
 export type CardStatus = 'pending' | 'delivered' | 'opened' | 'feedback_given';
 
-export interface User {
+// Profile extends Supabase auth.users — id is the auth user's UUID
+export interface Profile {
   id: string;
-  email: string;
   displayName: string | null;
   tasteVector: number[];
   onboardingCompleted: boolean;
   streakCount: number;
+  spotifyConnected: boolean;
+  spotifyDisplayName: string | null;
   createdAt: string;
 }
 
@@ -66,4 +68,20 @@ export interface Track {
   popularity: number | null;
   moodTags: string[];
   updatedAt: string;
+}
+
+// Phase 2: Taste Journey & Badges
+
+export interface UserStats {
+  totalCards: number;
+  surprisedCount: number;
+  streakCount: number;
+  genresExplored: number;
+  totalRecommendations: number;
+  maxTasteDistance: number;
+}
+
+export interface TasteJourneyData {
+  tasteVector: number[];
+  stats: UserStats;
 }

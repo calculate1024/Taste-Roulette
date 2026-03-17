@@ -1,0 +1,88 @@
+// Expo Push Notification service
+// Docs: https://docs.expo.dev/push-notifications/sending-notifications/
+
+import { supabaseAdmin } from './supabase';
+import { getTodayStartUTC8 } from '../utils/date';
+
+interface ExpoPushMessage {
+  to: string;
+  title: string;
+  body: string;
+  data?: Record<string, any>;
+  sound?: 'default' | null;
+  channelId?: string;
+}
+
+interface ExpoPushTicket {
+  status: 'ok' | 'error';
+  id?: string;
+  message?: string;
+  details?: any;
+}
+
+// Send push notifications via Expo Push API
+export async function sendPushNotifications(
+  messages: ExpoPushMessage[]
+): Promise<ExpoPushTicket[]> {
+  if (messages.length === 0) return [];
+
+  // Expo Push API accepts batches of up to 100
+  const chunks: ExpoPushMessage[][] = [];
+  for (let i = 0; i < messages.length; i += 100) {
+    chunks.push(messages.slice(i, i + 100));
+  }
+
+  const tickets: ExpoPushTicket[] = [];
+  for (const chunk of chunks) {
+    const res = await fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify(chunk),
+    });
+
+    const result: any = await res.json();
+    tickets.push(...(result.data ?? []));
+  }
+
+  return tickets;
+}
+
+// Send daily roulette notification to all users with pending cards
+export async function sendDailyNotifications(): Promise<number> {
+  const todayStart = getTodayStartUTC8();
+
+  // Get all users with push tokens who have a pending card created today
+  const { data: pendingCards, error } = await supabaseAdmin
+    .from('roulette_cards')
+    .select('id, recipient_id, profiles!roulette_cards_recipient_id_fkey(push_token)')
+    .eq('status', 'pending')
+    .gte('created_at', todayStart.toISOString())
+    .not('profiles.push_token', 'is', null);
+
+  if (error || !pendingCards) {
+    console.error('Failed to fetch pending cards:', error?.message);
+    return 0;
+  }
+
+  const messages: ExpoPushMessage[] = pendingCards
+    .filter((card: any) => card.profiles?.push_token)
+    .map((card: any) => ({
+      to: card.profiles.push_token,
+      title: '🎲 Your daily surprise is here!',
+      body: 'Someone picked a song just for you. Come discover it.',
+      data: { card_id: card.id, type: 'daily_roulette' },
+      sound: 'default' as const,
+      channelId: 'daily-roulette',
+    }));
+
+  if (messages.length === 0) return 0;
+
+  const tickets = await sendPushNotifications(messages);
+  const successCount = tickets.filter((t) => t.status === 'ok').length;
+
+  console.log(`Daily notifications: ${successCount}/${messages.length} sent`);
+  return successCount;
+}
