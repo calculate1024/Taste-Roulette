@@ -16,7 +16,12 @@
         "buildType": "apk"
       },
       "env": {
-        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://txrirydpzyccwfeiteiu.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR4cmlyeWRwenljY3dmZWl0ZWl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3MDk0MTcsImV4cCI6MjA4OTI4NTQxN30.9zysj43qbKXU2XvlAyWTC3VM6Xq2G8wStZDn9E2AG18",
+        "EXPO_PUBLIC_API_URL": "https://taste-roulette.vercel.app",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://65933bca0298b3360d69f906b31c2d93@o4511058592464896.ingest.us.sentry.io/4511058595217408",
+        "EXPO_PUBLIC_POSTHOG_API_KEY": "phc_R2Zw7tQXG3EmBel1uU1vYe88iwdWvynJB243ARpRWsY"
       }
     },
     "production": {
