@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { useAppStore } from '../../store/appStore';
 import { getTasteJourney } from '../../services/api';
 import TasteRadar from '../../components/TasteRadar';
@@ -9,6 +10,7 @@ import type { TasteJourneyData } from '../../../../packages/shared/types';
 
 export default function JourneyScreen() {
   const session = useAppStore((s) => s.session);
+  const router = useRouter();
   const [data, setData] = useState<TasteJourneyData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -56,6 +58,14 @@ export default function JourneyScreen() {
         <View style={styles.radarContainer}>
           <TasteRadar tasteVector={tasteVector} size={280} />
         </View>
+
+        {/* Taste twins button */}
+        <Pressable
+          style={styles.twinsButton}
+          onPress={() => router.push('/twins')}
+        >
+          <Text style={styles.twinsButtonText}>{'\u67E5\u770B\u54C1\u5473\u96D9\u80DE\u80CE'}</Text>
+        </Pressable>
 
         {/* Stats row */}
         <View style={styles.statsRow}>
@@ -188,5 +198,20 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
     marginBottom: 16,
+  },
+  twinsButton: {
+    backgroundColor: 'rgba(108,92,231,0.2)',
+    borderWidth: 1,
+    borderColor: '#6C5CE7',
+    borderRadius: 12,
+    paddingVertical: 14,
+    marginHorizontal: 24,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  twinsButtonText: {
+    color: '#6C5CE7',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });

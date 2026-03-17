@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { RouletteCard, Track, FeedbackReaction, TasteJourneyData } from '../../../packages/shared/types';
+import type { RouletteCard, Track, FeedbackReaction, TasteJourneyData, TasteTwinsData } from '../../../packages/shared/types';
 
 // Mock data for development without Supabase
 const MOCK_CARD: RouletteCard & { track: Track } = {
@@ -152,19 +152,16 @@ export async function submitFeedback(
 ): Promise<void> {
   if (!isSupabaseConfigured()) return;
 
-  // Insert feedback record
-  await supabase.from('feedbacks').insert({
-    card_id: cardId,
-    user_id: userId,
-    reaction,
-    comment: comment || null,
-  });
-
-  // Update card status
-  await supabase
-    .from('roulette_cards')
-    .update({ status: 'feedback_given' })
-    .eq('id', cardId);
+  // Insert feedback and update card status in parallel
+  const [feedbackResult, cardResult] = await Promise.all([
+    supabase.from('feedbacks').insert({
+      card_id: cardId,
+      user_id: userId,
+      reaction,
+      comment: comment || null,
+    }),
+    supabase.from('roulette_cards').update({ status: 'feedback_given' }).eq('id', cardId),
+  ]);
 }
 
 /**
@@ -249,47 +246,22 @@ export async function getTasteJourney(userId: string): Promise<TasteJourneyData>
     };
   }
 
-  // Fetch taste vector from profiles
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('taste_vector, streak_count')
-    .eq('id', userId)
-    .single();
+  // Fetch all stats in parallel
+  const [profileResult, totalCardsResult, surprisedResult, recsResult, maxDistResult, genresResult] = await Promise.all([
+    supabase.from('profiles').select('taste_vector, streak_count').eq('id', userId).single(),
+    supabase.from('roulette_cards').select('id', { count: 'exact', head: true }).eq('recipient_id', userId),
+    supabase.from('feedbacks').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('reaction', 'surprised'),
+    supabase.from('user_recommendations').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+    supabase.from('roulette_cards').select('taste_distance').eq('recipient_id', userId).not('taste_distance', 'is', null).order('taste_distance', { ascending: false }).limit(1).maybeSingle(),
+    supabase.from('roulette_cards').select('tracks:track_id(genres)').eq('recipient_id', userId),
+  ]);
 
-  // Count total cards received
-  const { count: totalCards } = await supabase
-    .from('roulette_cards')
-    .select('id', { count: 'exact', head: true })
-    .eq('recipient_id', userId);
-
-  // Count surprised reactions
-  const { count: surprisedCount } = await supabase
-    .from('feedbacks')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .eq('reaction', 'surprised');
-
-  // Count total recommendations
-  const { count: totalRecommendations } = await supabase
-    .from('user_recommendations')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', userId);
-
-  // Get max taste distance from roulette cards
-  const { data: maxDistCard } = await supabase
-    .from('roulette_cards')
-    .select('taste_distance')
-    .eq('recipient_id', userId)
-    .not('taste_distance', 'is', null)
-    .order('taste_distance', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  // Count distinct genres from received tracks
-  const { data: receivedTracks } = await supabase
-    .from('roulette_cards')
-    .select('tracks:track_id(genres)')
-    .eq('recipient_id', userId);
+  const profile = profileResult.data;
+  const totalCards = totalCardsResult.count;
+  const surprisedCount = surprisedResult.count;
+  const totalRecommendations = recsResult.count;
+  const maxDistCard = maxDistResult.data;
+  const receivedTracks = genresResult.data;
 
   const genreSet = new Set<string>();
   if (receivedTracks) {
@@ -314,6 +286,81 @@ export async function getTasteJourney(userId: string): Promise<TasteJourneyData>
       maxTasteDistance: maxDistCard?.taste_distance ?? 0,
     },
   };
+}
+
+/**
+ * Get taste twins and complements for a user.
+ * Falls back to mock data if Supabase is not configured.
+ */
+export async function getTasteTwins(userId: string): Promise<TasteTwinsData> {
+  if (!isSupabaseConfigured()) {
+    // Mock data for development
+    return {
+      twins: [
+        {
+          anonymousId: 'a1b2c3d4',
+          tasteLabel: 'Pop \u611B\u597D\u8005',
+          distance: 0.08,
+          dominantGenres: ['pop', 'r&b', 'k-pop'],
+        },
+        {
+          anonymousId: 'e5f6g7h8',
+          tasteLabel: '\u96FB\u5B50\u63A7',
+          distance: 0.15,
+          dominantGenres: ['electronic', 'ambient', 'indie'],
+        },
+        {
+          anonymousId: 'i9j0k1l2',
+          tasteLabel: '\u6416\u6EFE\u9B42',
+          distance: 0.22,
+          dominantGenres: ['rock', 'indie', 'punk'],
+        },
+      ],
+      complements: [
+        {
+          anonymousId: 'm3n4o5p6',
+          tasteLabel: '\u7235\u58EB\u8FF7',
+          distance: 0.58,
+          dominantGenres: ['jazz', 'blues', 'soul'],
+        },
+        {
+          anonymousId: 'q7r8s9t0',
+          tasteLabel: '\u53E4\u5178\u6A02\u8FF7',
+          distance: 0.62,
+          dominantGenres: ['classical', 'ambient', 'world'],
+        },
+        {
+          anonymousId: 'u1v2w3x4',
+          tasteLabel: '\u62C9\u4E01\u7BC0\u594F',
+          distance: 0.67,
+          dominantGenres: ['latin', 'reggae', 'world'],
+        },
+      ],
+    };
+  }
+
+  // Call the API endpoint via Supabase edge function or direct API
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  if (!token) {
+    return { twins: [], complements: [] };
+  }
+
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+  const response = await fetch(`${apiUrl}/api/twins`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    console.error('Failed to fetch taste twins:', response.status);
+    return { twins: [], complements: [] };
+  }
+
+  return response.json();
 }
 
 /**

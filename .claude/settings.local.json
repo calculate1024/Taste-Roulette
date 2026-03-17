@@ -25,7 +25,9 @@
       "Bash(node -e \"console.log\\(require.resolve\\(''expo/bin/cli'', {paths:[''/c/Users/calcu/projects/Taste-Roulette/apps/mobile'']}\\)\\)\")",
       "Bash(node -e \"console.log\\(require.resolve\\(''@expo/cli'', {paths:[''/c/Users/calcu/projects/Taste-Roulette/apps/mobile'']}\\)\\)\")",
       "Bash(git status:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }

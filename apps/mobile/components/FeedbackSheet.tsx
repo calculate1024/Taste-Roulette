@@ -18,6 +18,7 @@ interface FeedbackSheetProps {
   tasteDistance: number;
   onSubmit: (reaction: FeedbackReaction, comment?: string) => Promise<void> | void;
   onClose: () => void;
+  onSharePress?: () => void;
 }
 
 const REACTIONS: { key: FeedbackReaction; emoji: string; label: string; color: string }[] = [
@@ -32,6 +33,7 @@ export default function FeedbackSheet({
   tasteDistance,
   onSubmit,
   onClose,
+  onSharePress,
 }: FeedbackSheetProps) {
   const [selectedReaction, setSelectedReaction] = useState<FeedbackReaction | null>(null);
   const [comment, setComment] = useState('');
@@ -67,11 +69,6 @@ export default function FeedbackSheet({
   };
 
   const handleClose = () => {
-    setSelectedReaction(null);
-    setComment('');
-    setSubmitted(false);
-    setSubmitError(null);
-    setSubmitting(false);
     onClose();
   };
 
@@ -116,6 +113,13 @@ export default function FeedbackSheet({
                     ? '有點跳脫，但不至於排斥'
                     : '跟你的品味蠻接近的'}
               </Text>
+
+              {/* Share button */}
+              {onSharePress && (
+                <Pressable style={styles.shareButton} onPress={onSharePress}>
+                  <Text style={styles.shareButtonText}>分享到社群</Text>
+                </Pressable>
+              )}
 
               <Pressable style={styles.closeButton} onPress={handleClose}>
                 <Text style={styles.closeButtonText}>完成</Text>
@@ -369,6 +373,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8,
     marginBottom: 32,
+  },
+
+  shareButton: {
+    backgroundColor: 'rgba(108,92,231,0.2)',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 48,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#6C5CE7',
+    marginBottom: 12,
+  },
+  shareButtonText: {
+    color: '#6C5CE7',
+    fontSize: 16,
+    fontWeight: '700',
   },
 
   closeButton: {

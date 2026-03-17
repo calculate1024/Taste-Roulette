@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { supabaseAdmin } from '../services/supabase';
-import { searchTracks as spotifySearch, getTrack } from '../services/spotify';
+import { searchTracks as spotifySearch, ensureTrackCached } from '../services/spotify';
 import { getTodayStartUTC8 } from '../utils/date';
 
 const router = Router();
@@ -41,35 +41,8 @@ router.post('/submit', async (req: Request, res: Response) => {
     return;
   }
 
-  // Upsert track into tracks table (fetch from Spotify if not cached)
-  const { data: existingTrack } = await supabaseAdmin
-    .from('tracks')
-    .select('spotify_id')
-    .eq('spotify_id', track_id)
-    .maybeSingle();
-
-  if (!existingTrack) {
-    try {
-      const spotifyTrack = await getTrack(track_id);
-      const { error: upsertError } = await supabaseAdmin
-        .from('tracks')
-        .upsert({
-          spotify_id: spotifyTrack.spotify_id,
-          title: spotifyTrack.title,
-          artist: spotifyTrack.artist,
-          album: spotifyTrack.album,
-          cover_url: spotifyTrack.cover_url,
-          spotify_url: spotifyTrack.spotify_url,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'spotify_id' });
-
-      if (upsertError) {
-        console.warn('Failed to cache track:', upsertError.message);
-      }
-    } catch (err) {
-      console.warn('Failed to fetch track from Spotify:', err);
-    }
-  }
+  // Ensure track is cached in DB (fetches from Spotify if needed)
+  await ensureTrackCached(track_id);
 
   // Insert user recommendation
   const { error } = await supabaseAdmin

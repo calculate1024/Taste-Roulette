@@ -10,10 +10,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import * as Sharing from 'expo-sharing';
 import { useAppStore } from '../../store/appStore';
 import { getTodayCard, openCard, submitFeedback } from '../../services/api';
 import RouletteCard from '../../components/RouletteCard';
 import FeedbackSheet from '../../components/FeedbackSheet';
+import ShareCard from '../../components/ShareCard';
 import type { FeedbackReaction } from '../../../../packages/shared/types';
 
 export default function HomeScreen() {
@@ -26,6 +28,7 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [feedbackVisible, setFeedbackVisible] = useState(false);
+  const [showShareCard, setShowShareCard] = useState(false);
 
   const userId = session?.user?.id;
 
@@ -73,6 +76,19 @@ export default function HomeScreen() {
 
   const handleFeedbackClose = useCallback(() => {
     setFeedbackVisible(false);
+  }, []);
+
+  const handleSharePress = useCallback(() => {
+    setFeedbackVisible(false);
+    setShowShareCard(true);
+  }, []);
+
+  const handleShare = useCallback(async (uri: string) => {
+    await Sharing.shareAsync(uri, {
+      mimeType: 'image/png',
+      dialogTitle: '分享你的品味探索',
+    });
+    setShowShareCard(false);
   }, []);
 
   // Loading state
@@ -140,7 +156,22 @@ export default function HomeScreen() {
         tasteDistance={todayCard?.tasteDistance ?? 0.5}
         onSubmit={handleFeedbackSubmit}
         onClose={handleFeedbackClose}
+        onSharePress={handleSharePress}
       />
+
+      {/* Share card modal */}
+      {showShareCard && todayCard?.track && (
+        <ShareCard
+          track={{
+            title: todayCard.track.title,
+            artist: todayCard.track.artist,
+            coverUrl: todayCard.track.coverUrl ?? '',
+          }}
+          tasteDistance={todayCard.tasteDistance ?? 0.5}
+          onShare={handleShare}
+          onClose={() => setShowShareCard(false)}
+        />
+      )}
     </SafeAreaView>
   );
 }

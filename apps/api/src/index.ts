@@ -10,6 +10,9 @@ import recommendRouter from './routes/recommend';
 import profileRouter from './routes/profile';
 import matchingRouter from './routes/matching';
 import spotifyAuthRouter from './routes/spotify-auth';
+import curatorRouter from './routes/curator';
+import shareRouter from './routes/share';
+import twinsRouter from './routes/twins';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
@@ -30,6 +33,11 @@ app.use('/api/roulette', authMiddleware, rouletteRouter);
 app.use('/api/recommend', authMiddleware, recommendRouter);
 app.use('/api/profile', authMiddleware, profileRouter);
 app.use('/api/spotify', spotifyAuthRouter); // has mix of public/protected
+app.use('/api/curator', authMiddleware, curatorRouter);
+app.use('/api/twins', authMiddleware, twinsRouter);
+
+// Public routes (no auth middleware)
+app.use('/api/share', shareRouter);
 
 // Admin routes (API key, no auth middleware)
 app.use('/api/admin', matchingRouter);

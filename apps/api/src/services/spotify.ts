@@ -122,6 +122,39 @@ export async function searchTracks(query: string, limit = 20): Promise<SpotifyTr
   return data.tracks.items.map(mapTrack);
 }
 
+// ========== Track caching ==========
+
+import { supabaseAdmin } from './supabase';
+
+/**
+ * Ensure a track is cached in the tracks table.
+ * Fetches from Spotify if not already present.
+ */
+export async function ensureTrackCached(trackId: string): Promise<void> {
+  const { data: existing } = await supabaseAdmin
+    .from('tracks')
+    .select('spotify_id')
+    .eq('spotify_id', trackId)
+    .maybeSingle();
+
+  if (existing) return;
+
+  try {
+    const track = await getTrack(trackId);
+    await supabaseAdmin.from('tracks').upsert({
+      spotify_id: track.spotify_id,
+      title: track.title,
+      artist: track.artist,
+      album: track.album,
+      cover_url: track.cover_url,
+      spotify_url: track.spotify_url,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'spotify_id' });
+  } catch (err) {
+    console.warn('Failed to fetch/cache track from Spotify:', err);
+  }
+}
+
 // ========== OAuth Authorization Code Flow ==========
 
 const SPOTIFY_AUTH_BASE = 'https://accounts.spotify.com';

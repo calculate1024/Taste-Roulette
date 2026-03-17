@@ -85,3 +85,33 @@ export interface TasteJourneyData {
   tasteVector: number[];
   stats: UserStats;
 }
+
+// Phase 3: Taste Twins
+
+export interface TwinMatch {
+  anonymousId: string;
+  tasteLabel: string;
+  distance: number;
+  dominantGenres: string[];
+}
+
+export interface TasteTwinsData {
+  twins: TwinMatch[];
+  complements: TwinMatch[];
+}
+
+// Phase 3: Curator Program
+
+export interface CuratorStats {
+  totalRecommendations: number;
+  totalUsed: number;
+  totalSurprised: number;
+  inviteCodesRemaining: number;
+}
+
+export interface CuratorInvite {
+  code: string;
+  usedBy: string | null;
+  usedAt: string | null;
+  createdAt: string;
+}

@@ -1,0 +1,103 @@
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+
+interface TwinCardProps {
+  label: string;
+  distance: number;
+  type: 'twin' | 'complement';
+  dominantGenres: string[];
+}
+
+// Genre display names for tags
+const GENRE_DISPLAY: Record<string, string> = {
+  'pop': 'Pop',
+  'rock': 'Rock',
+  'hip-hop': 'Hip-Hop',
+  'r&b': 'R&B',
+  'jazz': 'Jazz',
+  'classical': 'Classical',
+  'electronic': 'Electronic',
+  'latin': 'Latin',
+  'country': 'Country',
+  'folk': 'Folk',
+  'metal': 'Metal',
+  'punk': 'Punk',
+  'indie': 'Indie',
+  'soul': 'Soul',
+  'blues': 'Blues',
+  'reggae': 'Reggae',
+  'world': 'World',
+  'ambient': 'Ambient',
+  'k-pop': 'K-Pop',
+  'j-pop': 'J-Pop',
+};
+
+export default function TwinCard({ label, distance, type, dominantGenres }: TwinCardProps) {
+  const isTwin = type === 'twin';
+  const accentColor = isTwin ? '#00B894' : '#6C5CE7';
+
+  // For twins: similarity = 1 - distance. For complements: complementarity = distance
+  const percentage = isTwin
+    ? Math.round((1 - distance) * 100)
+    : Math.round(distance * 100);
+
+  const percentLabel = isTwin ? '\u54C1\u5473\u76F8\u4F3C\u5EA6' : '\u54C1\u5473\u4E92\u88DC\u5EA6';
+
+  return (
+    <View style={[styles.card, { borderColor: accentColor }]}>
+      {/* Taste label */}
+      <Text style={[styles.label, { color: accentColor }]}>{label}</Text>
+
+      {/* Distance indicator */}
+      <Text style={styles.distanceText}>
+        {percentLabel} {percentage}%
+      </Text>
+
+      {/* Genre tags */}
+      <View style={styles.tagsRow}>
+        {dominantGenres.slice(0, 3).map((genre) => (
+          <View key={genre} style={[styles.tag, { borderColor: accentColor }]}>
+            <Text style={[styles.tagText, { color: accentColor }]}>
+              {GENRE_DISPLAY[genre] || genre}
+            </Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 20,
+    marginBottom: 12,
+  },
+  label: {
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  distanceText: {
+    fontSize: 14,
+    color: '#8E8E93',
+    marginBottom: 12,
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  tag: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  tagText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+});

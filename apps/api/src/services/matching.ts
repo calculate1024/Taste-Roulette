@@ -1,26 +1,10 @@
 import { supabaseAdmin } from './supabase';
 import { getTodayStartUTC8 } from '../utils/date';
 import { VECTOR_DIM, REACTION_WEIGHTS, genreToVector } from '../utils/genres';
+import { cosineDistance } from '../utils/vector';
 
 const SWEET_SPOT_MIN = 0.3;
 const SWEET_SPOT_MAX = 0.7;
-
-// --- Vector math utilities ---
-
-/** Cosine distance between two vectors. Returns 1.0 for zero/empty vectors. */
-function cosineDistance(a: number[], b: number[]): number {
-  if (a.length === 0 || b.length === 0) return 1.0;
-  let dot = 0;
-  let normA = 0;
-  let normB = 0;
-  for (let i = 0; i < a.length; i++) {
-    dot += a[i] * b[i];
-    normA += a[i] * a[i];
-    normB += b[i] * b[i];
-  }
-  if (normA === 0 || normB === 0) return 1.0;
-  return 1 - dot / (Math.sqrt(normA) * Math.sqrt(normB));
-}
 
 /** Compute taste vector from onboarding responses. Same algorithm as Python taste_engine.py. */
 export async function computeTasteVector(userId: string): Promise<number[]> {
@@ -124,7 +108,7 @@ export async function runDailyMatching(): Promise<MatchingSummary> {
   // 1. Get all active users (onboarding_completed = true)
   const { data: users, error: usersError } = await supabaseAdmin
     .from('profiles')
-    .select('id, taste_vector')
+    .select('id, taste_vector, curator_weight')
     .eq('onboarding_completed', true);
 
   if (usersError || !users || users.length === 0) {
@@ -151,17 +135,21 @@ export async function runDailyMatching(): Promise<MatchingSummary> {
   }
 
   // 3. Get available unused recommendations from the pool
+  // Include is_curator_pick flag so we can prioritize curator recommendations
   const { data: poolRecs } = await supabaseAdmin
     .from('user_recommendations')
-    .select('id, user_id, track_id, reason')
+    .select('id, user_id, track_id, reason, is_curator_pick')
     .eq('used', false);
 
   const availableRecs = poolRecs || [];
 
-  // Build a lookup of recommender taste vectors (we already have user profiles)
+  // Build a lookup of recommender taste vectors and curator weights
   const userVectorMap: Record<string, number[]> = {};
+  const curatorWeightMap: Record<string, number> = {};
   for (const u of users) {
     userVectorMap[u.id] = u.taste_vector || [];
+    // Store curator weight for priority sorting (default 1.0 for non-curators)
+    curatorWeightMap[u.id] = (u as any).curator_weight || 1.0;
   }
 
   // 4. For each user without today's card, try to match
@@ -172,8 +160,11 @@ export async function runDailyMatching(): Promise<MatchingSummary> {
     let matched = false;
 
     if (hasVector && availableRecs.length > 0) {
-      // Try to find a recommendation from the pool within the sweet spot
-      type ScoredRec = { rec: typeof availableRecs[0]; dist: number };
+      // Try to find a recommendation from the pool within the sweet spot.
+      // Curator picks get priority: they are sorted first, weighted by the
+      // recommender's curator_weight (default 1.5). Among same-priority
+      // recommendations, prefer distance closest to 0.5 (maximum surprise).
+      type ScoredRec = { rec: typeof availableRecs[0]; dist: number; isCurator: boolean; weight: number };
       const scored: ScoredRec[] = [];
 
       for (const rec of availableRecs) {
@@ -185,12 +176,21 @@ export async function runDailyMatching(): Promise<MatchingSummary> {
 
         const dist = cosineDistance(userVector, recommenderVector);
         if (dist >= SWEET_SPOT_MIN && dist <= SWEET_SPOT_MAX) {
-          scored.push({ rec, dist });
+          const isCurator = rec.is_curator_pick === true;
+          const weight = isCurator ? (curatorWeightMap[rec.user_id] || 1.5) : 1.0;
+          scored.push({ rec, dist, isCurator, weight });
         }
       }
 
-      // Prefer distance closest to 0.5 (maximum surprise)
-      scored.sort((a, b) => Math.abs(a.dist - 0.5) - Math.abs(b.dist - 0.5));
+      // Sort: curator picks first (by weight descending), then by distance to 0.5
+      scored.sort((a, b) => {
+        // Curator picks come before non-curator picks
+        if (a.isCurator !== b.isCurator) return a.isCurator ? -1 : 1;
+        // Among curators, higher weight first
+        if (a.isCurator && b.isCurator && a.weight !== b.weight) return b.weight - a.weight;
+        // Then by distance to the sweet spot center (0.5)
+        return Math.abs(a.dist - 0.5) - Math.abs(b.dist - 0.5);
+      });
 
       if (scored.length > 0) {
         const best = scored[0];
