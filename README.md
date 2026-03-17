@@ -17,12 +17,14 @@ Every day you receive one music recommendation from a stranger whose taste is *d
 |-------|-----------|
 | Mobile | React Native (Expo) + Expo Router |
 | Backend API | Node.js + Express + TypeScript |
-| Recommendation Engine | Python + FastAPI + NumPy/SciPy |
+| Matching Engine | TypeScript (in API server) |
 | Database & Auth | Supabase (PostgreSQL + Auth + RLS) |
 | Music Data | Spotify Web API |
-| Audio Playback | Spotify Embed (WebView) |
+| Audio Playback | Spotify Embed (WebView) + deep link fallback |
 | Push Notifications | Expo Push Notifications |
 | State Management | Zustand + AsyncStorage |
+| Deployment | Vercel (API) + EAS Build (Mobile) |
+| Monitoring | Sentry (error tracking) + PostHog (analytics) |
 
 ## Project Structure
 
@@ -41,7 +43,7 @@ taste-roulette/
 │   │       ├── services/    # Business logic
 │   │       ├── middleware/  # Auth middleware
 │   │       └── utils/       # Shared utilities
-│   └── recommender/         # Python taste engine
+│   └── recommender/         # Python taste engine (backup, not deployed)
 │       └── app/
 │           ├── main.py      # FastAPI endpoints
 │           ├── taste_engine.py
@@ -66,9 +68,9 @@ taste-roulette/
 - Daily roulette card with flip animation
 - Spotify Embed audio player (WebView)
 - Three-tier feedback (Surprised / OK / Not for me)
-- Recommend-back flow with Spotify search
+- Recommend-back flow with Spotify search + bonus card incentive
 - Daily matching engine with taste distance sweet spot (cosine distance 0.3-0.7)
-- Curator fallback for cold start
+- Curator fallback for cold start and bonus rewards
 
 ### Phase 2: Stickiness
 - Taste Journey radar chart (6-axis genre visualization)
@@ -181,6 +183,16 @@ Sweet Spot: distance 0.3-0.7 (prefer ~0.5 for maximum surprise)
 | POST | `/api/admin/match` | API Key | Trigger daily matching |
 | POST | `/api/notifications/send-daily` | API Key | Send daily push |
 | GET | `/api/share/:cardId` | Public | OG meta for shared cards |
+
+## Deployment
+
+| Service | URL | Notes |
+|---------|-----|-------|
+| API (Vercel) | `taste-roulette-*.vercel.app` | Auto-deploy from `main` branch |
+| Mobile (EAS) | Expo Dev Build | `eas build --profile preview` for APK |
+| Database | Supabase Cloud | PostgreSQL + Auth + RLS |
+| Error Tracking | Sentry | Alerts on new issues via email |
+| Analytics | PostHog | Product analytics (events, funnels) |
 
 ## Known Limitations
 
