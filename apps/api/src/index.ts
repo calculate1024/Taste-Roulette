@@ -11,6 +11,8 @@ import rouletteRouter from './routes/roulette';
 import recommendRouter from './routes/recommend';
 import profileRouter from './routes/profile';
 import matchingRouter from './routes/matching';
+import { runDailyMatching } from './services/matching';
+import { sendDailyNotifications } from './services/notifications';
 import spotifyAuthRouter from './routes/spotify-auth';
 import curatorRouter from './routes/curator';
 import shareRouter from './routes/share';
@@ -60,6 +62,32 @@ app.use('/api/share', shareRouter);
 // Admin routes (API key, no auth middleware)
 app.use('/api/admin', matchingRouter);
 app.use('/api/notifications', notificationsRouter);
+
+// Vercel Cron route — called daily at UTC 00:00 (= UTC+8 08:00)
+app.get('/api/cron/daily', async (req, res) => {
+  // Verify Vercel cron secret (auto-injected as Authorization header)
+  const authHeader = req.headers['authorization'];
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  try {
+    const matchingSummary = await runDailyMatching();
+    const notificationsSent = await sendDailyNotifications();
+
+    res.json({
+      ok: true,
+      matching: matchingSummary,
+      notifications_sent: notificationsSent,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err: any) {
+    console.error('Daily cron failed:', err);
+    res.status(500).json({ error: 'Cron job failed', message: err.message });
+  }
+});
 
 // Sentry error handler (must be after routes)
 if (SENTRY_DSN) {

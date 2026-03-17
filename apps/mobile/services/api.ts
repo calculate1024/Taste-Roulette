@@ -174,44 +174,43 @@ export async function submitFeedback(
 }
 
 /**
- * Search tracks via Spotify metadata in our tracks table.
- * Falls back to mock data if Supabase is not configured.
+ * Search tracks via Spotify Web API (through backend endpoint).
+ * Returns results from the full Spotify catalog, not just cached tracks.
  */
 export async function searchTracks(query: string): Promise<Track[]> {
-  if (!isSupabaseConfigured()) {
-    // Filter mock data by query
-    const q = query.toLowerCase();
-    return MOCK_SEARCH_RESULTS.filter(
-      (t) =>
-        t.title.toLowerCase().includes(q) ||
-        t.artist.toLowerCase().includes(q)
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  try {
+    const res = await fetch(
+      `${apiUrl}/api/recommend/search?q=${encodeURIComponent(query)}`,
+      {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      }
     );
+
+    if (!res.ok) return [];
+
+    const json = await res.json();
+    return (json.tracks || []).map((t: Record<string, unknown>) => ({
+      spotifyId: t.spotify_id as string,
+      title: t.title as string,
+      artist: t.artist as string,
+      album: (t.album as string) ?? null,
+      coverUrl: (t.cover_url as string) ?? null,
+      spotifyUrl: (t.spotify_url as string) ?? null,
+      artistId: null,
+      genres: [],
+      popularity: null,
+      moodTags: [],
+      updatedAt: new Date().toISOString(),
+    }));
+  } catch {
+    return [];
   }
-
-  // Escape special PostgREST characters
-  const sanitized = query.replace(/[%_\\]/g, '\\$&').replace(/,/g, '');
-
-  const { data, error } = await supabase
-    .from('tracks')
-    .select('*')
-    .or(`title.ilike.%${sanitized}%,artist.ilike.%${sanitized}%`)
-    .limit(20);
-
-  if (error || !data) return [];
-
-  return data.map((t: Record<string, unknown>) => ({
-    spotifyId: t.spotify_id as string,
-    title: t.title as string,
-    artist: t.artist as string,
-    album: (t.album as string) ?? null,
-    coverUrl: (t.cover_url as string) ?? null,
-    spotifyUrl: (t.spotify_url as string) ?? null,
-    artistId: (t.artist_id as string) ?? null,
-    genres: (t.genres as string[]) ?? [],
-    popularity: (t.popularity as number) ?? null,
-    moodTags: (t.mood_tags as string[]) ?? [],
-    updatedAt: t.updated_at as string,
-  }));
 }
 
 /**

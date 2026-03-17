@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
+import { router } from 'expo-router';
 import { supabase } from '../services/supabase';
 import { useAppStore } from '../store/appStore';
 
@@ -89,9 +90,9 @@ export function useNotifications() {
     responseListener.current = Notifications.addNotificationResponseReceivedListener(
       (response) => {
         const data = response.notification.request.content.data;
-        // Navigate to the card if there's a card_id
+        // Navigate to daily card when user taps notification
         if (data?.card_id) {
-          // TODO: navigate to card detail
+          router.navigate('/(tabs)/home');
         }
       }
     );
