@@ -20,7 +20,15 @@
           "color": "#6C5CE7"
         }
       ],
-      ["@sentry/react-native", { "organization": "taste-roulette", "project": "taste-roulette-mobile", "enableAutoUploadSourceMaps": false }]
+      [
+        "@sentry/react-native",
+        {
+          "organization": "taste-roulette",
+          "project": "taste-roulette-mobile",
+          "enableAutoUploadSourceMaps": false
+        }
+      ],
+      "expo-font"
     ],
     "ios": {
       "supportsTablet": true,

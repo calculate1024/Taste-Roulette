@@ -22,8 +22,19 @@ export default function SpotifyConnectScreen() {
 
   // Handle deep link return from Spotify OAuth
   useEffect(() => {
-    const handleDeepLink = (event: { url: string }) => {
+    const handleDeepLink = async (event: { url: string }) => {
       if (event.url.includes('spotify-connected')) {
+        // Trigger Spotify data import to enrich taste vector
+        try {
+          const headers = await getAuthHeaders();
+          await fetch(`${API_BASE}/api/spotify/import`, {
+            method: 'POST',
+            headers,
+          });
+        } catch (err) {
+          // Import is best-effort; don't block navigation
+          console.warn('Spotify import failed:', err);
+        }
         router.replace('/(tabs)/profile');
       } else if (event.url.includes('spotify-error')) {
         setLoading(false);
