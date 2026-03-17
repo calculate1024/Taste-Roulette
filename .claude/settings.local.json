@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(npx --version)",
+      "Bash(npx --yes create-expo-app@latest apps/mobile --template blank-typescript)",
+      "Bash(npm install:*)",
+      "Bash(npx tsx:*)",
+      "Bash(curl -s \"https://open.spotify.com/oembed?url=https://open.spotify.com/track/4u7EnebtmKWzUH433cf5Qv\")",
+      "WebFetch(domain:developer.spotify.com)"
+    ]
+  }
+}
