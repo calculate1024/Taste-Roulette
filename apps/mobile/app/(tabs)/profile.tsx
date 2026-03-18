@@ -7,13 +7,15 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
 import { useAppStore } from '../../store/appStore';
 import { supabase, getAuthHeaders } from '../../services/supabase';
 import { getProfile, type ProfileStats } from '../../services/api';
+import CountingNumber from '../../components/CountingNumber';
+import { colors, spacing, radius, typo, layout, shadow } from '../../constants/theme';
 
-const SPOTIFY_GREEN = '#1DB954';
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
 export default function ProfileScreen() {
@@ -96,47 +98,51 @@ export default function ProfileScreen() {
     router.replace('/login');
   };
 
+  const statItems = [
+    { label: '收到卡片', value: stats?.totalCards ?? 0 },
+    { label: '驚喜次數', value: stats?.surprisedCount ?? 0 },
+    { label: '連續天數', value: stats?.streakCount ?? 0 },
+  ];
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
+      <Animated.View entering={FadeIn.duration(400)} style={styles.content}>
         <Text style={styles.title}>個人檔案</Text>
         <Text style={styles.subtitle}>你的品味旅程從這裡開始</Text>
 
         {loading ? (
           <ActivityIndicator
             size="small"
-            color="#6C5CE7"
+            color={colors.accent}
             style={styles.loader}
           />
         ) : (
           <View style={styles.statsRow}>
-            <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{stats?.totalCards ?? 0}</Text>
-              <Text style={styles.statLabel}>收到卡片</Text>
-            </View>
-            <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{stats?.surprisedCount ?? 0}</Text>
-              <Text style={styles.statLabel}>驚喜次數</Text>
-            </View>
-            <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{stats?.streakCount ?? 0}</Text>
-              <Text style={styles.statLabel}>連續天數</Text>
-            </View>
+            {statItems.map((item, index) => (
+              <Animated.View
+                key={item.label}
+                entering={FadeIn.delay(index * 100).duration(400)}
+                style={styles.statBox}
+              >
+                <CountingNumber value={item.value} style={styles.statNumber} />
+                <Text style={styles.statLabel}>{item.label}</Text>
+              </Animated.View>
+            ))}
           </View>
         )}
 
         {/* Impact section — only show if user has made recommendations */}
         {stats && stats.impactSurprised > 0 && (
-          <View style={styles.impactSection}>
+          <Animated.View entering={FadeIn.delay(300).duration(400)} style={styles.impactSection}>
             <Text style={styles.impactTitle}>你的推薦影響力</Text>
             <View style={styles.impactRow}>
               <Text style={styles.impactEmoji}>🎉</Text>
               <View>
-                <Text style={styles.impactNumber}>{stats.impactSurprised}</Text>
+                <CountingNumber value={stats.impactSurprised} style={styles.impactNumber} />
                 <Text style={styles.impactLabel}>讓人驚喜</Text>
               </View>
             </View>
-          </View>
+          </Animated.View>
         )}
 
         <Text style={styles.email}>{session?.user?.email}</Text>
@@ -162,7 +168,7 @@ export default function ProfileScreen() {
                 disabled={disconnecting}
               >
                 {disconnecting ? (
-                  <ActivityIndicator color="#E74C3C" size="small" />
+                  <ActivityIndicator color={colors.error} size="small" />
                 ) : (
                   <Text style={styles.disconnectText}>取消連結</Text>
                 )}
@@ -185,74 +191,73 @@ export default function ProfileScreen() {
         <Pressable style={styles.signOutButton} onPress={handleSignOut}>
           <Text style={styles.signOutText}>登出</Text>
         </Pressable>
-      </View>
+      </Animated.View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#0F0F1A',
+    ...layout.screen,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 32,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xxl,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 4,
+    ...typo.title,
+    marginBottom: spacing.xs,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#8E8E93',
-    marginBottom: 32,
+    ...typo.body,
+    color: colors.textSecondary,
+    marginBottom: spacing.xxl,
   },
   loader: {
-    marginBottom: 48,
+    marginBottom: spacing.xxxl,
   },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 48,
+    marginBottom: spacing.xxxl,
   },
   statBox: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 12,
-    paddingVertical: 16,
-    marginHorizontal: 4,
+    backgroundColor: colors.bgElevated,
+    borderRadius: radius.md,
+    paddingVertical: spacing.lg,
+    marginHorizontal: spacing.xs,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: colors.border,
+    ...shadow.soft,
   },
   statNumber: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#6C5CE7',
+    color: colors.accent,
   },
   statLabel: {
     fontSize: 12,
-    color: '#8E8E93',
-    marginTop: 4,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
   },
   // Impact section
   impactSection: {
-    backgroundColor: 'rgba(108,92,231,0.1)',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    backgroundColor: colors.accentDim,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
     borderWidth: 1,
     borderColor: 'rgba(108,92,231,0.2)',
+    ...shadow.soft,
   },
   impactTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#8E8E93',
-    marginBottom: 12,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
   },
   impactRow: {
     flexDirection: 'row',
@@ -260,35 +265,35 @@ const styles = StyleSheet.create({
   },
   impactEmoji: {
     fontSize: 32,
-    marginRight: 16,
+    marginRight: spacing.lg,
   },
   impactNumber: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#6C5CE7',
+    color: colors.accent,
   },
   impactLabel: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   email: {
     fontSize: 14,
-    color: '#6C5CE7',
-    marginBottom: 24,
+    color: colors.accent,
+    marginBottom: spacing.xl,
   },
   spotifySection: {
-    marginBottom: 32,
+    marginBottom: spacing.xxl,
   },
   spotifyConnectButton: {
-    backgroundColor: SPOTIFY_GREEN,
+    backgroundColor: colors.spotify,
     paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 24,
+    paddingHorizontal: spacing.xl,
+    borderRadius: spacing.xl,
     alignItems: 'center',
   },
   spotifyConnectText: {
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     fontSize: 15,
     fontWeight: '600',
   },
@@ -296,9 +301,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(29, 185, 84, 0.1)',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: colors.spotifyDim,
+    borderRadius: radius.md,
+    padding: spacing.lg,
     borderWidth: 1,
     borderColor: 'rgba(29, 185, 84, 0.3)',
   },
@@ -311,47 +316,47 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: SPOTIFY_GREEN,
-    marginRight: 12,
+    backgroundColor: colors.spotify,
+    marginRight: spacing.md,
   },
   spotifyConnectedText: {
-    color: SPOTIFY_GREEN,
+    color: colors.spotify,
     fontSize: 14,
     fontWeight: '600',
   },
   spotifyNameText: {
-    color: '#8E8E93',
+    color: colors.textSecondary,
     fontSize: 12,
     marginTop: 2,
   },
   disconnectButton: {
     paddingVertical: 6,
-    paddingHorizontal: 12,
+    paddingHorizontal: spacing.md,
   },
   disconnectText: {
-    color: '#E74C3C',
+    color: colors.error,
     fontSize: 13,
   },
   resetButton: {
     alignSelf: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    borderRadius: radius.sm,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    marginBottom: 16,
+    borderColor: colors.border,
+    marginBottom: spacing.lg,
   },
   resetText: {
-    color: '#666',
+    color: colors.textSecondary,
     fontSize: 14,
   },
   signOutButton: {
     alignSelf: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
   },
   signOutText: {
-    color: '#E74C3C',
+    color: colors.error,
     fontSize: 14,
   },
 });

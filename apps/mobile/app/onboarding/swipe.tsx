@@ -18,11 +18,13 @@ import Animated, {
   withSpring,
   withTiming,
   runOnJS,
+  FadeIn,
 } from 'react-native-reanimated';
 import { useAppStore } from '../../store/appStore';
 import { supabase } from '../../services/supabase';
 import { getAuthHeaders } from '../../services/supabase';
 import { ONBOARDING_TRACKS, OnboardingTrack } from '../../constants/mockTracks';
+import { colors, spacing, radius, typo, layout, shadow } from '../../constants/theme';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -280,7 +282,7 @@ export default function OnboardingSwipeScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator color="#6C5CE7" size="large" />
+          <ActivityIndicator color={colors.accent} size="large" />
           <Text style={styles.loadingText}>
             {source === 'spotify' ? 'Loading your music...' : 'Preparing tracks...'}
           </Text>
@@ -297,7 +299,7 @@ export default function OnboardingSwipeScreen() {
   if (showEarlyExit) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.earlyExitContainer}>
+        <Animated.View entering={FadeIn.duration(400)} style={styles.earlyExitContainer}>
           <Text style={styles.earlyExitEmoji}>🎯</Text>
           <Text style={styles.earlyExitTitle}>We've got your vibe!</Text>
           <Text style={styles.earlyExitSubtitle}>
@@ -305,7 +307,7 @@ export default function OnboardingSwipeScreen() {
           </Text>
           <Pressable style={styles.earlyExitButton} onPress={finishOnboarding} disabled={loading}>
             {loading ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
+              <ActivityIndicator color={colors.textPrimary} size="small" />
             ) : (
               <Text style={styles.earlyExitButtonText}>Let's go!</Text>
             )}
@@ -321,13 +323,14 @@ export default function OnboardingSwipeScreen() {
               Keep swiping ({totalCards - currentIndex - 1} left)
             </Text>
           </Pressable>
-        </View>
+        </Animated.View>
       </SafeAreaView>
     );
   }
 
   return (
       <SafeAreaView style={styles.container}>
+        <Animated.View entering={FadeIn.duration(400)} style={{ flex: 1 }}>
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>What's your vibe?</Text>
@@ -390,168 +393,164 @@ export default function OnboardingSwipeScreen() {
           ↑ swipe up: okay{'\n'}
           → swipe right: love it
         </Text>
+        </Animated.View>
       </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#0F0F1A',
+    ...layout.screen,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 16,
+    gap: spacing.lg,
   },
   loadingText: {
     fontSize: 16,
-    color: '#999',
+    color: colors.textSecondary,
   },
   fallbackNotice: {
     fontSize: 12,
-    color: '#FF9F43',
+    color: colors.warning,
     textAlign: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 8,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.sm,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 8,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.sm,
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textPrimary,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: '#999',
+    color: colors.textSecondary,
   },
   progressBar: {
     height: 4,
-    backgroundColor: '#1A1A2E',
-    marginHorizontal: 24,
-    marginTop: 12,
+    backgroundColor: colors.bgCard,
+    marginHorizontal: spacing.xl,
+    marginTop: spacing.md,
     borderRadius: 2,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#6C5CE7',
+    backgroundColor: colors.accent,
     borderRadius: 2,
   },
   cardContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.xl,
   },
   card: {
-    backgroundColor: '#1A1A2E',
-    borderRadius: 20,
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.xl,
     overflow: 'hidden',
-    shadowColor: '#6C5CE7',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    ...shadow.card,
   },
   coverImage: {
     width: '100%',
     aspectRatio: 1,
-    backgroundColor: '#2A2A3E',
+    backgroundColor: colors.border,
   },
   cardInfo: {
-    padding: 20,
+    padding: spacing.xl,
   },
   trackTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 4,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
   },
   trackArtist: {
     fontSize: 16,
-    color: '#BBBBBB',
-    marginBottom: 8,
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
   },
   trackGenres: {
-    fontSize: 13,
-    color: '#6C5CE7',
+    ...typo.caption,
+    color: colors.accent,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   hints: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingHorizontal: 32,
-    paddingBottom: 8,
+    paddingHorizontal: spacing.xxl,
+    paddingBottom: spacing.sm,
   },
   hintButton: {
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 20,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xl,
   },
   hintEmoji: {
     fontSize: 28,
   },
   hintText: {
     fontSize: 12,
-    color: '#999',
-    marginTop: 4,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
   },
   instructions: {
     textAlign: 'center',
-    fontSize: 11,
-    color: '#555',
-    paddingBottom: 8,
+    ...typo.small,
+    color: colors.textHint,
+    paddingBottom: spacing.sm,
     lineHeight: 18,
   },
   earlyExitContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: spacing.xxl,
   },
   earlyExitEmoji: {
     fontSize: 64,
-    marginBottom: 24,
+    marginBottom: spacing.xl,
   },
   earlyExitTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 12,
+    color: colors.textPrimary,
+    marginBottom: spacing.md,
     textAlign: 'center',
   },
   earlyExitSubtitle: {
     fontSize: 16,
-    color: '#999',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 40,
     lineHeight: 24,
   },
   earlyExitButton: {
-    backgroundColor: '#6C5CE7',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 48,
-    marginBottom: 16,
+    backgroundColor: colors.accent,
+    borderRadius: radius.md,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.xxxl,
+    marginBottom: spacing.lg,
   },
   earlyExitButtonText: {
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     fontSize: 18,
     fontWeight: '700',
   },
   earlyExitContinue: {
-    paddingVertical: 12,
+    paddingVertical: spacing.md,
   },
   earlyExitContinueText: {
-    color: '#6C5CE7',
+    color: colors.accent,
     fontSize: 14,
   },
 });

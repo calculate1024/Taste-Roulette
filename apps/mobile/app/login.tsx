@@ -11,7 +11,9 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { supabase } from '../services/supabase';
+import { colors, spacing, radius, typo, layout } from '../constants/theme';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -28,9 +30,14 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        Alert.alert('Check your email', 'We sent you a confirmation link.');
+        // If email confirmation is disabled, session is returned immediately
+        if (data.session) {
+          router.replace('/');
+        } else {
+          Alert.alert('Check your email', 'We sent you a confirmation link. Check spam folder too.');
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -45,114 +52,116 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.content}
-      >
-        <Text style={styles.emoji}>🎲</Text>
-        <Text style={styles.title}>Taste Roulette</Text>
-        <Text style={styles.subtitle}>Discover music outside your comfort zone</Text>
+      <Animated.View entering={FadeIn.duration(400)} style={styles.flex}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.content}
+        >
+          <Text style={styles.emoji}>🎲</Text>
+          <Text style={styles.title}>Taste Roulette</Text>
+          <Text style={styles.subtitle}>Discover music outside your comfort zone</Text>
 
-        <View style={styles.form}>
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor="#666"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor="#666"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-          <Pressable
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleAuth}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? '...' : isSignUp ? 'Sign Up' : 'Sign In'}
+          <View style={styles.form}>
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              placeholderTextColor={colors.textHint}
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              placeholderTextColor={colors.textHint}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+            <Pressable
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={handleAuth}
+              disabled={loading}
+            >
+              <Text style={styles.buttonText}>
+                {loading ? '...' : isSignUp ? 'Sign Up' : 'Sign In'}
+              </Text>
+            </Pressable>
+          </View>
+
+          <Pressable onPress={() => setIsSignUp(!isSignUp)}>
+            <Text style={styles.toggleText}>
+              {isSignUp
+                ? 'Already have an account? Sign In'
+                : "Don't have an account? Sign Up"}
             </Text>
           </Pressable>
-        </View>
-
-        <Pressable onPress={() => setIsSignUp(!isSignUp)}>
-          <Text style={styles.toggleText}>
-            {isSignUp
-              ? 'Already have an account? Sign In'
-              : "Don't have an account? Sign Up"}
-          </Text>
-        </Pressable>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </Animated.View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    ...layout.screen,
+  },
+  flex: {
     flex: 1,
-    backgroundColor: '#0F0F1A',
   },
   content: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: spacing.xxl,
   },
   emoji: {
     fontSize: 56,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#FFFFFF',
+    ...typo.hero,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#999',
+    ...typo.body,
+    color: colors.textSecondary,
     textAlign: 'center',
-    marginBottom: 48,
+    marginBottom: spacing.xxxl,
   },
   form: {
-    gap: 12,
-    marginBottom: 24,
+    gap: spacing.md,
+    marginBottom: spacing.xl,
   },
   input: {
-    backgroundColor: '#1A1A2E',
-    borderRadius: 12,
-    paddingHorizontal: 16,
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.lg,
     paddingVertical: 14,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     borderWidth: 1,
-    borderColor: '#2A2A3E',
+    borderColor: colors.border,
   },
   button: {
-    backgroundColor: '#6C5CE7',
-    borderRadius: 12,
-    paddingVertical: 16,
+    backgroundColor: colors.accent,
+    borderRadius: radius.md,
+    paddingVertical: spacing.lg,
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: spacing.xs,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     fontSize: 16,
     fontWeight: '700',
   },
   toggleText: {
-    color: '#6C5CE7',
+    color: colors.accent,
     textAlign: 'center',
     fontSize: 14,
   },

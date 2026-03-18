@@ -3,11 +3,11 @@ import {
   View,
   Text,
   StyleSheet,
-  ActivityIndicator,
   RefreshControl,
   ScrollView,
   Pressable,
 } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as Sharing from 'expo-sharing';
@@ -18,6 +18,9 @@ import RouletteCard from '../../components/RouletteCard';
 import FeedbackSheet from '../../components/FeedbackSheet';
 import ShareCard from '../../components/ShareCard';
 import YesterdayEchoToast from '../../components/YesterdayEcho';
+import BlurBackground from '../../components/BlurBackground';
+import SkeletonCard from '../../components/SkeletonCard';
+import { colors, spacing, radius, typo, button, layout, shadow } from '../../constants/theme';
 import type { FeedbackReaction } from '../../../../packages/shared/types';
 
 export default function HomeScreen() {
@@ -99,9 +102,9 @@ export default function HomeScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
+        <BlurBackground imageUrl={null} />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#6C5CE7" />
-          <Text style={styles.loadingText}>正在載入今日推薦...</Text>
+          <SkeletonCard />
         </View>
       </SafeAreaView>
     );
@@ -109,68 +112,71 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor="#6C5CE7"
-          />
-        }
-      >
-        {/* Yesterday's echo toast */}
-        {echo && (
-          <YesterdayEchoToast echo={echo} onDismiss={() => setEcho(null)} />
-        )}
+      <BlurBackground imageUrl={todayCard?.track?.coverUrl ?? null} />
+      <Animated.View entering={FadeIn.duration(400)} style={styles.animatedContent}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.accent}
+            />
+          }
+        >
+          {/* Yesterday's echo toast */}
+          {echo && (
+            <YesterdayEchoToast echo={echo} onDismiss={() => setEcho(null)} />
+          )}
 
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>今日驚喜</Text>
-          <Text style={styles.headerSubtitle}>
-            {todayCard ? '有人為你推薦了一首歌' : '今天沒有新推薦'}
-          </Text>
-        </View>
-
-        {/* Card or empty state */}
-        <RouletteCard
-          card={todayCard}
-          onFeedback={() => setFeedbackVisible(true)}
-        />
-
-        {/* Post-feedback: recommend-back prompt */}
-        {feedbackGiven && (
-          <View style={styles.recommendPrompt}>
-            <Text style={styles.recommendTitle}>輪到你了！</Text>
-            <Text style={styles.recommendSubtitle}>
-              推薦一首歌給另一位陌生人
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>今日驚喜</Text>
+            <Text style={styles.headerSubtitle}>
+              {todayCard ? '有人為你推薦了一首歌' : '今天沒有新推薦'}
             </Text>
-            <Pressable
-              style={styles.recommendButton}
-              onPress={() => {
-                const track = todayCard?.track;
-                if (track) {
-                  router.push({
-                    pathname: '/recommend',
-                    params: {
-                      contextTitle: track.title,
-                      contextArtist: track.artist,
-                      contextGenre: track.genres?.[0] || '',
-                    },
-                  });
-                } else {
-                  router.push('/recommend');
-                }
-              }}
-            >
-              <Text style={styles.recommendButtonText}>去推薦</Text>
-            </Pressable>
-            <Pressable style={styles.skipButton}>
-              <Text style={styles.skipText}>下次再說</Text>
-            </Pressable>
           </View>
-        )}
-      </ScrollView>
+
+          {/* Card or empty state */}
+          <RouletteCard
+            card={todayCard}
+            onFeedback={() => setFeedbackVisible(true)}
+          />
+
+          {/* Post-feedback: recommend-back prompt */}
+          {feedbackGiven && (
+            <View style={styles.recommendPrompt}>
+              <Text style={styles.recommendTitle}>輪到你了！</Text>
+              <Text style={styles.recommendSubtitle}>
+                推薦一首歌給另一位陌生人
+              </Text>
+              <Pressable
+                style={styles.recommendButton}
+                onPress={() => {
+                  const track = todayCard?.track;
+                  if (track) {
+                    router.push({
+                      pathname: '/recommend',
+                      params: {
+                        contextTitle: track.title,
+                        contextArtist: track.artist,
+                        contextGenre: track.genres?.[0] || '',
+                      },
+                    });
+                  } else {
+                    router.push('/recommend');
+                  }
+                }}
+              >
+                <Text style={styles.recommendButtonText}>去推薦</Text>
+              </Pressable>
+              <Pressable style={styles.skipButton}>
+                <Text style={styles.skipText}>下次再說</Text>
+              </Pressable>
+            </View>
+          )}
+        </ScrollView>
+      </Animated.View>
 
       {/* Feedback bottom sheet */}
       <FeedbackSheet
@@ -201,81 +207,70 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    ...layout.screen,
+  },
+  animatedContent: {
     flex: 1,
-    backgroundColor: '#0F0F1A',
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 32,
+    paddingBottom: spacing.xxl,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 14,
-    color: '#8E8E93',
-    marginTop: 16,
+    ...layout.center,
   },
 
   // Header
   header: {
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 8,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.sm,
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 4,
+    ...typo.title,
+    marginBottom: spacing.xs,
   },
   headerSubtitle: {
-    fontSize: 16,
-    color: '#8E8E93',
+    ...typo.body,
+    color: colors.textSecondary,
   },
 
   // Recommend-back prompt
   recommendPrompt: {
-    marginTop: 24,
-    marginHorizontal: 24,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 16,
-    padding: 24,
+    marginTop: spacing.xl,
+    marginHorizontal: spacing.xl,
+    backgroundColor: colors.bgElevated,
+    borderRadius: radius.lg,
+    padding: spacing.xl,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: colors.border,
   },
   recommendTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 8,
+    ...typo.heading,
+    marginBottom: spacing.sm,
   },
   recommendSubtitle: {
     fontSize: 14,
-    color: '#8E8E93',
-    marginBottom: 20,
+    color: colors.textSecondary,
+    marginBottom: spacing.xl,
     textAlign: 'center',
   },
   recommendButton: {
-    backgroundColor: '#6C5CE7',
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 48,
-    marginBottom: 12,
+    ...button.primary,
+    paddingHorizontal: spacing.xxxl,
+    marginBottom: spacing.md,
   },
   recommendButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+    ...button.label,
     fontWeight: '700',
   },
   skipButton: {
-    paddingVertical: 8,
+    paddingVertical: spacing.sm,
   },
   skipText: {
-    color: '#8E8E93',
+    color: colors.textSecondary,
     fontSize: 14,
   },
 });

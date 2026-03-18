@@ -9,10 +9,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useAppStore } from '../../store/appStore';
 import { getAuthHeaders } from '../../services/supabase';
+import { colors, spacing, radius, typo, layout } from '../../constants/theme';
 
-const SPOTIFY_GREEN = '#1DB954';
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
 export default function OnboardingGatewayScreen() {
@@ -76,7 +77,7 @@ export default function OnboardingGatewayScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
+      <Animated.View entering={FadeIn.duration(400)} style={styles.content}>
         {/* Icon */}
         <View style={styles.iconContainer}>
           <View style={styles.spotifyIcon}>
@@ -100,7 +101,7 @@ export default function OnboardingGatewayScreen() {
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color="#FFFFFF" size="small" />
+            <ActivityIndicator color={colors.textPrimary} size="small" />
           ) : (
             <Text style={styles.spotifyButtonText}>
               {'\u9023\u7D50 Spotify\uFF0C\u7528\u4F60\u7684\u97F3\u6A02\u958B\u59CB'}
@@ -114,82 +115,77 @@ export default function OnboardingGatewayScreen() {
             {'\u4E0D\u4F7F\u7528 Spotify \u7E7C\u7E8C'}
           </Text>
         </Pressable>
-      </View>
+      </Animated.View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#0F0F1A',
+    ...layout.screen,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 32,
+    paddingHorizontal: spacing.xxl,
     justifyContent: 'center',
     alignItems: 'center',
   },
   iconContainer: {
-    marginBottom: 32,
+    marginBottom: spacing.xxl,
   },
   spotifyIcon: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: SPOTIFY_GREEN,
+    backgroundColor: colors.spotify,
     justifyContent: 'center',
     alignItems: 'center',
   },
   spotifyIconText: {
     fontSize: 36,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textPrimary,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 12,
+    ...typo.title,
+    marginBottom: spacing.md,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
-    color: '#8E8E93',
+    ...typo.body,
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   description: {
     fontSize: 14,
-    color: '#999',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 40,
   },
   spotifyButton: {
-    backgroundColor: SPOTIFY_GREEN,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
+    backgroundColor: colors.spotify,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.xxl,
     borderRadius: 28,
     alignSelf: 'stretch',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   spotifyButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    ...typo.subheading,
   },
   skipButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
   },
   skipButtonText: {
     fontSize: 15,
-    color: '#8E8E93',
+    color: colors.textSecondary,
   },
 });

@@ -19,9 +19,11 @@ import Animated, {
   useAnimatedStyle,
   withSequence,
   withTiming,
+  FadeIn,
 } from 'react-native-reanimated';
 import { useAppStore } from '../store/appStore';
 import { searchTracks, submitRecommendation } from '../services/api';
+import { colors, spacing, radius, typo, layout, shadow } from '../constants/theme';
 import type { Track } from '../../../packages/shared/types';
 
 export default function RecommendScreen() {
@@ -128,6 +130,7 @@ export default function RecommendScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <Animated.View entering={FadeIn.duration(400)} style={styles.flex}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -175,7 +178,7 @@ export default function RecommendScreen() {
             <TextInput
               style={styles.reasonInput}
               placeholder={reasonPlaceholder}
-              placeholderTextColor="#666"
+              placeholderTextColor={colors.textHint}
               value={reason}
               onChangeText={setReason}
               maxLength={100}
@@ -194,7 +197,7 @@ export default function RecommendScreen() {
               disabled={!reason.trim() || submitting}
             >
               {submitting ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
+                <ActivityIndicator color={colors.textPrimary} size="small" />
               ) : (
                 <Text style={styles.submitText}>送出推薦</Text>
               )}
@@ -209,7 +212,7 @@ export default function RecommendScreen() {
               <TextInput
                 style={styles.searchInput}
                 placeholder="搜尋歌曲或藝人..."
-                placeholderTextColor="#666"
+                placeholderTextColor={colors.textHint}
                 value={query}
                 onChangeText={setQuery}
                 onSubmitEditing={handleSearch}
@@ -225,7 +228,7 @@ export default function RecommendScreen() {
             {searching ? (
               <ActivityIndicator
                 size="large"
-                color="#6C5CE7"
+                color={colors.accent}
                 style={styles.loader}
               />
             ) : (
@@ -270,14 +273,14 @@ export default function RecommendScreen() {
           </>
         )}
       </KeyboardAvoidingView>
+      </Animated.View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#0F0F1A',
+    ...layout.screen,
   },
   flex: {
     flex: 1,
@@ -288,79 +291,79 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 16,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.lg,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 4,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: colors.textSecondary,
   },
   skipText: {
-    color: '#8E8E93',
+    color: colors.textSecondary,
     fontSize: 14,
-    paddingTop: 4,
+    paddingTop: spacing.xs,
   },
 
   // Search
   searchRow: {
     flexDirection: 'row',
-    paddingHorizontal: 24,
-    marginBottom: 16,
+    paddingHorizontal: spacing.xl,
+    marginBottom: spacing.lg,
   },
   searchInput: {
     flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    color: '#FFFFFF',
+    backgroundColor: colors.bgElevated,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    color: colors.textPrimary,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    marginRight: 12,
+    borderColor: colors.border,
+    marginRight: spacing.md,
   },
   searchButton: {
-    backgroundColor: '#6C5CE7',
-    borderRadius: 12,
-    paddingHorizontal: 20,
+    backgroundColor: colors.accent,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.xl,
     justifyContent: 'center',
   },
   searchButtonText: {
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     fontSize: 14,
     fontWeight: '600',
   },
 
   loader: {
-    marginTop: 32,
+    marginTop: spacing.xxl,
   },
 
   // Results
   resultsList: {
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.xl,
   },
   resultItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
+    backgroundColor: colors.bgElevated,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: colors.border,
   },
   resultCover: {
     width: 48,
     height: 48,
-    borderRadius: 8,
-    backgroundColor: '#2A2A3E',
+    borderRadius: radius.sm,
+    backgroundColor: colors.border,
   },
   resultCoverPlaceholder: {
     justifyContent: 'center',
@@ -368,105 +371,103 @@ const styles = StyleSheet.create({
   },
   resultInfo: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: spacing.md,
   },
   resultTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    ...typo.bodyBold,
     marginBottom: 2,
   },
   resultArtist: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: colors.textSecondary,
   },
 
   emptyText: {
-    color: '#8E8E93',
+    color: colors.textSecondary,
     fontSize: 14,
     textAlign: 'center',
-    marginTop: 32,
+    marginTop: spacing.xxl,
   },
 
   // Selected track
   selectedContainer: {
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.xl,
     flex: 1,
   },
   selectedCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: colors.bgElevated,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    marginBottom: 24,
+    borderColor: colors.border,
+    marginBottom: spacing.xl,
   },
   selectedCover: {
     width: 64,
     height: 64,
-    borderRadius: 12,
-    backgroundColor: '#2A2A3E',
+    borderRadius: radius.md,
+    backgroundColor: colors.border,
   },
   selectedInfo: {
     flex: 1,
-    marginLeft: 16,
+    marginLeft: spacing.lg,
   },
   selectedTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 4,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
   },
   selectedArtist: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: colors.textSecondary,
   },
   changeButton: {
-    paddingHorizontal: 12,
+    paddingHorizontal: spacing.md,
     paddingVertical: 6,
-    borderRadius: 8,
+    borderRadius: radius.sm,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: colors.border,
   },
   changeText: {
-    color: '#8E8E93',
+    color: colors.textSecondary,
     fontSize: 12,
   },
 
   // Reason input
   reasonInput: {
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 12,
-    padding: 16,
-    color: '#FFFFFF',
+    backgroundColor: colors.bgElevated,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    color: colors.textPrimary,
     fontSize: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: colors.border,
     minHeight: 80,
     textAlignVertical: 'top',
   },
   charCount: {
     fontSize: 12,
-    color: '#666',
+    color: colors.textHint,
     textAlign: 'right',
-    marginTop: 4,
-    marginBottom: 24,
+    marginTop: spacing.xs,
+    marginBottom: spacing.xl,
   },
 
   // Submit
   submitButton: {
-    backgroundColor: '#6C5CE7',
-    borderRadius: 12,
-    paddingVertical: 16,
+    backgroundColor: colors.accent,
+    borderRadius: radius.md,
+    paddingVertical: spacing.lg,
     alignItems: 'center',
   },
   submitDisabled: {
     opacity: 0.4,
   },
   submitText: {
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -476,28 +477,28 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: spacing.xxl,
   },
   successEmoji: {
     fontSize: 64,
-    marginBottom: 24,
+    marginBottom: spacing.xl,
   },
   successTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 12,
+    color: colors.textPrimary,
+    marginBottom: spacing.md,
   },
   successSubtitle: {
     fontSize: 16,
-    color: '#8E8E93',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   bonusText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1DB954',
+    color: colors.spotify,
     textAlign: 'center',
-    marginTop: 16,
+    marginTop: spacing.lg,
   },
 });

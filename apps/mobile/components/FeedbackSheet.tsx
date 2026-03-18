@@ -13,6 +13,8 @@ import {
 import Animated, { FadeIn } from 'react-native-reanimated';
 import type { FeedbackReaction, FeedbackInsight } from '../../../packages/shared/types';
 import TasteRadar from './TasteRadar';
+import ConfettiEffect from './ConfettiEffect';
+import { colors, spacing, radius, typo, shadow } from '../constants/theme';
 
 interface FeedbackSheetProps {
   visible: boolean;
@@ -24,8 +26,8 @@ interface FeedbackSheetProps {
 }
 
 const REACTIONS: { key: FeedbackReaction; emoji: string; label: string; color: string }[] = [
-  { key: 'surprised', emoji: '🤯', label: '驚喜', color: '#6C5CE7' },
-  { key: 'okay', emoji: '😐', label: '普通', color: '#8E8E93' },
+  { key: 'surprised', emoji: '🤯', label: '驚喜', color: colors.accent },
+  { key: 'okay', emoji: '😐', label: '普通', color: colors.textSecondary },
   { key: 'not_for_me', emoji: '🙅', label: '不適合', color: '#3A3A4E' },
 ];
 
@@ -99,6 +101,9 @@ export default function FeedbackSheet({
           {/* Drag handle */}
           <View style={styles.handle} />
 
+          {/* Confetti for surprised reaction */}
+          {isSurprised && submitted && <ConfettiEffect active={true} />}
+
           {submitted ? (
             // Post-submit: micro-insight visualization
             <View style={styles.submittedContainer}>
@@ -125,14 +130,14 @@ export default function FeedbackSheet({
 
               {/* Radar chart: before/after */}
               {insight && insight.oldVector.length > 0 && (
-                <View style={styles.radarContainer}>
+                <Animated.View entering={FadeIn.delay(300).duration(500)} style={styles.radarContainer}>
                   <TasteRadar
                     tasteVector={insight.newVector}
                     beforeVector={insight.oldVector}
                     size={160}
                     mini
                   />
-                </View>
+                </Animated.View>
               )}
 
               {/* Badge unlock animation */}
@@ -146,28 +151,30 @@ export default function FeedbackSheet({
 
               {/* Dominant shift indicator */}
               {insight?.dominantShift && !isSurprised && (
-                <View style={styles.shiftRow}>
+                <Animated.View entering={FadeIn.delay(400).duration(400)} style={styles.shiftRow}>
                   <Text style={styles.shiftGenre}>{insight.dominantShift.label}</Text>
                   <Text style={[
                     styles.shiftChange,
-                    { color: insight.dominantShift.change > 0 ? '#2ECC71' : '#E74C3C' }
+                    { color: insight.dominantShift.change > 0 ? colors.success : colors.error }
                   ]}>
                     {insight.dominantShift.change > 0 ? '+' : ''}{insight.dominantShift.change}
                     {insight.dominantShift.change > 0 ? ' ↑' : ' ↓'}
                   </Text>
-                </View>
+                </Animated.View>
               )}
 
               {/* Genres explored count */}
               {insight && insight.genresExplored > 0 && (
-                <Text style={styles.exploredText}>
-                  已探索 {insight.genresExplored} 個品味區域
-                </Text>
+                <Animated.View entering={FadeIn.delay(500).duration(400)}>
+                  <Text style={styles.exploredText}>
+                    已探索 {insight.genresExplored} 個品味區域
+                  </Text>
+                </Animated.View>
               )}
 
               {/* Fallback: taste distance bar (when no insight data) */}
               {!insight && (
-                <View style={styles.distanceContainer}>
+                <Animated.View entering={FadeIn.delay(300).duration(400)} style={styles.distanceContainer}>
                   <Text style={styles.distanceLabel}>品味距離</Text>
                   <View style={styles.distanceBarBg}>
                     <View
@@ -175,7 +182,7 @@ export default function FeedbackSheet({
                     />
                   </View>
                   <Text style={styles.distanceValue}>{tastePercent}%</Text>
-                </View>
+                </Animated.View>
               )}
 
               <Text style={styles.distanceHint}>
@@ -213,11 +220,11 @@ export default function FeedbackSheet({
                         backgroundColor:
                           selectedReaction === r.key
                             ? r.color
-                            : 'rgba(255,255,255,0.08)',
+                            : colors.bgElevated,
                         borderColor:
                           selectedReaction === r.key
                             ? r.color
-                            : 'rgba(255,255,255,0.12)',
+                            : colors.border,
                       },
                     ]}
                     onPress={() => setSelectedReaction(r.key)}
@@ -239,7 +246,7 @@ export default function FeedbackSheet({
               <TextInput
                 style={styles.commentInput}
                 placeholder="想說點什麼？"
-                placeholderTextColor="#666"
+                placeholderTextColor={colors.textSecondary}
                 value={comment}
                 onChangeText={setComment}
                 maxLength={100}
@@ -263,7 +270,7 @@ export default function FeedbackSheet({
                 disabled={!selectedReaction || submitting}
               >
                 {submitting ? (
-                  <ActivityIndicator color="#FFFFFF" size="small" />
+                  <ActivityIndicator color={colors.textPrimary} size="small" />
                 ) : (
                   <Text style={styles.submitButtonText}>送出回饋</Text>
                 )}
@@ -288,117 +295,113 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: colors.bgOverlay,
   },
   sheet: {
-    backgroundColor: '#1A1A2E',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 24,
+    backgroundColor: colors.bgCard,
+    borderTopLeftRadius: radius.sheet,
+    borderTopRightRadius: radius.sheet,
+    paddingHorizontal: spacing.xl,
     paddingBottom: 40,
-    paddingTop: 12,
+    paddingTop: spacing.md,
   },
   handle: {
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#333',
+    backgroundColor: colors.border,
     alignSelf: 'center',
-    marginBottom: 20,
+    marginBottom: spacing.xl - 4,
   },
 
   title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    ...typo.heading,
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: spacing.xl,
   },
 
   // Reaction buttons
   reactionsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 24,
+    marginBottom: spacing.xl,
   },
   reactionButton: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: spacing.lg,
     marginHorizontal: 6,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     borderWidth: 1,
   },
-  reactionEmoji: { fontSize: 36, marginBottom: 8 },
-  reactionLabel: { fontSize: 14, color: '#8E8E93', fontWeight: '600' },
-  reactionLabelActive: { color: '#FFFFFF' },
+  reactionEmoji: { fontSize: 36, marginBottom: spacing.sm },
+  reactionLabel: { fontSize: 14, color: colors.textSecondary, fontWeight: '600' },
+  reactionLabelActive: { color: colors.textPrimary },
 
   // Comment
   commentInput: {
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 12,
-    padding: 16,
-    color: '#FFFFFF',
+    backgroundColor: colors.bgElevated,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    color: colors.textPrimary,
     fontSize: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: colors.border,
     minHeight: 60,
     textAlignVertical: 'top',
   },
   charCount: {
     fontSize: 12,
-    color: '#666',
+    color: colors.textSecondary,
     textAlign: 'right',
-    marginTop: 4,
-    marginBottom: 20,
+    marginTop: spacing.xs,
+    marginBottom: spacing.xl - 4,
   },
 
   // Submit
   submitButton: {
-    backgroundColor: '#6C5CE7',
-    borderRadius: 12,
+    backgroundColor: colors.accent,
+    borderRadius: radius.md,
     paddingVertical: 14,
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   submitButtonDisabled: { opacity: 0.4 },
-  submitButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+  submitButtonText: { color: colors.textPrimary, fontSize: 16, fontWeight: '700' },
 
   errorText: {
-    color: '#E74C3C',
-    fontSize: 13,
+    ...typo.caption,
+    color: colors.error,
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
 
-  dismissButton: { alignItems: 'center', paddingVertical: 8 },
-  dismissText: { color: '#8E8E93', fontSize: 14 },
+  dismissButton: { alignItems: 'center', paddingVertical: spacing.sm },
+  dismissText: { color: colors.textSecondary, fontSize: 14 },
 
   // Submitted state — micro-insight
   submittedContainer: {
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: spacing.lg,
   },
-  submittedEmoji: { fontSize: 48, marginBottom: 12 },
-  celebrationEmoji: { fontSize: 56, marginBottom: 12 },
+  submittedEmoji: { fontSize: 48, marginBottom: spacing.md },
+  celebrationEmoji: { fontSize: 56, marginBottom: spacing.md },
   submittedTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 8,
+    ...typo.heading,
+    marginBottom: spacing.sm,
     textAlign: 'center',
   },
   shiftHighlight: {
     fontSize: 15,
-    color: '#6C5CE7',
+    color: colors.accent,
     fontWeight: '600',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
 
   // Radar
   radarContainer: {
-    marginVertical: 16,
+    marginVertical: spacing.lg,
     alignItems: 'center',
   },
 
@@ -406,13 +409,13 @@ const styles = StyleSheet.create({
   shiftRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   shiftGenre: {
     fontSize: 15,
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     fontWeight: '600',
-    marginRight: 8,
+    marginRight: spacing.sm,
   },
   shiftChange: {
     fontSize: 15,
@@ -421,81 +424,80 @@ const styles = StyleSheet.create({
 
   // Explored count
   exploredText: {
-    fontSize: 13,
-    color: '#8E8E93',
-    marginBottom: 20,
+    ...typo.caption,
+    marginBottom: spacing.xl - 4,
   },
 
   // Fallback distance bar
   distanceContainer: {
     width: '100%',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   distanceLabel: {
     fontSize: 14,
-    color: '#8E8E93',
-    marginBottom: 8,
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
   },
   distanceBarBg: {
     height: 8,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 4,
+    backgroundColor: colors.bgElevated,
+    borderRadius: spacing.xs,
     overflow: 'hidden',
   },
   distanceBarFill: {
     height: '100%',
-    backgroundColor: '#6C5CE7',
-    borderRadius: 4,
+    backgroundColor: colors.accent,
+    borderRadius: spacing.xs,
   },
   distanceValue: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#6C5CE7',
+    color: colors.accent,
     textAlign: 'right',
-    marginTop: 8,
+    marginTop: spacing.sm,
   },
 
   distanceHint: {
     fontSize: 14,
-    color: '#BBBBBB',
+    color: colors.textHint,
     textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 24,
+    marginTop: spacing.sm,
+    marginBottom: spacing.xl,
   },
 
   shareButton: {
-    backgroundColor: 'rgba(108,92,231,0.2)',
-    borderRadius: 12,
+    backgroundColor: colors.accentDim,
+    borderRadius: radius.md,
     paddingVertical: 14,
-    paddingHorizontal: 48,
+    paddingHorizontal: spacing.xxxl,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#6C5CE7',
-    marginBottom: 12,
+    borderColor: colors.accent,
+    marginBottom: spacing.md,
   },
-  shareButtonText: { color: '#6C5CE7', fontSize: 16, fontWeight: '700' },
+  shareButtonText: { color: colors.accent, fontSize: 16, fontWeight: '700' },
 
   closeButton: {
-    backgroundColor: '#6C5CE7',
-    borderRadius: 12,
+    backgroundColor: colors.accent,
+    borderRadius: radius.md,
     paddingVertical: 14,
-    paddingHorizontal: 48,
+    paddingHorizontal: spacing.xxxl,
     alignItems: 'center',
   },
-  closeButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+  closeButtonText: { color: colors.textPrimary, fontSize: 16, fontWeight: '700' },
 
   // Badge unlock
   badgeUnlock: {
     alignItems: 'center',
-    backgroundColor: 'rgba(108,92,231,0.15)',
-    borderRadius: 16,
+    backgroundColor: colors.accentDim,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: 'rgba(108,92,231,0.3)',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    marginVertical: 12,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.xl,
+    marginVertical: spacing.md,
   },
-  badgeUnlockEmoji: { fontSize: 40, marginBottom: 8 },
-  badgeUnlockTitle: { color: '#6C5CE7', fontSize: 14, fontWeight: '700', marginBottom: 4 },
-  badgeUnlockLabel: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+  badgeUnlockEmoji: { fontSize: 40, marginBottom: spacing.sm },
+  badgeUnlockTitle: { color: colors.accent, fontSize: 14, fontWeight: '700', marginBottom: spacing.xs },
+  badgeUnlockLabel: { color: colors.textPrimary, fontSize: 16, fontWeight: '600' },
 });

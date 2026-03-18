@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Pressable } from 'react-native';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAppStore } from '../../store/appStore';
 import { getTasteJourney } from '../../services/api';
 import TasteRadar from '../../components/TasteRadar';
 import BadgeGrid from '../../components/BadgeGrid';
+import { colors, spacing, radius, typo, layout, shadow } from '../../constants/theme';
 import type { TasteJourneyData } from '../../../../packages/shared/types';
 
 export default function JourneyScreen() {
@@ -27,8 +29,8 @@ export default function JourneyScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#6C5CE7" />
-          <Text style={styles.loadingText}>{'\u6B63\u5728\u8F09\u5165\u54C1\u5473\u65C5\u7A0B...'}</Text>
+          <ActivityIndicator size="large" color={colors.accent} />
+          <Text style={styles.loadingText}>正在載入品味旅程...</Text>
         </View>
       </SafeAreaView>
     );
@@ -47,170 +49,169 @@ export default function JourneyScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>{'\u54C1\u5473\u65C5\u7A0B'}</Text>
-          <Text style={styles.subtitle}>{'\u4F60\u7684\u97F3\u6A02\u63A2\u7D22\u8ECC\u8DE1'}</Text>
-        </View>
-
-        {/* Radar chart */}
-        <View style={styles.radarContainer}>
-          <TasteRadar tasteVector={tasteVector} size={280} />
-        </View>
-
-        {/* Taste twins button */}
-        <Pressable
-          style={styles.twinsButton}
-          onPress={() => router.push('/twins')}
-        >
-          <Text style={styles.twinsButtonText}>{'\u67E5\u770B\u54C1\u5473\u96D9\u80DE\u80CE'}</Text>
-        </Pressable>
-
-        {/* Stats row */}
-        <View style={styles.statsRow}>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{stats.genresExplored}</Text>
-            <Text style={styles.statLabel}>{'\u5DF2\u63A2\u7D22\u985E\u578B'}</Text>
+      <Animated.View entering={FadeIn.duration(400)} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>品味旅程</Text>
+            <Text style={styles.subtitle}>你的音樂探索軌跡</Text>
           </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>
-              {Math.round(stats.maxTasteDistance * 100)}%
-            </Text>
-            <Text style={styles.statLabel}>{'\u6700\u9060\u8DDD\u96E2'}</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{stats.surprisedCount}</Text>
-            <Text style={styles.statLabel}>{'\u7E3D\u9A5A\u559C\u6B21\u6578'}</Text>
-          </View>
-        </View>
 
-        {/* Streak display */}
-        {stats.streakCount > 0 && (
-          <View style={styles.streakCard}>
-            <Text style={styles.streakIcon}>{'\u{1F525}'}</Text>
-            <Text style={styles.streakText}>
-              {'\u9023\u7E8C '}{stats.streakCount}{' \u5929'}
-            </Text>
-          </View>
-        )}
+          {/* Radar chart */}
+          <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.radarContainer}>
+            <TasteRadar tasteVector={tasteVector} size={280} />
+          </Animated.View>
 
-        {/* Badges section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{'\u6210\u5C31\u5FBD\u7AE0'}</Text>
-          <BadgeGrid stats={stats} />
-        </View>
-      </ScrollView>
+          {/* Taste twins button */}
+          <Animated.View entering={FadeInDown.delay(200).duration(500)}>
+            <Pressable
+              style={styles.twinsButton}
+              onPress={() => router.push('/twins')}
+            >
+              <Text style={styles.twinsButtonText}>查看品味雙胞胎</Text>
+            </Pressable>
+          </Animated.View>
+
+          {/* Stats row */}
+          <Animated.View entering={FadeInDown.delay(300).duration(500)} style={styles.statsRow}>
+            <View style={styles.statBox}>
+              <Text style={styles.statNumber}>{stats.genresExplored}</Text>
+              <Text style={styles.statLabel}>已探索類型</Text>
+            </View>
+            <View style={styles.statBox}>
+              <Text style={styles.statNumber}>
+                {Math.round(stats.maxTasteDistance * 100)}%
+              </Text>
+              <Text style={styles.statLabel}>最遠距離</Text>
+            </View>
+            <View style={styles.statBox}>
+              <Text style={styles.statNumber}>{stats.surprisedCount}</Text>
+              <Text style={styles.statLabel}>總驚喜次數</Text>
+            </View>
+          </Animated.View>
+
+          {/* Streak display */}
+          {stats.streakCount > 0 && (
+            <Animated.View entering={FadeInDown.delay(400).duration(500)} style={styles.streakCard}>
+              <Text style={styles.streakIcon}>🔥</Text>
+              <Text style={styles.streakText}>
+                連續 {stats.streakCount} 天
+              </Text>
+            </Animated.View>
+          )}
+
+          {/* Badges section */}
+          <Animated.View entering={FadeInDown.delay(500).duration(500)} style={styles.section}>
+            <Text style={styles.sectionTitle}>成就徽章</Text>
+            <BadgeGrid stats={stats} />
+          </Animated.View>
+        </ScrollView>
+      </Animated.View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#0F0F1A',
+    ...layout.screen,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    ...layout.center,
   },
   loadingText: {
-    fontSize: 14,
-    color: '#8E8E93',
-    marginTop: 16,
+    ...typo.caption,
+    marginTop: spacing.lg,
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 32,
+    paddingBottom: spacing.xxl,
   },
   header: {
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 8,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.sm,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 4,
+    ...typo.title,
+    marginBottom: spacing.xs,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#8E8E93',
+    ...typo.body,
+    color: colors.textSecondary,
   },
   radarContainer: {
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: spacing.lg,
   },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginHorizontal: 24,
-    marginBottom: 16,
+    marginHorizontal: spacing.xl,
+    marginBottom: spacing.lg,
   },
   statBox: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 12,
-    paddingVertical: 16,
-    marginHorizontal: 4,
+    backgroundColor: colors.bgElevated,
+    borderRadius: radius.md,
+    paddingVertical: spacing.lg,
+    marginHorizontal: spacing.xs,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: colors.border,
+    ...shadow.soft,
   },
   statNumber: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#6C5CE7',
+    color: colors.accent,
   },
   statLabel: {
     fontSize: 12,
-    color: '#8E8E93',
-    marginTop: 4,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
   },
   streakCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 12,
-    paddingVertical: 12,
-    marginHorizontal: 24,
-    marginBottom: 24,
+    backgroundColor: colors.bgElevated,
+    borderRadius: radius.md,
+    paddingVertical: spacing.md,
+    marginHorizontal: spacing.xl,
+    marginBottom: spacing.xl,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: colors.border,
+    ...shadow.soft,
   },
   streakIcon: {
     fontSize: 24,
-    marginRight: 8,
+    marginRight: spacing.sm,
   },
   streakText: {
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     fontSize: 18,
     fontWeight: '700',
   },
   section: {
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.xl,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 16,
+    ...typo.heading,
+    marginBottom: spacing.lg,
   },
   twinsButton: {
-    backgroundColor: 'rgba(108,92,231,0.2)',
+    backgroundColor: colors.accentDim,
     borderWidth: 1,
-    borderColor: '#6C5CE7',
-    borderRadius: 12,
+    borderColor: colors.accent,
+    borderRadius: radius.md,
     paddingVertical: 14,
-    marginHorizontal: 24,
-    marginBottom: 16,
+    marginHorizontal: spacing.xl,
+    marginBottom: spacing.lg,
     alignItems: 'center',
   },
   twinsButtonText: {
-    color: '#6C5CE7',
+    color: colors.accent,
     fontSize: 16,
     fontWeight: '700',
   },

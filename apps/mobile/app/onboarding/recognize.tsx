@@ -9,8 +9,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useAppStore } from '../../store/appStore';
 import { getAuthHeaders } from '../../services/supabase';
+import { colors, spacing, radius, typo, layout, shadow } from '../../constants/theme';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 const TOTAL_TRACKS = 25;
@@ -92,7 +94,7 @@ export default function OnboardingRecognizeScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator color="#6C5CE7" size="large" />
+          <ActivityIndicator color={colors.accent} size="large" />
           <Text style={styles.loadingText}>Loading tracks...</Text>
         </View>
       </SafeAreaView>
@@ -120,6 +122,7 @@ export default function OnboardingRecognizeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <Animated.View entering={FadeIn.duration(400)} style={{ flex: 1 }}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{'\u4F60\u807D\u904E\u9019\u4E9B\u6B4C\u55CE\uFF1F'}</Text>
@@ -184,38 +187,38 @@ export default function OnboardingRecognizeScreen() {
           </Text>
         </Pressable>
       )}
+      </Animated.View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#0F0F1A',
+    ...layout.screen,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 16,
+    gap: spacing.lg,
   },
   loadingText: {
     fontSize: 16,
-    color: '#999',
+    color: colors.textSecondary,
   },
   errorText: {
     fontSize: 16,
-    color: '#FF6B6B',
-    marginBottom: 16,
+    color: colors.surprised,
+    marginBottom: spacing.lg,
   },
   retryButton: {
-    backgroundColor: '#6C5CE7',
-    borderRadius: 12,
+    backgroundColor: colors.accent,
+    borderRadius: radius.md,
     paddingVertical: 14,
-    paddingHorizontal: 32,
+    paddingHorizontal: spacing.xxl,
   },
   retryButtonText: {
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -223,122 +226,116 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 8,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.sm,
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textPrimary,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: '#999',
+    color: colors.textSecondary,
   },
   progressBar: {
     height: 4,
-    backgroundColor: '#1A1A2E',
-    marginHorizontal: 24,
-    marginTop: 12,
+    backgroundColor: colors.bgCard,
+    marginHorizontal: spacing.xl,
+    marginTop: spacing.md,
     borderRadius: 2,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#6C5CE7',
+    backgroundColor: colors.accent,
     borderRadius: 2,
   },
   recognizedCount: {
     fontSize: 14,
-    color: '#6C5CE7',
+    color: colors.accent,
     textAlign: 'center',
-    marginTop: 12,
-    marginBottom: 8,
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
   },
   cardContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.xl,
   },
   card: {
-    backgroundColor: '#1A1A2E',
-    borderRadius: 20,
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.xl,
     overflow: 'hidden',
     width: '100%',
     maxWidth: 320,
     alignItems: 'center',
-    paddingBottom: 24,
-    shadowColor: '#6C5CE7',
-    shadowOffset: { width: 0, height: 4 },
+    paddingBottom: spacing.xl,
+    ...shadow.card,
     shadowOpacity: 0.2,
-    shadowRadius: 12,
     elevation: 6,
   },
   coverImage: {
     width: 200,
     height: 200,
-    borderRadius: 12,
-    backgroundColor: '#2A2A3E',
-    marginTop: 24,
+    borderRadius: radius.md,
+    backgroundColor: colors.border,
+    marginTop: spacing.xl,
   },
   cardInfo: {
-    paddingHorizontal: 24,
-    paddingTop: 16,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.lg,
     alignItems: 'center',
   },
   trackTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    ...typo.heading,
     marginBottom: 6,
     textAlign: 'center',
   },
   trackArtist: {
-    fontSize: 16,
-    color: '#BBBBBB',
+    ...typo.body,
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 24,
-    paddingHorizontal: 32,
-    paddingBottom: 16,
-    paddingTop: 8,
+    gap: spacing.xl,
+    paddingHorizontal: spacing.xxl,
+    paddingBottom: spacing.lg,
+    paddingTop: spacing.sm,
   },
   actionButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 16,
-    gap: 8,
+    paddingVertical: spacing.lg,
+    borderRadius: radius.lg,
+    gap: spacing.sm,
   },
   noButton: {
-    backgroundColor: '#2A2A3E',
+    backgroundColor: colors.border,
   },
   yesButton: {
-    backgroundColor: '#6C5CE7',
+    backgroundColor: colors.accent,
   },
   actionButtonEmoji: {
     fontSize: 20,
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     fontWeight: '700',
   },
   actionButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    ...typo.bodyBold,
   },
   skipFinish: {
     paddingVertical: 14,
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   skipFinishText: {
     fontSize: 15,
-    color: '#6C5CE7',
+    color: colors.accent,
     fontWeight: '600',
   },
 });

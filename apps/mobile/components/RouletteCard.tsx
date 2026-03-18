@@ -22,6 +22,7 @@ import Animated, {
 import { WebView } from 'react-native-webview';
 import type { RouletteCard as RouletteCardType, Track } from '../../../packages/shared/types';
 import { getAdventureLevel } from '../utils/adventureLevel';
+import { colors, spacing, radius, typo, shadow } from '../constants/theme';
 
 const COVER_SIZE = 260;
 
@@ -162,6 +163,9 @@ export default function RouletteCard({ card, onFeedback }: RouletteCardProps) {
 
   return (
     <View style={styles.wrapper}>
+      {/* Subtle glow behind card */}
+      <View style={[styles.glowLayer, shadow.glow(adventure.color)]} />
+
       {/* Back of card */}
       <Animated.View style={[styles.cardBack, { width: CARD_WIDTH, height: CARD_WIDTH * 1.4 }, backStyle]}>
         <Text style={styles.cardBackEmoji}>🎲</Text>
@@ -183,7 +187,11 @@ export default function RouletteCard({ card, onFeedback }: RouletteCardProps) {
 
               {tastePercent !== null && (
                 <View style={styles.adventureSection}>
-                  <View style={[styles.adventureBadge, { borderColor: adventure.color }]}>
+                  <View style={[
+                    styles.adventureBadge,
+                    { borderColor: adventure.color },
+                    shadow.glow(adventure.color),
+                  ]}>
                     <Text style={styles.adventureEmoji}>{adventure.emoji}</Text>
                     <Text style={[styles.adventureLabel, { color: adventure.color }]}>
                       {adventure.label}
@@ -302,7 +310,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.xl,
+  },
+
+  // Glow layer behind card
+  glowLayer: {
+    position: 'absolute',
+    width: '80%',
+    height: '60%',
+    borderRadius: radius.xl,
   },
 
   // Empty state
@@ -310,38 +326,34 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: spacing.xxl,
   },
-  emptyIcon: { fontSize: 64, marginBottom: 24 },
-  emptyTitle: { fontSize: 22, fontWeight: '700', color: '#FFFFFF', marginBottom: 8 },
-  emptySubtitle: { fontSize: 16, color: '#8E8E93', textAlign: 'center' },
+  emptyIcon: { fontSize: 64, marginBottom: spacing.xl },
+  emptyTitle: { fontSize: 22, fontWeight: '700', color: colors.textPrimary, marginBottom: spacing.sm },
+  emptySubtitle: { fontSize: 16, color: colors.textSecondary, textAlign: 'center' },
 
   // Card back
   cardBack: {
     position: 'absolute',
-    backgroundColor: '#1A1A2E',
-    borderRadius: 20,
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.xl,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: colors.border,
     backfaceVisibility: 'hidden',
   },
-  cardBackEmoji: { fontSize: 64, marginBottom: 16 },
-  cardBackText: { fontSize: 24, fontWeight: '700', color: '#6C5CE7' },
+  cardBackEmoji: { fontSize: 64, marginBottom: spacing.lg },
+  cardBackText: { fontSize: 24, fontWeight: '700', color: colors.accent },
 
   // Card front
   card: {
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 20,
+    backgroundColor: colors.bgElevated,
+    borderRadius: radius.xl,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    shadowColor: '#6C5CE7',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    borderColor: colors.border,
+    ...shadow.card,
     backfaceVisibility: 'hidden',
   },
   cardPressable: {
@@ -353,41 +365,41 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 48,
-    paddingHorizontal: 24,
+    paddingVertical: spacing.xxxl,
+    paddingHorizontal: spacing.xl,
     minHeight: 380,
   },
   identityPrefix: {
     fontSize: 18,
-    color: '#BBBBBB',
-    marginBottom: 4,
+    color: colors.textHint,
+    marginBottom: spacing.xs,
     textAlign: 'center',
   },
   identityLabel: {
     fontSize: 28,
     fontWeight: '800',
-    marginVertical: 8,
+    marginVertical: spacing.sm,
     textAlign: 'center',
   },
   adventureSection: {
     alignItems: 'center',
-    marginTop: 32,
+    marginTop: spacing.xxl,
   },
   adventureBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginBottom: 12,
+    borderRadius: radius.xl,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.md,
   },
-  adventureEmoji: { fontSize: 16, marginRight: 8 },
+  adventureEmoji: { fontSize: 16, marginRight: spacing.sm },
   adventureLabel: { fontSize: 16, fontWeight: '700' },
   distanceText: {
     fontSize: 14,
-    color: '#8E8E93',
-    marginBottom: 4,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
   },
   adventureDesc: {
     fontSize: 13,
@@ -396,12 +408,12 @@ const styles = StyleSheet.create({
 
   // Tap hint
   tapHint: {
-    marginTop: 24,
+    marginTop: spacing.xl,
     alignItems: 'center',
   },
   tapHintText: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.4)',
+    color: colors.textHint,
     fontWeight: '600',
   },
 
@@ -418,27 +430,27 @@ const styles = StyleSheet.create({
   coverPlaceholderText: { fontSize: 64 },
 
   // Card content
-  cardContent: { padding: 20 },
+  cardContent: { padding: spacing.xl - 4 },
 
   // Compact badge (step 2+)
   compactBadgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   compactBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
+    borderRadius: radius.md,
     borderWidth: 1,
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingVertical: spacing.xs,
   },
   compactBadgeText: {
     fontSize: 11,
     fontWeight: '700',
-    marginLeft: 4,
+    marginLeft: spacing.xs,
   },
   tasteLabelCompact: {
     fontSize: 11,
@@ -450,30 +462,30 @@ const styles = StyleSheet.create({
   trackTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 4,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
   },
   trackArtist: {
-    fontSize: 16,
-    color: '#8E8E93',
-    marginBottom: 12,
+    ...typo.body,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
   },
 
   // Reason
   reason: {
     fontSize: 14,
     fontStyle: 'italic',
-    color: '#BBBBBB',
+    color: colors.textHint,
     lineHeight: 20,
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
 
   // Player
   playerContainer: {
     height: 80,
-    borderRadius: 12,
+    borderRadius: radius.md,
     overflow: 'hidden',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
     backgroundColor: '#000',
   },
   player: {
@@ -481,26 +493,25 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   openSpotifyButton: {
-    backgroundColor: '#1DB954',
-    borderRadius: 12,
-    paddingVertical: 12,
+    backgroundColor: colors.spotify,
+    borderRadius: radius.md,
+    paddingVertical: spacing.md,
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
-  openSpotifyText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
+  openSpotifyText: { color: colors.textPrimary, fontSize: 14, fontWeight: '700' },
   noPreviewText: {
-    fontSize: 13,
-    color: '#8E8E93',
+    ...typo.caption,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
 
   // Feedback
   feedbackButton: {
-    backgroundColor: '#6C5CE7',
-    borderRadius: 12,
+    backgroundColor: colors.accent,
+    borderRadius: radius.md,
     paddingVertical: 14,
     alignItems: 'center',
   },
-  feedbackButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+  feedbackButtonText: { color: colors.textPrimary, fontSize: 16, fontWeight: '700' },
 });
