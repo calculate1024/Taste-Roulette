@@ -101,8 +101,8 @@ export default function FeedbackSheet({
           {/* Drag handle */}
           <View style={styles.handle} />
 
-          {/* Confetti for surprised reaction */}
-          {isSurprised && submitted && <ConfettiEffect active={true} />}
+          {/* Confetti for surprised reaction — active prop controls lifecycle */}
+          <ConfettiEffect active={isSurprised && submitted} />
 
           {submitted ? (
             // Post-submit: micro-insight visualization

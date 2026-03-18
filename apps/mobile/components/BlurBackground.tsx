@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Image, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Image, Platform, StyleSheet, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '../constants/theme';
 
@@ -44,6 +44,8 @@ export default function BlurBackground({
         ]}
         blurRadius={25}
         resizeMode="cover"
+        // GPU acceleration hints for low-end devices
+        {...(Platform.OS === 'android' && { renderToHardwareTextureAndroid: true })}
       />
       <LinearGradient
         colors={[

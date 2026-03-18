@@ -191,67 +191,46 @@ router.post('/:cardId/feedback', async (req: Request, res: Response) => {
 });
 
 // GET /api/roulette/yesterday-echo — check if user's recommendation got surprised feedback yesterday
+// Optimized: 2 queries instead of 4-5 (was N+1 pattern)
 router.get('/yesterday-echo', async (req: Request, res: Response) => {
   const userId = req.userId!;
 
   const todayStart = getTodayStartUTC8();
   const yesterdayStart = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000);
 
-  // Find cards this user recommended that got 'surprised' feedback yesterday
-  const { data: surprisedCards } = await supabaseAdmin
-    .from('roulette_cards')
-    .select('id, track_id')
-    .eq('recommender_id', userId);
-
-  if (!surprisedCards || surprisedCards.length === 0) {
-    res.json({ echo: null });
-    return;
-  }
-
-  const cardIds = surprisedCards.map((c: any) => c.id);
-
-  // Find 'surprised' feedbacks on those cards from yesterday
-  const { data: echoFeedbacks } = await supabaseAdmin
+  // Single query: find yesterday's 'surprised' feedbacks on cards this user recommended
+  // Uses inner join: feedbacks → roulette_cards (filtered by recommender_id)
+  const { data: echoFeedback } = await supabaseAdmin
     .from('feedbacks')
-    .select('card_id')
-    .in('card_id', cardIds)
+    .select(`
+      card_id,
+      roulette_cards!inner(
+        track_id, recipient_id,
+        tracks:track_id(title, artist, cover_url)
+      )
+    `)
     .eq('reaction', 'surprised')
+    .eq('roulette_cards.recommender_id', userId)
     .gte('created_at', yesterdayStart.toISOString())
     .lt('created_at', todayStart.toISOString())
     .limit(1)
     .maybeSingle();
 
-  if (!echoFeedbacks) {
+  if (!echoFeedback) {
     res.json({ echo: null });
     return;
   }
 
-  // Get the card and track details
-  const matchedCard = surprisedCards.find((c: any) => c.id === echoFeedbacks.card_id);
-  if (!matchedCard) {
-    res.json({ echo: null });
-    return;
-  }
+  const card = echoFeedback.roulette_cards as any;
+  const track = card?.tracks;
 
-  const { data: track } = await supabaseAdmin
-    .from('tracks')
-    .select('title, artist, cover_url')
-    .eq('spotify_id', matchedCard.track_id)
-    .single();
-
-  // Get recipient taste label
-  const { data: recipientCard } = await supabaseAdmin
-    .from('roulette_cards')
-    .select('recipient_id')
-    .eq('id', matchedCard.id)
-    .single();
-
+  // One more query for recipient taste label
   let recipientLabel = '音樂探索者';
-  if (recipientCard?.recipient_id) {
+  if (card?.recipient_id) {
     const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('taste_vector')
-      .eq('id', recipientCard.recipient_id)
+      .eq('id', card.recipient_id)
       .single();
     if (profile?.taste_vector) {
       recipientLabel = getTasteLabel(profile.taste_vector);

@@ -44,21 +44,13 @@ router.get('/me', async (req: Request, res: Response) => {
     .eq('user_id', userId);
 
   // Count how many times this user's recommendations got 'surprised' reactions
-  let impactSurprised = 0;
-  const { data: myCards } = await supabaseAdmin
-    .from('roulette_cards')
-    .select('id')
-    .eq('recommender_id', userId);
-
-  const myCardIds = (myCards || []).map((c: any) => c.id);
-  if (myCardIds.length > 0) {
-    const { count } = await supabaseAdmin
-      .from('feedbacks')
-      .select('id', { count: 'exact', head: true })
-      .eq('reaction', 'surprised')
-      .in('card_id', myCardIds);
-    impactSurprised = count ?? 0;
-  }
+  // Uses inner join to avoid N+1 query pattern (was 2 sequential queries)
+  const { count: impactCount } = await supabaseAdmin
+    .from('feedbacks')
+    .select('id, roulette_cards!inner(recommender_id)', { count: 'exact', head: true })
+    .eq('reaction', 'surprised')
+    .eq('roulette_cards.recommender_id', userId);
+  const impactSurprised = impactCount ?? 0;
 
   res.json({
     profile: {

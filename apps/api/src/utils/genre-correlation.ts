@@ -7,6 +7,11 @@
 
 import { GENRES, VECTOR_DIM } from './genres';
 
+// 0.4 chosen as balance: high enough to meaningfully fill sparse vectors during
+// cold start (e.g., 8-10 swipes → only 3-4 non-zero dims without propagation),
+// but low enough that propagated signals don't dominate direct signals.
+// At 0.4, a pop=1.0 signal propagates r&b to 0.28 (1.0 * 0.7 * 0.4) — meaningful
+// but clearly secondary. Will be refined with real user data.
 const PROPAGATION_WEIGHT = 0.4;
 
 // Pairwise correlations (bidirectional). Only specify > 0.3 correlations.

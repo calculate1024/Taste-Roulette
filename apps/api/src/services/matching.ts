@@ -392,6 +392,11 @@ export async function updateTasteVectorFromFeedback(
   const delta = genreVec.map((v: number) => v * weight * FEEDBACK_LEARNING_RATE);
 
   // 4. Apply delta
+  // TODO(P0): This read-compute-write is not atomic. At MVP scale (<100 users) this
+  // is acceptable. For production, use a Supabase RPC for atomic vector update:
+  //   UPDATE profiles SET taste_vector = array(
+  //     SELECT unnest(taste_vector) + unnest($delta::float8[])
+  //   ) WHERE id = $userId
   const newVector = oldVector.map((v: number, i: number) => v + delta[i]);
 
   // 5. Save updated vector

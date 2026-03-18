@@ -18,7 +18,7 @@ export const REACTION_WEIGHTS: Record<string, number> = {
   not_for_me: -0.5,
 };
 
-const GENRE_ALIASES: Record<string, string> = {
+export const GENRE_ALIASES: Record<string, string> = {
   'mandopop': 'c-pop',
   'cpop': 'c-pop',
   'chinese pop': 'c-pop',
