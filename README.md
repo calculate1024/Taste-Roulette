@@ -82,6 +82,18 @@ taste-roulette/
 - Taste Twin matching (most similar + most complementary users)
 - Curator Program (invite codes, prioritized recommendations)
 
+### Phase 3 Aha Moment — Progressive Reveal & Feedback Loop
+- **Progressive card reveal** — 4-step state machine: identity → cover → player → feedback
+- **Adventure level** — 5-tier visual indicator (Comfort → Extreme) based on taste distance
+- **Micro-insight** — real-time taste vector update on feedback, radar chart before/after comparison
+- **Reaction echo** — push notification to recommender when their track gets a "surprised" reaction
+- **Impact stats** — profile page shows how many people your recommendations surprised
+
+### Phase 3B Aha Moment — Enhancements
+- **Yesterday's Echo** — animated toast on home screen when your recommendation was appreciated yesterday
+- **First Discovery Badge** — genre category badge unlocks on first "surprised" reaction per category (6 categories)
+- **Contextual Recommendation Prompt** — dynamic subtitle and placeholder based on just-heard track
+
 ## Taste Distance Algorithm
 
 Uses cosine distance on 20-dimensional genre vectors:
@@ -94,6 +106,18 @@ Genres: pop, rock, hip-hop, r&b, jazz, classical, electronic,
 Weights: love = 1.0, okay = 0.3, not_for_me = -0.5
 
 Sweet Spot: distance 0.3-0.7 (prefer ~0.5 for maximum surprise)
+
+Adventure Levels:
+  ≤0.2 🟢 Comfort    0.2-0.4 🔵 Small Adventure
+  0.4-0.6 🟣 Unknown   0.6-0.8 🟠 Bold Exploration
+  >0.8 🔴 Extreme Challenge
+
+Feedback Learning Rate: 0.1
+  surprised = +1.0, okay = +0.2, not_for_me = -0.3
+
+Badge Categories (6):
+  🎤 Pop/R&B  🎸 Rock/Metal  🎧 Hip-Hop/Soul
+  🎹 Electronic  🎷 Jazz/Classical  🌍 World/Folk
 ```
 
 ## Getting Started
@@ -145,6 +169,7 @@ Sweet Spot: distance 0.3-0.7 (prefer ~0.5 for maximum surprise)
    supabase/migrations/002_push_token.sql
    supabase/migrations/003_spotify_auth.sql
    supabase/migrations/004_curator_program.sql
+   supabase/migrations/005_recommender_taste_label.sql
    ```
 
 4. **Seed tracks**
@@ -176,13 +201,29 @@ Sweet Spot: distance 0.3-0.7 (prefer ~0.5 for maximum surprise)
 | POST | `/api/roulette/:cardId/feedback` | JWT | Submit feedback |
 | GET | `/api/recommend/search` | JWT | Search Spotify tracks |
 | POST | `/api/recommend/submit` | JWT | Submit recommendation |
-| GET | `/api/profile/me` | JWT | User profile + stats |
+| GET | `/api/roulette/yesterday-echo` | JWT | Check if recommendation got surprised feedback yesterday |
+| GET | `/api/profile/me` | JWT | User profile + stats (incl. impact) |
 | GET | `/api/profile/taste-journey` | JWT | Taste vector + journey data |
 | GET | `/api/twins` | JWT | Taste twins + complements |
 | POST | `/api/curator/redeem` | JWT | Redeem curator invite |
 | POST | `/api/admin/match` | API Key | Trigger daily matching |
 | POST | `/api/notifications/send-daily` | API Key | Send daily push |
 | GET | `/api/share/:cardId` | Public | OG meta for shared cards |
+
+## Testing
+
+```bash
+cd apps/api && npx jest --verbose
+```
+
+| Test Suite | Coverage |
+|-----------|----------|
+| `vector.test.ts` | Cosine distance computation, edge cases |
+| `genres.test.ts` | Genre constants, vector encoding, taste labels |
+| `date.test.ts` | UTC+8 date handling, yesterday time range |
+| `matching-edge.test.ts` | Sweet spot matching, weighted vector edge cases |
+| `feedback-insight.test.ts` | Feedback delta math, dominant shift, badge category mapping |
+| `adventure-level.test.ts` | 5-tier classification, boundary values, sweet spot alignment |
 
 ## Deployment
 
