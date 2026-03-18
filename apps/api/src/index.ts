@@ -17,6 +17,7 @@ import spotifyAuthRouter from './routes/spotify-auth';
 import curatorRouter from './routes/curator';
 import shareRouter from './routes/share';
 import twinsRouter from './routes/twins';
+import healthRouter from './routes/health';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
@@ -57,6 +58,7 @@ app.use('/api/curator', authMiddleware, curatorRouter);
 app.use('/api/twins', authMiddleware, twinsRouter);
 
 // Public routes (no auth middleware)
+app.use('/api/health', healthRouter);
 app.use('/api/share', shareRouter);
 
 // Admin routes (API key, no auth middleware)
