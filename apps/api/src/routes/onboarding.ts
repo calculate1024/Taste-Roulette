@@ -88,7 +88,7 @@ router.post('/complete', async (req: Request, res: Response) => {
     return;
   }
 
-  // Immediately issue the user's first card via curator fallback
+  // Immediately issue the user's first card via taste-aware curator fallback
   let firstCard = null;
   const fallback = await curatorFallback(userId);
   if (fallback) {
@@ -99,7 +99,8 @@ router.post('/complete', async (req: Request, res: Response) => {
         recommender_id: null,
         track_id: fallback.trackId,
         reason: fallback.reason,
-        taste_distance: null,
+        taste_distance: fallback.tasteDistance,
+        recommender_taste_label: fallback.tasteLabel,
         status: 'pending',
       })
       .select('id')

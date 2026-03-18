@@ -2,6 +2,7 @@ import { supabaseAdmin } from './supabase';
 import { getTodayStartUTC8 } from '../utils/date';
 import { VECTOR_DIM, GENRES, GENRE_INDEX, REACTION_WEIGHTS, genreToVector, getTasteLabel, TASTE_LABELS } from '../utils/genres';
 import { cosineDistance } from '../utils/vector';
+import { getCuratorReason, getCuratorTasteLabel } from '../utils/curator-reasons';
 
 const SWEET_SPOT_MIN = 0.3;
 const SWEET_SPOT_MAX = 0.7;
@@ -60,37 +61,108 @@ export async function computeTasteVector(userId: string): Promise<number[]> {
 
 // --- Curator fallback ---
 
-/** Pick a random track the user hasn't received before, as a system recommendation. */
+export interface CuratorFallbackResult {
+  trackId: string;
+  reason: string;
+  tasteDistance: number | null;
+  tasteLabel: string;
+}
+
+/**
+ * Pick a track for the user as a curator recommendation.
+ * Taste-aware: picks from the sweet spot (0.3-0.7 cosine distance) when possible,
+ * preferring tracks near 0.5 for maximum surprise. Falls back to random if no vector.
+ */
 export async function curatorFallback(
   userId: string
-): Promise<{ trackId: string; reason: string } | null> {
-  // Get track IDs the user has already received
+): Promise<CuratorFallbackResult | null> {
+  // 1. Get user's taste vector
+  const { data: profile } = await supabaseAdmin
+    .from('profiles')
+    .select('taste_vector')
+    .eq('id', userId)
+    .single();
+
+  const userVector: number[] = profile?.taste_vector || [];
+  const hasVector = userVector.length > 0 && userVector.some((v: number) => v !== 0);
+
+  // 2. Get track IDs the user has already received
   const { data: existingCards } = await supabaseAdmin
     .from('roulette_cards')
     .select('track_id')
     .eq('recipient_id', userId);
 
-  const receivedTrackIds = (existingCards || []).map((c: any) => c.track_id);
+  const receivedTrackIds = new Set((existingCards || []).map((c: any) => c.track_id));
 
-  // Pick a random track not already received
+  // 3. Get all candidate tracks with genres
   let query = supabaseAdmin
     .from('tracks')
-    .select('spotify_id');
+    .select('spotify_id, genres');
 
-  if (receivedTrackIds.length > 0) {
-    // Filter out already-received tracks
-    query = query.not('spotify_id', 'in', `(${receivedTrackIds.join(',')})`);
+  if (receivedTrackIds.size > 0) {
+    query = query.not('spotify_id', 'in', `(${[...receivedTrackIds].join(',')})`);
   }
 
   const { data: candidates, error } = await query;
-
   if (error || !candidates || candidates.length === 0) {
     return null;
   }
 
-  // Pick a random one
+  // 4. Score candidates by taste distance
+  if (hasVector) {
+    type ScoredTrack = { spotify_id: string; genres: string[]; dist: number };
+    const scored: ScoredTrack[] = [];
+
+    for (const track of candidates) {
+      const trackGenres: string[] = track.genres || [];
+      if (trackGenres.length === 0) continue;
+      const trackVec = genreToVector(trackGenres);
+      const dist = cosineDistance(userVector, trackVec);
+      scored.push({ spotify_id: track.spotify_id, genres: trackGenres, dist });
+    }
+
+    // Prefer sweet spot (0.3-0.7), closest to 0.5
+    const sweetSpot = scored.filter((t) => t.dist >= SWEET_SPOT_MIN && t.dist <= SWEET_SPOT_MAX);
+
+    if (sweetSpot.length > 0) {
+      sweetSpot.sort((a, b) => Math.abs(a.dist - 0.5) - Math.abs(b.dist - 0.5));
+      // Add slight randomness: pick from top 3 instead of always #1
+      const topN = sweetSpot.slice(0, Math.min(3, sweetSpot.length));
+      const pick = topN[Math.floor(Math.random() * topN.length)];
+      return {
+        trackId: pick.spotify_id,
+        reason: getCuratorReason(pick.spotify_id, pick.genres),
+        tasteDistance: +(pick.dist.toFixed(3)),
+        tasteLabel: getCuratorTasteLabel(pick.genres),
+      };
+    }
+
+    // No sweet spot match: pick the one closest to sweet spot range
+    if (scored.length > 0) {
+      scored.sort((a, b) => {
+        const aDist = a.dist < SWEET_SPOT_MIN ? SWEET_SPOT_MIN - a.dist : a.dist - SWEET_SPOT_MAX;
+        const bDist = b.dist < SWEET_SPOT_MIN ? SWEET_SPOT_MIN - b.dist : b.dist - SWEET_SPOT_MAX;
+        return aDist - bDist;
+      });
+      const pick = scored[0];
+      return {
+        trackId: pick.spotify_id,
+        reason: getCuratorReason(pick.spotify_id, pick.genres),
+        tasteDistance: +(pick.dist.toFixed(3)),
+        tasteLabel: getCuratorTasteLabel(pick.genres),
+      };
+    }
+  }
+
+  // 5. No vector or no scored tracks: random pick (original behavior)
   const pick = candidates[Math.floor(Math.random() * candidates.length)];
-  return { trackId: pick.spotify_id, reason: 'Curator 精選推薦' };
+  const pickGenres: string[] = pick.genres || [];
+  return {
+    trackId: pick.spotify_id,
+    reason: getCuratorReason(pick.spotify_id, pickGenres),
+    tasteDistance: null,
+    tasteLabel: getCuratorTasteLabel(pickGenres),
+  };
 }
 
 // --- Daily matching ---
@@ -240,8 +312,8 @@ export async function runDailyMatching(): Promise<MatchingSummary> {
             recommender_id: null,
             track_id: fallbackResult.trackId,
             reason: fallbackResult.reason,
-            taste_distance: null,
-            recommender_taste_label: 'Curator 策展人',
+            taste_distance: fallbackResult.tasteDistance,
+            recommender_taste_label: fallbackResult.tasteLabel,
             status: 'pending',
           });
 

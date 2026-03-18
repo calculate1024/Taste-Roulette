@@ -8,6 +8,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "seed": "tsx src/scripts/seed-tracks.ts",
+    "seed:users": "tsx src/scripts/seed-users.ts",
     "test": "jest"
   },
   "keywords": [],

@@ -94,6 +94,13 @@ taste-roulette/
 - **First Discovery Badge** — genre category badge unlocks on first "surprised" reaction per category (6 categories)
 - **Contextual Recommendation Prompt** — dynamic subtitle and placeholder based on just-heard track
 
+### Phase 4: Cold Start Experience
+- **Taste-aware curator fallback** — system recommendations now use cosine distance sweet spot instead of random picks
+- **Warm curator reasons** — each seed track has a hand-written, human-sounding recommendation reason
+- **Curator taste labels** — curator cards show genre-based labels (e.g., "爵士迷") instead of "Curator 策展人"
+- **Seed users** — 5 virtual users with diverse taste vectors and pre-loaded recommendations, enabling the matching engine to deliver real sweet-spot matches from day 1
+- **First card upgrade** — onboarding completion now delivers a taste-aware first card with distance + label
+
 ## Taste Distance Algorithm
 
 Uses cosine distance on 20-dimensional genre vectors:
@@ -172,9 +179,10 @@ Badge Categories (6):
    supabase/migrations/005_recommender_taste_label.sql
    ```
 
-4. **Seed tracks**
+4. **Seed data**
    ```bash
-   cd apps/api && npm run seed
+   cd apps/api && npm run seed         # Seed 15 tracks with Spotify metadata
+   cd apps/api && npm run seed:users   # Seed 5 virtual users with recommendations
    ```
 
 5. **Start dev servers**
@@ -224,6 +232,8 @@ cd apps/api && npx jest --verbose
 | `matching-edge.test.ts` | Sweet spot matching, weighted vector edge cases |
 | `feedback-insight.test.ts` | Feedback delta math, dominant shift, badge category mapping |
 | `adventure-level.test.ts` | 5-tier classification, boundary values, sweet spot alignment |
+| `curator-reasons.test.ts` | Pre-written reasons lookup, genre-based fallback, taste labels |
+| `curator-fallback.test.ts` | Taste-aware scoring, sweet spot selection, metadata generation |
 
 ## Deployment
 

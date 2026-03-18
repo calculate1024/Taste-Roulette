@@ -70,8 +70,9 @@ router.post('/submit', async (req: Request, res: Response) => {
           recipient_id: userId,
           recommender_id: null,
           track_id: fallback.trackId,
-          reason: fallback.reason || 'Bonus: thanks for recommending!',
-          taste_distance: null,
+          reason: fallback.reason,
+          taste_distance: fallback.tasteDistance,
+          recommender_taste_label: fallback.tasteLabel,
           status: 'pending',
         })
         .select('id, track_id')
