@@ -1,5 +1,8 @@
 // Auto-expand tracks table by searching Spotify for tracks in each genre
 // Usage: npx tsx src/scripts/seed-expand.ts
+//
+// NOTE: Spotify API no longer returns the `popularity` field (always undefined).
+// We accept all fetched tracks and rely on genre tagging for quality.
 
 import dotenv from 'dotenv';
 import path from 'path';
@@ -12,26 +15,36 @@ import { getGenreTags } from '../services/genre-tagger';
 import { GENRES } from '../utils/genres';
 
 const SEARCH_LIMIT = 10;
-const MIN_POPULARITY = 60;
 const RATE_LIMIT_MS = 100;
-
-type FamiliarityTier = 'anchor' | 'familiar' | 'discovery';
-
-function getFamiliarityTier(popularity: number): FamiliarityTier {
-  if (popularity >= 80) return 'anchor';
-  if (popularity >= 65) return 'familiar';
-  return 'discovery';
-}
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-interface GenreSummary {
-  fetched: number;
-  qualified: number;
-  inserted: number;
-}
+// Artist queries per genre for better discovery
+const GENRE_ARTIST_QUERIES: Record<string, string[]> = {
+  'pop': ['Taylor Swift', 'Dua Lipa', 'Bruno Mars', 'Ed Sheeran'],
+  'rock': ['Foo Fighters', 'Arctic Monkeys', 'Imagine Dragons'],
+  'hip-hop': ['Kendrick Lamar', 'Drake', 'J. Cole'],
+  'r&b': ['SZA', 'The Weeknd', 'Frank Ocean'],
+  'jazz': ['Norah Jones', 'Kamasi Washington', 'Robert Glasper'],
+  'classical': ['Ludovico Einaudi', 'Yo-Yo Ma', 'Lang Lang'],
+  'electronic': ['Disclosure', 'Bonobo', 'Rufus Du Sol'],
+  'latin': ['Bad Bunny', 'Rosalia', 'J Balvin'],
+  'country': ['Morgan Wallen', 'Luke Combs', 'Chris Stapleton'],
+  'folk': ['Fleet Foxes', 'Iron & Wine', 'Bon Iver'],
+  'metal': ['Metallica', 'Gojira', 'Ghost'],
+  'punk': ['Green Day', 'Blink-182', 'The Offspring'],
+  'indie': ['Tame Impala', 'Mac DeMarco', 'Phoebe Bridgers'],
+  'soul': ['Leon Bridges', 'Anderson .Paak', 'Erykah Badu'],
+  'blues': ['Gary Clark Jr', 'Joe Bonamassa', 'Buddy Guy'],
+  'reggae': ['Bob Marley', 'Chronixx', 'Protoje'],
+  'world': ['Burna Boy', 'Tinariwen', 'Bomba Estereo'],
+  'ambient': ['Brian Eno', 'Nils Frahm', 'Tycho'],
+  'k-pop': ['BTS', 'BLACKPINK', 'NewJeans', 'Stray Kids'],
+  'j-pop': ['YOASOBI', 'Kenshi Yonezu', 'Ado'],
+  'c-pop': ['Jay Chou', 'JJ Lin', 'Jolin Tsai', 'Mayday'],
+};
 
 async function seedExpand() {
   console.log(`Expanding tracks table across ${GENRES.length} genres...\n`);
@@ -49,39 +62,49 @@ async function seedExpand() {
   const existingIds = new Set((existingRows ?? []).map((r: any) => r.spotify_id));
   console.log(`Found ${existingIds.size} existing tracks in DB.\n`);
 
-  const perGenre: Record<string, GenreSummary> = {};
   let totalFetched = 0;
   let totalInserted = 0;
 
   for (const genre of GENRES) {
-    const summary: GenreSummary = { fetched: 0, qualified: 0, inserted: 0 };
-
     try {
-      const tracks = await searchTracks(`genre:${genre}`, SEARCH_LIMIT);
-      summary.fetched = tracks.length;
+      // Strategy 1: genre search
+      let tracks = await searchTracks(`genre:${genre}`, SEARCH_LIMIT);
+
+      // Strategy 2: search by known artists for this genre
+      const artistQueries = GENRE_ARTIST_QUERIES[genre] ?? [];
+      for (const artist of artistQueries) {
+        try {
+          const artistTracks = await searchTracks(artist, 5);
+          tracks = tracks.concat(artistTracks);
+          await sleep(RATE_LIMIT_MS);
+        } catch { /* skip failed artist search */ }
+      }
+
+      // Deduplicate by spotify_id
+      const seen = new Set<string>();
+      tracks = tracks.filter((t) => {
+        if (seen.has(t.spotify_id)) return false;
+        seen.add(t.spotify_id);
+        return true;
+      });
+
       totalFetched += tracks.length;
 
-      // Filter by popularity
-      const qualified = tracks.filter((t) => t.popularity >= MIN_POPULARITY);
-      summary.qualified = qualified.length;
-
       // Filter out already-existing tracks
-      const newTracks = qualified.filter((t) => !existingIds.has(t.spotify_id));
+      const newTracks = tracks.filter((t) => !existingIds.has(t.spotify_id));
 
+      let inserted = 0;
       if (newTracks.length > 0) {
         const rows = [];
         for (const t of newTracks) {
-          // Try Last.fm for better genre tagging
+          // Try Last.fm for genre tagging
           let trackGenres = [genre]; // Default to search genre
-          let genreSource = 'search';
           try {
             const tagResult = await getGenreTags(t.artist, t.title, [genre]);
-            if (tagResult.source === 'lastfm' && tagResult.genres.length > 0) {
+            if (tagResult.genres.length > 0) {
               trackGenres = tagResult.genres;
-              genreSource = `lastfm(${tagResult.confidence})`;
             }
-            // Small delay to respect Last.fm rate limit
-            await sleep(200);
+            await sleep(200); // Last.fm rate limit
           } catch {
             // Keep default genre on failure
           }
@@ -95,7 +118,6 @@ async function seedExpand() {
             spotify_url: t.spotify_url,
             artist_id: t.artist_id,
             genres: trackGenres,
-            popularity: t.popularity,
             updated_at: new Date().toISOString(),
           });
         }
@@ -107,44 +129,30 @@ async function seedExpand() {
         if (upsertErr) {
           console.warn(`  [${genre}] Upsert failed: ${upsertErr.message}`);
         } else {
-          summary.inserted = newTracks.length;
-          totalInserted += newTracks.length;
-
-          // Track inserted IDs so later genres skip them too
+          inserted = newTracks.length;
+          totalInserted += inserted;
           for (const t of newTracks) {
             existingIds.add(t.spotify_id);
           }
         }
       }
 
-      // Log per-genre details with familiarity breakdown
-      const tierCounts = { anchor: 0, familiar: 0, discovery: 0 };
-      for (const t of qualified) {
-        tierCounts[getFamiliarityTier(t.popularity)]++;
-      }
-
-      const skipped = qualified.length - newTracks.length;
+      const skipped = tracks.length - newTracks.length;
       console.log(
-        `  [${genre.padEnd(12)}] fetched=${summary.fetched} qualified=${summary.qualified} ` +
-        `new=${summary.inserted} skipped=${skipped} ` +
-        `(anchor=${tierCounts.anchor} familiar=${tierCounts.familiar} discovery=${tierCounts.discovery})`
+        `  [${genre.padEnd(12)}] fetched=${tracks.length} new=${inserted} skipped=${skipped}`
       );
     } catch (err: any) {
       console.warn(`  [${genre}] Search failed: ${err.message}`);
     }
 
-    perGenre[genre] = summary;
-
-    // Rate limiting between API calls
     await sleep(RATE_LIMIT_MS);
   }
 
-  // Print summary
   console.log('\n=== SUMMARY ===');
   console.log(`Total fetched from Spotify: ${totalFetched}`);
   console.log(`Total new tracks inserted:  ${totalInserted}`);
   console.log(`Genres searched:            ${GENRES.length}`);
-  console.log(`Tracks already in DB:       ${existingIds.size}`);
+  console.log(`Tracks in DB now:           ${existingIds.size}`);
 }
 
 seedExpand().catch((err) => {

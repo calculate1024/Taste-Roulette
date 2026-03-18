@@ -19,7 +19,8 @@ import Animated, {
   FadeIn,
   FadeInDown,
 } from 'react-native-reanimated';
-import { WebView } from 'react-native-webview';
+// WebView embed removed — cookie consent popup blocks playback.
+// Using "Open in Spotify" deep link instead.
 import type { RouletteCard as RouletteCardType, Track } from '../../../packages/shared/types';
 import { getAdventureLevel } from '../utils/adventureLevel';
 import { colors, spacing, radius, typo, shadow } from '../constants/theme';
@@ -157,8 +158,8 @@ export default function RouletteCard({ card, onFeedback }: RouletteCardProps) {
     : null;
   const adventure = getAdventureLevel(card.tasteDistance);
   const tasteLabel = (card as any).recommender_taste_label || card.recommenderTasteLabel || '某位音樂愛好者';
-  const spotifyEmbedUrl = track?.spotifyId
-    ? `https://open.spotify.com/embed/track/${track.spotifyId}?theme=0`
+  const spotifyTrackUrl = track?.spotifyId
+    ? `https://open.spotify.com/track/${track.spotifyId}`
     : null;
 
   return (
@@ -267,25 +268,16 @@ export default function RouletteCard({ card, onFeedback }: RouletteCardProps) {
                   </Text>
                 )}
 
-                {spotifyEmbedUrl ? (
-                  <View style={styles.playerContainer}>
-                    <WebView
-                      source={{ uri: spotifyEmbedUrl }}
-                      style={styles.player}
-                      scrollEnabled={false}
-                      allowsInlineMediaPlayback
-                      mediaPlaybackRequiresUserAction={false}
-                    />
-                  </View>
-                ) : track?.spotifyId ? (
+                {spotifyTrackUrl ? (
                   <Pressable
                     style={styles.openSpotifyButton}
-                    onPress={() => Linking.openURL(`https://open.spotify.com/track/${track.spotifyId}`)}
+                    onPress={() => Linking.openURL(spotifyTrackUrl)}
                   >
-                    <Text style={styles.openSpotifyText}>Open in Spotify</Text>
+                    <Text style={styles.spotifyIcon}>🎵</Text>
+                    <Text style={styles.openSpotifyText}>在 Spotify 中聆聽</Text>
                   </Pressable>
                 ) : (
-                  <Text style={styles.noPreviewText}>No preview available</Text>
+                  <Text style={styles.noPreviewText}>無法預覽</Text>
                 )}
               </Animated.View>
             )}
@@ -480,26 +472,21 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
 
-  // Player
-  playerContainer: {
-    height: 80,
-    borderRadius: radius.md,
-    overflow: 'hidden',
-    marginBottom: spacing.lg,
-    backgroundColor: '#000',
-  },
-  player: {
-    flex: 1,
-    backgroundColor: 'transparent',
-  },
+  // Spotify button
   openSpotifyButton: {
-    backgroundColor: colors.spotify,
-    borderRadius: radius.md,
-    paddingVertical: spacing.md,
+    backgroundColor: '#1DB954',
+    borderRadius: radius.lg,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.lg,
   },
-  openSpotifyText: { color: colors.textPrimary, fontSize: 14, fontWeight: '700' },
+  spotifyIcon: {
+    fontSize: 18,
+    marginRight: spacing.sm,
+  },
+  openSpotifyText: { color: '#fff', fontSize: 15, fontWeight: '700' },
   noPreviewText: {
     ...typo.caption,
     textAlign: 'center',
