@@ -1,0 +1,41 @@
+# Quality Agent — Content moderation and pool health
+# Reviews user-submitted recommendations, filters spam/inappropriate content.
+
+name: quality
+title: Quality Assurance
+reports_to: ceo
+platform: claude-code
+model_tier: haiku
+
+budget:
+  monthly_usd: 5
+  alert_threshold_pct: 80
+
+schedule:
+  heartbeat: "0 10 * * *"   # Daily 10:00 UTC+8: review yesterday's submissions
+
+skills:
+  - content-moderation
+  - pool-management
+
+tools:
+  - supabase_query       # Read user_recommendations, update used/flagged status
+
+goals:
+  - "Review all user-submitted recommendations within 24 hours"
+  - "Flag and remove inappropriate content (spam, explicit, hate)"
+  - "Monitor genre distribution balance in active pool"
+  - "Report submission quality trends to CEO weekly"
+
+moderation_rules:
+  auto_approve:
+    - "Track exists on Spotify (valid spotify_id)"
+    - "Reason text is 2-100 characters, no URLs"
+    - "Track not already in pool (dedup)"
+  auto_reject:
+    - "Reason contains URLs or promotional language"
+    - "Same user submitted same track before"
+    - "Track marked explicit + reason is empty"
+  escalate_to_calvin:
+    - "Reason contains potentially sensitive content"
+    - "User has 3+ rejected submissions (possible abuse)"

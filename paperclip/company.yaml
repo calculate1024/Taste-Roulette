@@ -1,0 +1,44 @@
+# Taste Roulette — Paperclip Company Configuration
+# An "anti-algorithm" daily music recommendation app that pushes users
+# outside their taste comfort zone via anonymous peer recommendations.
+
+name: taste-roulette
+display_name: Taste Roulette
+description: >
+  Daily music recommendation app. Each day users receive one card from a stranger
+  whose taste is different-but-not-too-far (cosine distance 0.3-0.7 sweet spot).
+  Goal: maximize surprise, not accuracy.
+
+owner: calvin
+timezone: Asia/Taipei
+
+# Infrastructure references
+infrastructure:
+  api: vercel          # Node.js/Express API
+  database: supabase   # PostgreSQL + Auth
+  mobile: expo         # React Native (EAS Build)
+  monitoring: sentry   # Error tracking
+  analytics: posthog   # Product analytics
+  music_api: spotify   # Track metadata + search
+
+# Global budget cap (all agents combined)
+budget:
+  monthly_cap_usd: 120
+  alert_threshold_pct: 80  # Alert Calvin at 80% usage
+
+# Approval policy — actions requiring Calvin's explicit approval
+approval_required:
+  - social_media_publish
+  - curator_invitation_send
+  - feature_flag_toggle
+  - database_migration
+  - budget_increase
+
+# KPI targets (agents reference these for goal alignment)
+kpi_targets:
+  d7_retention: 0.40        # 40% D7 retention
+  daily_open_rate: 0.60     # 60% of users open their daily card
+  surprise_rate: 0.25       # 25% of feedbacks are "surprised"
+  recommend_back_rate: 0.30 # 30% of users submit a recommendation
+  pool_size_min: 200        # Minimum unused tracks in recommendation pool
+  genre_diversity_min: 15   # At least 15 of 21 genres represented in pool

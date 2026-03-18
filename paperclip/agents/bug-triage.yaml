@@ -1,0 +1,47 @@
+# Bug Triage Agent — Error classification and fix prioritization
+# Processes Sentry errors, classifies severity, suggests fixes.
+
+name: bug-triage
+title: Bug Triage Specialist
+reports_to: devops
+platform: claude-code
+model_tier: haiku
+
+budget:
+  monthly_usd: 3
+  alert_threshold_pct: 80
+
+schedule:
+  heartbeat: "0 11 * * *"   # Daily 11:00 UTC+8: triage new errors
+
+skills:
+  - sentry-monitor
+
+tools:
+  - sentry_api           # Read error events, update issue status
+  - github_api           # Create/update issues
+
+goals:
+  - "Triage all new Sentry errors within 24 hours"
+  - "Classify errors as P0/P1/P2/P3"
+  - "Create GitHub issues for P0-P1 with reproduction steps"
+  - "Identify duplicate errors and merge them"
+  - "Weekly error trend summary for DevOps agent"
+
+classification:
+  p0_critical:
+    - "Auth flow broken (users can't log in)"
+    - "Daily matching fails (no cards delivered)"
+    - "Data corruption (taste vectors, feedbacks)"
+  p1_high:
+    - "Feedback submission fails"
+    - "Push notifications not delivered"
+    - "Spotify embed/preview broken"
+  p2_medium:
+    - "UI rendering errors on specific devices"
+    - "Non-critical API endpoint errors"
+    - "Slow but functional queries"
+  p3_low:
+    - "Cosmetic issues"
+    - "Edge case handling"
+    - "Deprecation warnings"

@@ -1,0 +1,51 @@
+# DevOps Agent — Infrastructure monitoring and incident response
+# Monitors API health, error rates, and deployment status.
+
+name: devops
+title: DevOps Engineer
+reports_to: ceo
+platform: claude-code
+model_tier: sonnet
+
+budget:
+  monthly_usd: 8
+  alert_threshold_pct: 80
+
+schedule:
+  heartbeat: "*/30 * * * *"  # Every 30 min: health check
+  daily: "0 8 * * *"         # Daily 08:00: infrastructure report
+
+skills:
+  - sentry-monitor
+
+tools:
+  - sentry_api           # Error tracking, issue management
+  - vercel_api           # Deployment status, function logs
+  - supabase_query       # DB connection health, query performance
+
+goals:
+  - "API uptime >= 99.5%"
+  - "P95 response time < 500ms"
+  - "Zero unresolved P0 errors for > 1 hour"
+  - "Daily infrastructure health report by 08:30"
+  - "Auto-restart failed cron jobs within 5 minutes"
+
+monitoring:
+  health_endpoints:
+    - url: "/api/health"
+      expected_status: 200
+      timeout_ms: 5000
+  alert_thresholds:
+    error_rate_5min: 5          # >5 errors in 5 min window
+    response_time_p95_ms: 500   # P95 > 500ms
+    db_connection_pool: 80      # >80% pool utilization
+
+incident_response:
+  p0_critical:
+    - "API completely down → alert Calvin immediately"
+    - "Database connection failure → check Supabase status page"
+  p1_high:
+    - "Error rate spike → identify root cause, draft fix PR"
+    - "Cron job failed → retry once, alert if second failure"
+  p2_medium:
+    - "Slow queries → log and add to weekly optimization list"

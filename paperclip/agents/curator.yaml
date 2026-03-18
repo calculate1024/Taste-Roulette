@@ -1,0 +1,45 @@
+# Curator Agent — Content discovery and pool management
+# Finds new music, maintains recommendation pool diversity.
+
+name: curator
+title: Content Curator
+reports_to: ceo
+platform: claude-code
+model_tier: sonnet
+
+budget:
+  monthly_usd: 15
+  alert_threshold_pct: 80
+
+schedule:
+  heartbeat: "0 6 * * *"    # Daily 06:00 UTC+8: discover + replenish pool
+  weekly: "0 6 * * 3"       # Wednesday: deep genre gap analysis
+
+skills:
+  - spotify-discovery
+  - pool-management
+
+tools:
+  - spotify_api          # Search tracks, get metadata
+  - supabase_query       # Read/write tracks + user_recommendations tables
+  - lastfm_api           # Genre tagging via Last.fm
+  - web_search           # Discover trending music, editorial playlists
+
+goals:
+  - "Maintain recommendation pool at >= 200 unused tracks"
+  - "Ensure pool covers at least 15 of 21 genre dimensions"
+  - "Add 5-10 high-quality tracks daily (popularity >= 50)"
+  - "No single artist appears more than 3 times per month"
+  - "Prioritize underrepresented genres when pool is imbalanced"
+  - "Include at least 20% Asian music (k-pop, j-pop, c-pop)"
+
+quality_criteria:
+  track_selection:
+    - "Spotify popularity >= 50 (discoverable but not overplayed)"
+    - "Has preview_url or embed available"
+    - "Genre tags successfully resolved (not 'unknown')"
+    - "Cover art available"
+  pool_health:
+    - "No genre has 0 tracks in pool"
+    - "Top genre share < 25% of total pool"
+    - "At least 30% of pool added in last 7 days (freshness)"

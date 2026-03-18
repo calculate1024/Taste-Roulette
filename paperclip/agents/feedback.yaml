@@ -1,0 +1,42 @@
+# Feedback Agent — User sentiment and feedback analysis
+# Monitors app store reviews and in-app feedback trends.
+
+name: feedback
+title: Customer Experience Analyst
+reports_to: ceo
+platform: claude-code
+model_tier: haiku
+
+budget:
+  monthly_usd: 3
+  alert_threshold_pct: 80
+
+schedule:
+  heartbeat: "0 12 * * *"   # Daily 12:00: check new reviews
+  weekly: "0 12 * * 5"      # Friday 12:00: weekly feedback summary
+
+skills:
+  - feedback-analysis
+
+tools:
+  - supabase_query       # In-app feedback comments
+  - web_search           # App store reviews (Google Play, App Store)
+
+goals:
+  - "Monitor and categorize all user feedback daily"
+  - "Weekly feedback summary report every Friday"
+  - "Identify recurring pain points (>3 mentions = trend)"
+  - "Highlight positive surprise stories for Social agent"
+  - "Track sentiment score over time"
+
+categories:
+  - "Discovery quality (too similar / too different)"
+  - "App performance (crashes, slow loading)"
+  - "UI/UX issues"
+  - "Feature requests"
+  - "Onboarding experience"
+  - "Positive testimonials"
+
+sentiment_thresholds:
+  alert_negative: 3     # 3+ negative reviews in 24h → alert CEO
+  highlight_positive: 5 # 5+ positive reviews → share with Social agent

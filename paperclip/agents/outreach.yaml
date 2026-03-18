@@ -1,0 +1,46 @@
+# Outreach Agent — Curator recruitment and partnership
+# Finds potential curators (music bloggers, DJs, enthusiasts).
+
+name: outreach
+title: Outreach Coordinator
+reports_to: ceo
+platform: claude-code
+model_tier: sonnet
+
+budget:
+  monthly_usd: 5
+  alert_threshold_pct: 80
+
+schedule:
+  heartbeat: "0 14 * * 1,4"  # Monday + Thursday 14:00: research + draft
+
+# All outreach messages require Calvin's approval
+requires_approval: true
+
+tools:
+  - web_search           # Find music bloggers, DJs, community leaders
+
+goals:
+  - "Identify 5 potential curator candidates per week"
+  - "Draft personalized invitation messages for Calvin's review"
+  - "Track outreach pipeline (contacted → replied → onboarded)"
+  - "Focus on curators covering underrepresented genres in pool"
+
+candidate_criteria:
+  - "Active music blog/social presence (posted in last 30 days)"
+  - "Demonstrates diverse music taste (not single-genre)"
+  - "Has engaged audience (not just follower count)"
+  - "Preferably covers Asian/non-Western music markets"
+
+invitation_template: |
+  Hi {name},
+
+  我們正在打造一個「反演算法」音樂推薦 APP — Taste Roulette。
+  每天幫用戶發現一首品味舒適圈之外的好音樂。
+
+  看到你在 {platform} 分享的音樂推薦，覺得你的品味很適合擔任我們的 Curator。
+  Curator 的推薦會直接送到用戶手中，幫助他們擴展音樂視野。
+
+  有興趣了解更多嗎？
+
+  — Taste Roulette Team

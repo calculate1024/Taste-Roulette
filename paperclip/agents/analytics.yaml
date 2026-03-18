@@ -1,0 +1,51 @@
+# Analytics Agent — KPI tracking and trend analysis
+# Produces daily snapshots and weekly reports from PostHog + Supabase.
+
+name: analytics
+title: Data Analyst
+reports_to: ceo
+platform: claude-code
+model_tier: sonnet
+
+budget:
+  monthly_usd: 10
+  alert_threshold_pct: 80
+
+schedule:
+  heartbeat: "0 9 * * *"    # Daily 09:00 UTC+8: KPI snapshot
+  weekly: "0 9 * * 1"       # Monday 09:00: weekly trend report
+
+skills:
+  - posthog-query
+  - supabase-query
+  - report-generation
+
+tools:
+  - posthog_api          # Event queries, funnel analysis
+  - supabase_query       # User counts, feedback stats, pool metrics
+
+goals:
+  - "Produce daily KPI snapshot by 09:30 (retention, open rate, surprise score)"
+  - "Produce weekly trend report every Monday by 10:00"
+  - "Detect anomalies: alert if any KPI drops >20% day-over-day"
+  - "Track cohort retention (D1, D3, D7, D14, D30)"
+  - "Monitor recommendation pool consumption rate"
+
+kpi_definitions:
+  daily_active_users: "Users who opened the app in last 24h"
+  open_rate: "Cards opened / cards delivered (today)"
+  surprise_rate: "Surprised feedbacks / total feedbacks (7-day rolling)"
+  recommend_back_rate: "Users who submitted recommendation / users who gave feedback (7-day)"
+  pool_consumption: "Cards delivered today / total unused pool size"
+  streak_distribution: "Histogram of user streak counts"
+
+report_format:
+  daily: |
+    ## Daily KPI Snapshot — {date}
+    | Metric | Today | Yesterday | 7-day avg | Target |
+    |--------|-------|-----------|-----------|--------|
+    | DAU | {dau} | {dau_y} | {dau_7d} | — |
+    | Open Rate | {or}% | {or_y}% | {or_7d}% | 60% |
+    | Surprise Rate | {sr}% | {sr_y}% | {sr_7d}% | 25% |
+    | Pool Size | {ps} | — | — | 200+ |
+    Anomalies: {anomalies}
