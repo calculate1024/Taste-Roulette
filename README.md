@@ -19,12 +19,13 @@ Every day you receive one music recommendation from a stranger whose taste is *d
 | Backend API | Node.js + Express + TypeScript |
 | Matching Engine | TypeScript (in API server) |
 | Database & Auth | Supabase (PostgreSQL + Auth + RLS) |
-| Music Data | Spotify Web API |
-| Audio Playback | Spotify Embed (WebView) + deep link fallback |
+| Music Data | Spotify Web API + Last.fm + MusicBrainz |
+| Audio Playback | Spotify deep link (Open in Spotify) |
 | Push Notifications | Expo Push Notifications |
 | State Management | Zustand + AsyncStorage |
 | Deployment | Vercel (API) + EAS Build (Mobile) |
 | Monitoring | Sentry (error tracking) + PostHog (analytics) |
+| AI Ops | Paperclip (9-agent orchestration for post-MVP operations) |
 
 ## Project Structure
 
@@ -50,6 +51,10 @@ taste-roulette/
 │           └── models.py
 ├── packages/
 │   └── shared/              # Shared TypeScript types
+├── paperclip/               # AI agent orchestration (Paperclip)
+│   ├── company.yaml         # Company config & KPI targets
+│   ├── agents/              # 9 agent definitions (CEO → specialists)
+│   └── skills/              # Agent skill procedures & SQL queries
 ├── supabase/
 │   └── migrations/          # Database schema
 └── .claude/
@@ -61,12 +66,12 @@ taste-roulette/
 ### Phase 0: Foundation
 - Email authentication (Supabase Auth)
 - Onboarding swipe questionnaire (8-10 tracks, early exit on clear patterns)
-- Genre-based taste vector computation (20 dimensions)
+- Genre-based taste vector computation (21 dimensions, incl. c-pop)
 - Push notification infrastructure
 
 ### Phase 1: Core Loop
 - Daily roulette card with flip animation
-- Spotify Embed audio player (WebView)
+- "Open in Spotify" deep link button
 - Three-tier feedback (Surprised / OK / Not for me)
 - Recommend-back flow with Spotify search + bonus card incentive
 - Daily matching engine with taste distance sweet spot (cosine distance 0.3-0.7)
@@ -99,19 +104,41 @@ taste-roulette/
 - **Warm curator reasons** — each seed track has a hand-written, human-sounding recommendation reason
 - **Curator taste labels** — curator cards show genre-based labels (e.g., "爵士迷") instead of "Curator 策展人"
 - **Seed users** — 8 virtual users with diverse taste vectors (Pop/Rock/Jazz/Electronic/Hip-Hop/Classical/World/Metal) and 5-8 pre-loaded recommendations each, enabling the matching engine to deliver real sweet-spot matches from day 1
-- **Auto-expanded track pool** — `seed:expand` script searches Spotify by genre to auto-populate 100-160 tracks (5-8 per genre × 20 genres), with familiarity tiers (anchor/familiar/discovery) based on popularity
+- **Auto-expanded track pool** — `seed:expand` script searches Spotify by genre + known artists to auto-populate ~500 tracks across 21 genres, with Last.fm/MusicBrainz genre tagging
 - **First card upgrade** — onboarding completion now delivers a taste-aware first card with distance + label
 - **Spotify-first onboarding** — users connect Spotify before swipe, so onboarding uses their own listening history (~100% recognition rate)
 - **Recognition fallback** — for non-Spotify users: quick "聽過嗎？" recognition phase filters tracks before swipe, ensuring 80%+ familiarity
 
+### Phase 5: Intelligence & Diversity
+- **C-Pop genre support** — 21st genre dimension for Chinese pop music
+- **Genre correlation inference** — cold-start users get inferred preferences (e.g., liking jazz → partial affinity for soul/blues)
+- **Last.fm genre tagging** — multi-source genre enrichment via Last.fm API
+- **MusicBrainz fallback** — secondary genre source when Last.fm data is sparse
+- **Spotify popularity deprecation** — adapted to Spotify API no longer returning popularity field
+
+### Paperclip AI Operations
+9 autonomous agents manage post-MVP operations:
+
+| Agent | Role | Schedule |
+|-------|------|----------|
+| CEO | Strategic oversight, weekly KPI review | Weekly |
+| Curator | Spotify discovery, pool diversity | Every 6h |
+| Quality | Content moderation, track validation | Every 4h |
+| Analytics | PostHog metrics, weekly reports | Daily |
+| DevOps | Sentry monitoring, deploy health | Every 30min |
+| Bug Triage | Issue classification, severity routing | Every 2h |
+| Social | Share card content, community engagement | Daily |
+| Outreach | Growth experiments, user feedback | Weekly |
+| Feedback | In-app reaction analysis, trend detection | Daily |
+
 ## Taste Distance Algorithm
 
-Uses cosine distance on 20-dimensional genre vectors:
+Uses cosine distance on 21-dimensional genre vectors:
 
 ```
 Genres: pop, rock, hip-hop, r&b, jazz, classical, electronic,
         latin, country, folk, metal, punk, indie, soul,
-        blues, reggae, world, ambient, k-pop, j-pop
+        blues, reggae, world, ambient, k-pop, j-pop, c-pop
 
 Weights: love = 1.0, okay = 0.3, not_for_me = -0.5
 
@@ -160,7 +187,7 @@ Badge Categories (6):
    SUPABASE_SERVICE_KEY=your_service_key
    SPOTIFY_CLIENT_ID=your_spotify_client_id
    SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
-   SPOTIFY_REDIRECT_URI=http://localhost:3000/api/spotify/callback
+   SPOTIFY_REDIRECT_URI=https://your-app.vercel.app/api/spotify/callback
    CRON_API_KEY=your_random_api_key
    ```
 
@@ -185,7 +212,7 @@ Badge Categories (6):
 4. **Seed data**
    ```bash
    cd apps/api && npm run seed           # Seed 30 hand-picked tracks with Spotify metadata
-   cd apps/api && npm run seed:expand    # Auto-expand to 100-160 tracks via Spotify genre search
+   cd apps/api && npm run seed:expand    # Auto-expand to ~500 tracks via Spotify genre + artist search
    cd apps/api && npm run seed:users     # Seed 8 virtual users with 40+ recommendations
    ```
 
@@ -253,8 +280,9 @@ cd apps/api && npx jest --verbose
 ## Known Limitations
 
 - **Spotify Dev Mode**: OAuth limited to 25 whitelisted users (needs Extension Request for production)
-- **Spotify Preview URLs**: No longer available (using Spotify Embed instead)
+- **Spotify Preview URLs**: No longer available (using deep link to Spotify app)
 - **Spotify Audio Features API**: Returns 403 (using genre-based vectors instead)
+- **Spotify Popularity API**: No longer returns popularity field (removed from all filtering logic)
 - **Taste Twin scaling**: Currently loads all users into memory (needs pgvector for production)
 
 ## License
