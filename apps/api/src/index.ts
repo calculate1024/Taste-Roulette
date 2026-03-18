@@ -67,7 +67,7 @@ app.use('/api/notifications', notificationsRouter);
 app.get('/api/cron/daily', async (req, res) => {
   // Verify Vercel cron secret (auto-injected as Authorization header)
   const authHeader = req.headers['authorization'];
-  const cronSecret = process.env.CRON_SECRET;
+  const cronSecret = process.env.CRON_SECRET || process.env.CRON_API_KEY;
   if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
