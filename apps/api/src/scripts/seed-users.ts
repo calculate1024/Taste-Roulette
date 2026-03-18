@@ -45,6 +45,8 @@ const SEED_USERS: SeedUser[] = [
       { trackId: '0VjIjW4GlUZAMYd2vXMi3b', reason: '第一次聽就迴圈了整個下午，合成器的音色太迷人了' },
       { trackId: '03UrZgTINDqvnUMbbIMhql', reason: '不要因為 meme 就忽略這首，認真聽節奏設計真的厲害' },
       { trackId: '4i8xlL0EqaSj9piUVUOQQO', reason: '鄉村音樂的入門曲，Dolly 的聲音能融化任何偏見' },
+      { trackId: '7qiZfU4dY1lWllzX7mPBI3', reason: '極簡的 loop 能讓全世界跟著哼，這就是好旋律的力量' },
+      { trackId: '5XeFesFbtLpXzIVDNQP22n', reason: 'BTS 用英文唱的純粹快樂，不需要理由就會笑' },
     ],
   },
   {
@@ -56,6 +58,8 @@ const SEED_USERS: SeedUser[] = [
       { trackId: '4u7EnebtmKWzUH433cf5Qv', reason: '六分鐘的旅程，從歌劇到硬搖滾，每個轉折都是驚喜' },
       { trackId: '2MuWTIM3b0YEAskbeeFE1i', reason: '金屬樂不是噪音，這首的吉他 riff 精密到像瑞士鐘錶' },
       { trackId: '3B3eOgLJSqPEA0RfboIQVM', reason: '用最少的樂器說最多的故事，indie folk 的教科書' },
+      { trackId: '3n3Ppam7vgaVa1iaRUc9Lp', reason: '二十年前的歌到現在每個派對還是必放，這就是經典' },
+      { trackId: '3bhiCVExl89MfoAjx9fMuE', reason: '龐克的精髓就是三分鐘內把情緒全部釋放' },
     ],
   },
   {
@@ -67,6 +71,8 @@ const SEED_USERS: SeedUser[] = [
       { trackId: '1YQWosTIljIvxAgHWTp7KP', reason: '5/4 拍竟然能這麼自然地搖擺，Dave Brubeck 是天才' },
       { trackId: '6Er8Fz6fuZNi5cvwQjv1ya', reason: '月光下的鋼琴，一百年後依然動人，適合下雨天獨處' },
       { trackId: '1h2xVEoJORqrg71HocgqXd', reason: 'Stevie Wonder 的 groove 感是超越時代的，funky 到骨子裡' },
+      { trackId: '1BxfuPKGuaTgP7aM0Bbdwr', reason: 'Nina Simone 的版本讓這首歌從標準曲變成了宣言' },
+      { trackId: '6mFkJmJqdDVQ1REhVfGgd1', reason: 'Satie 的留白比其他人的千音萬音都有力量' },
     ],
   },
   {
@@ -78,6 +84,8 @@ const SEED_USERS: SeedUser[] = [
       { trackId: '6c9EGVj5CaOeoKd9ecMW1U', reason: '前面慢慢鋪陳，等到 drop 的時候整個人都站起來了' },
       { trackId: '6kkwzB6hXLIONkEk9JciA6', reason: '科學研究說能降低 65% 的焦慮，我覺得是 100%' },
       { trackId: '5Z01UMMf7V1o0MzF86s6WJ', reason: '嘻哈的能量感是很純粹的，前奏一下就進入狀態' },
+      { trackId: '7GhIk7Il098yCjg4BQjzvb', reason: 'EDM 也可以讓人鼻酸，副歌的情感張力出乎意料' },
+      { trackId: '5ghIJDpPoe3CfHMGu71E6T', reason: 'Daft Punk 的製作加上 The Weeknd，未來復古的完美結合' },
     ],
   },
   {
@@ -89,6 +97,47 @@ const SEED_USERS: SeedUser[] = [
       { trackId: '6habFhsOp2NvshLv26DqMb', reason: '拉丁節奏的感染力不需要翻譯，身體會自己動起來' },
       { trackId: '3PQLYVskjUeRmRIfECsL0X', reason: '雷鬼的慵懶節奏裡藏著最溫柔的力量，適合放空' },
       { trackId: '04TshWXkhV1qkqHzf31Hn6', reason: '米津玄師的旋律超越語言，聽不懂日文也會被打動' },
+      { trackId: '1mea3bSkSGXuIRvnWJo9Id', reason: '全世界一起唱的那個夏天，音樂真的能連接人' },
+      { trackId: '2gMXnyrvIjhVBUZwvLZDMP', reason: '三個和弦就寫出讓你想回家的感覺，民謠的魔力' },
+    ],
+  },
+  {
+    email: 'zoe-indie@taste-roulette.bot',
+    displayName: 'Zoe',
+    // Strong indie/folk/ambient/blues preference
+    tasteVector: [0.1, 0.2, 0.0, 0.0, 0.1, 0.0, 0.1, 0.0, 0.0, 0.7, 0.0, 0.0, 0.9, 0.2, 0.4, 0.0, 0.0, 0.5, 0.0, 0.0],
+    recommendations: [
+      { trackId: '3B3eOgLJSqPEA0RfboIQVM', reason: '冬天的小木屋、假音和心碎，indie folk 的起點' },
+      { trackId: '0pqnGHJpmpxLKifKRmU6WP', reason: '旋律太 catchy 你不會注意歌詞有多暗黑，indie 的反差' },
+      { trackId: '4gMgiXfqyzZLMhsksGmbQV', reason: 'B.B. King 的吉他不只是彈奏，是在對你說話' },
+      { trackId: '6kkwzB6hXLIONkEk9JciA6', reason: '工作到深夜時放這首，整個世界會安靜下來' },
+      { trackId: '0e7ipj03S05BNilyu5bRzt', reason: '分手歌寫到這個境界，不苦也不怨，就是一聲嘆息' },
+    ],
+  },
+  {
+    email: 'max-hiphop@taste-roulette.bot',
+    displayName: 'Max',
+    // Strong hip-hop/r&b/soul/electronic preference
+    tasteVector: [0.3, 0.0, 0.9, 0.7, 0.0, 0.0, 0.4, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.2, 0.0],
+    recommendations: [
+      { trackId: '5Z01UMMf7V1o0MzF86s6WJ', reason: 'Eminem 把焦慮寫成了戰歌，每次重要時刻前必聽' },
+      { trackId: '3DamFFqW32WihKkTVlwTYQ', reason: '70 年代靈魂樂穿越到 2016 年，復古但完全不過時' },
+      { trackId: '1h2xVEoJORqrg71HocgqXd', reason: '這首的 bass line 是音樂史上最 funky 的三十秒' },
+      { trackId: '0VjIjW4GlUZAMYd2vXMi3b', reason: '合成器 + R&B 嗓音，凌晨三點開車的完美配樂' },
+      { trackId: '7GhIk7Il098yCjg4BQjzvb', reason: '電子樂也有靈魂，這首的副歌會讓你舉起手' },
+    ],
+  },
+  {
+    email: 'yuki-asia@taste-roulette.bot',
+    displayName: 'Yuki',
+    // Strong k-pop/j-pop/pop/electronic preference
+    tasteVector: [0.6, 0.0, 0.1, 0.3, 0.0, 0.0, 0.4, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.1, 0.9, 0.8],
+    recommendations: [
+      { trackId: '5XeFesFbtLpXzIVDNQP22n', reason: 'K-Pop 的編曲密度是流行樂界最高的，每個八拍都有驚喜' },
+      { trackId: '04TshWXkhV1qkqHzf31Hn6', reason: '米津玄師證明了 J-Pop 不只是動漫主題曲' },
+      { trackId: '03UrZgTINDqvnUMbbIMhql', reason: 'PSY 用幽默包裝了完美的 dance pop 結構' },
+      { trackId: '7qiZfU4dY1lWllzX7mPBI3', reason: 'Ed Sheeran 只用一把吉他就能填滿整個體育場' },
+      { trackId: '5ghIJDpPoe3CfHMGu71E6T', reason: 'The Weeknd 和 Daft Punk 的合作是流行樂的巔峰之一' },
     ],
   },
 ];

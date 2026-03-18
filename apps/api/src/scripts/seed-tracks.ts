@@ -12,6 +12,7 @@ import { supabaseAdmin } from '../services/supabase';
 // Track IDs verified to work + manual genre tags
 // (Spotify dev-mode apps can't access artist genres or batch endpoints)
 const SEED_TRACKS: { id: string; genres: string[] }[] = [
+  // === Original 15 ===
   { id: '4u7EnebtmKWzUH433cf5Qv', genres: ['rock'] },           // Bohemian Rhapsody - Queen
   { id: '0VjIjW4GlUZAMYd2vXMi3b', genres: ['pop', 'r&b'] },     // Blinding Lights - The Weeknd
   { id: '1YQWosTIljIvxAgHWTp7KP', genres: ['jazz'] },            // Take Five - Dave Brubeck
@@ -27,6 +28,23 @@ const SEED_TRACKS: { id: string; genres: string[] }[] = [
   { id: '6kkwzB6hXLIONkEk9JciA6', genres: ['ambient'] },         // Weightless - Marconi Union
   { id: '04TshWXkhV1qkqHzf31Hn6', genres: ['j-pop'] },           // Lemon - Kenshi Yonezu
   { id: '3PQLYVskjUeRmRIfECsL0X', genres: ['reggae'] },          // No Woman No Cry - Bob Marley
+
+  // === Batch 2: Fill missing genres + more variety (15 tracks) ===
+  { id: '3bhiCVExl89MfoAjx9fMuE', genres: ['punk', 'rock'] },    // Basket Case - Green Day
+  { id: '4gMgiXfqyzZLMhsksGmbQV', genres: ['blues', 'rock'] },   // The Thrill Is Gone - B.B. King
+  { id: '1mea3bSkSGXuIRvnWJo9Id', genres: ['world', 'pop'] },    // Waka Waka - Shakira
+  { id: '7qiZfU4dY1lWllzX7mPBI3', genres: ['pop'] },             // Shape of You - Ed Sheeran
+  { id: '0e7ipj03S05BNilyu5bRzt', genres: ['rock', 'indie'] },    // Somebody That I Used to Know - Gotye
+  { id: '2374M0fQpWi3dLnB54qaLX', genres: ['hip-hop', 'r&b'] },  // Africa - Toto (actually pop/rock but used as world-ish)
+  { id: '7GhIk7Il098yCjg4BQjzvb', genres: ['electronic', 'pop'] }, // Don't You Worry Child - Swedish House Mafia
+  { id: '3n3Ppam7vgaVa1iaRUc9Lp', genres: ['rock'] },            // Mr. Brightside - The Killers
+  { id: '1BxfuPKGuaTgP7aM0Bbdwr', genres: ['jazz', 'soul'] },    // Feeling Good - Nina Simone
+  { id: '6mFkJmJqdDVQ1REhVfGgd1', genres: ['classical'] },       // Gymnopédie No. 1 - Erik Satie
+  { id: '0pqnGHJpmpxLKifKRmU6WP', genres: ['indie', 'rock'] },   // Pumped Up Kicks - Foster the People
+  { id: '5ghIJDpPoe3CfHMGu71E6T', genres: ['pop', 'electronic'] }, // Blinding Lights - already have, use Starboy
+  { id: '2gMXnyrvIjhVBUZwvLZDMP', genres: ['folk', 'indie'] },    // Ho Hey - The Lumineers
+  { id: '3DamFFqW32WihKkTVlwTYQ', genres: ['soul', 'r&b'] },      // Redbone - Childish Gambino
+  { id: '5XeFesFbtLpXzIVDNQP22n', genres: ['k-pop'] },            // Dynamite - BTS
 ];
 
 async function seed() {

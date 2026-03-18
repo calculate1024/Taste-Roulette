@@ -32,6 +32,37 @@ export const CURATOR_REASONS: Record<string, string> = {
   '04TshWXkhV1qkqHzf31Hn6': '米津玄師的旋律感是超越語言的，聽不懂歌詞也會被打動',
   // No Woman No Cry - Bob Marley
   '3PQLYVskjUeRmRIfECsL0X': '雷鬼的慵懶裡藏著最深的溫柔，適合雨天反覆聽',
+  // --- Batch 2 ---
+  // Basket Case - Green Day
+  '3bhiCVExl89MfoAjx9fMuE': '龐克不需要技巧，需要的是一股不管不顧的衝勁',
+  // The Thrill Is Gone - B.B. King
+  '4gMgiXfqyzZLMhsksGmbQV': 'B.B. King 的吉他會哭，每個音符都在訴說故事',
+  // Waka Waka - Shakira
+  '1mea3bSkSGXuIRvnWJo9Id': '世界盃的記憶不只是足球，還有這首讓全場一起跳的歌',
+  // Shape of You - Ed Sheeran
+  '7qiZfU4dY1lWllzX7mPBI3': '極簡的 loop 就能讓全世界跟著哼，這就是流行樂的力量',
+  // Somebody That I Used to Know - Gotye
+  '0e7ipj03S05BNilyu5bRzt': '一首分手歌能寫得這麼有層次，從溫柔到爆發一氣呵成',
+  // Don't You Worry Child - Swedish House Mafia
+  '7GhIk7Il098yCjg4BQjzvb': 'EDM 也可以讓人流淚，副歌的情感張力太強了',
+  // Mr. Brightside - The Killers
+  '3n3Ppam7vgaVa1iaRUc9Lp': '二十年了還是所有搖滾派對的必放曲，永不過時的能量',
+  // Feeling Good - Nina Simone
+  '1BxfuPKGuaTgP7aM0Bbdwr': 'Nina Simone 的嗓音讓每個早晨都變成電影場景',
+  // Gymnopédie No. 1 - Erik Satie
+  '6mFkJmJqdDVQ1REhVfGgd1': '極簡主義的先驅，每個留白都是刻意的美',
+  // Pumped Up Kicks - Foster the People
+  '0pqnGHJpmpxLKifKRmU6WP': '旋律輕快到你不會注意歌詞有多黑暗，這就是 indie 的魅力',
+  // Starboy - The Weeknd
+  '5ghIJDpPoe3CfHMGu71E6T': 'Daft Punk 的製作加上 The Weeknd 的聲線，未來感滿點',
+  // Ho Hey - The Lumineers
+  '2gMXnyrvIjhVBUZwvLZDMP': '三個和弦就能寫出讓你想回家的感覺，民謠的魔力',
+  // Redbone - Childish Gambino
+  '3DamFFqW32WihKkTVlwTYQ': '復古靈魂樂的質地配上現代的製作，像在時空隧道裡跳舞',
+  // Dynamite - BTS
+  '5XeFesFbtLpXzIVDNQP22n': '不管你對 K-Pop 有沒有偏見，這首的快樂是無法抗拒的',
+  // Africa - Toto
+  '2374M0fQpWi3dLnB54qaLX': '八零年代最偉大的副歌之一，聽一次就永遠記住',
 };
 
 // Taste labels for curator picks based on the track's primary genre

@@ -16,8 +16,8 @@ describe('getCuratorReason', () => {
     expect(reason).toBe('有人覺得這首歌值得被更多人聽到');
   });
 
-  it('has a reason for all 15 seed tracks', () => {
-    expect(Object.keys(CURATOR_REASONS).length).toBe(15);
+  it('has a reason for all 30 seed tracks', () => {
+    expect(Object.keys(CURATOR_REASONS).length).toBe(30);
   });
 
   it('no reason is empty', () => {
