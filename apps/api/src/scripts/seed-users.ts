@@ -1,4 +1,4 @@
-// Seed virtual users with diverse taste vectors and pre-loaded recommendations.
+// Seed virtual users with diverse taste profiles and pre-loaded recommendations.
 // These create a healthy recommendation pool for the matching engine from day 1.
 //
 // Usage: npx tsx src/scripts/seed-users.ts
@@ -6,173 +6,195 @@
 // Prerequisites:
 // - Seed tracks must be loaded first (npm run seed)
 // - Supabase must have the profiles and user_recommendations tables
-//
-// NOTE: This script creates Supabase Auth users with fake emails.
-// To clean up, delete from auth.users where email LIKE '%@taste-roulette.bot'.
 
 import dotenv from 'dotenv';
 import path from 'path';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
 
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '../services/supabase';
+import { GENRES, VECTOR_DIM, genreToVector } from '../utils/genres';
 
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
-
-// 20-dim genre vector indices:
-// 0:pop 1:rock 2:hip-hop 3:r&b 4:jazz 5:classical 6:electronic
-// 7:latin 8:country 9:folk 10:metal 11:punk 12:indie 13:soul
-// 14:blues 15:reggae 16:world 17:ambient 18:k-pop 19:j-pop
+interface SeedRecommendation {
+  spotifyId: string;
+  reason: string;
+}
 
 interface SeedUser {
   email: string;
   displayName: string;
-  tasteVector: number[];
-  recommendations: { trackId: string; reason: string }[];
+  dominantGenres: string[];
+  recommendations: SeedRecommendation[];
+}
+
+const SEED_PASSWORD = 'seed-user-password-2024';
+
+/** Build a taste vector by combining one-hot vectors for each dominant genre. */
+function buildTasteVector(dominantGenres: string[]): number[] {
+  const vec = new Array(VECTOR_DIM).fill(0);
+  for (const genre of dominantGenres) {
+    const oneHot = genreToVector([genre]);
+    for (let i = 0; i < VECTOR_DIM; i++) {
+      vec[i] = Math.max(vec[i], oneHot[i]);
+    }
+  }
+  return vec;
 }
 
 const SEED_USERS: SeedUser[] = [
   {
-    email: 'aria-pop@taste-roulette.bot',
-    displayName: 'Aria',
-    // Strong pop/r&b/k-pop preference
-    tasteVector: [0.8, 0.1, 0.2, 0.6, 0.0, 0.0, 0.3, 0.2, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.0, 0.0, 0.0, 0.0, 0.7, 0.3],
+    email: 'seed-pop@taste-roulette.local',
+    displayName: 'Pop Explorer',
+    dominantGenres: ['pop', 'r&b', 'k-pop'],
     recommendations: [
-      { trackId: '0VjIjW4GlUZAMYd2vXMi3b', reason: '第一次聽就迴圈了整個下午，合成器的音色太迷人了' },
-      { trackId: '03UrZgTINDqvnUMbbIMhql', reason: '不要因為 meme 就忽略這首，認真聽節奏設計真的厲害' },
-      { trackId: '4i8xlL0EqaSj9piUVUOQQO', reason: '鄉村音樂的入門曲，Dolly 的聲音能融化任何偏見' },
-      { trackId: '7qiZfU4dY1lWllzX7mPBI3', reason: '極簡的 loop 能讓全世界跟著哼，這就是好旋律的力量' },
-      { trackId: '5XeFesFbtLpXzIVDNQP22n', reason: 'BTS 用英文唱的純粹快樂，不需要理由就會笑' },
+      // Dominant genre tracks
+      { spotifyId: '0VjIjW4GlUZAMYd2vXMi3b', reason: '第一次聽就迴圈了整個下午，合成器的音色太迷人了' },
+      { spotifyId: '7qiZfU4dY1lWllzX7mPBI3', reason: '極簡的 loop 能讓全世界跟著哼，這就是好旋律的力量' },
+      { spotifyId: '5XeFesFbtLpXzIVDNQP22n', reason: 'BTS 用英文唱的純粹快樂，不需要理由就會笑' },
+      { spotifyId: '03UrZgTINDqvnUMbbIMhql', reason: '不要因為 meme 就忽略這首，認真聽節奏設計真的厲害' },
+      // Cross-genre diversity
+      { spotifyId: '3DamFFqW32WihKkTVlwTYQ', reason: '復古靈魂樂的質感配上現代節拍，讓人想跟著搖擺' },
+      { spotifyId: '7GhIk7Il098yCjg4BQjzvb', reason: '電子舞曲也能讓你熱淚盈眶，副歌的力量太強了' },
+      { spotifyId: '6habFhsOp2NvshLv26DqMb', reason: '拉丁節奏的身體記憶比語言更快' },
     ],
   },
   {
-    email: 'kai-rock@taste-roulette.bot',
-    displayName: 'Kai',
-    // Strong rock/metal/indie preference
-    tasteVector: [0.1, 0.9, 0.0, 0.0, 0.1, 0.0, 0.1, 0.0, 0.0, 0.2, 0.7, 0.4, 0.6, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0],
+    email: 'seed-rock@taste-roulette.local',
+    displayName: 'Rock Spirit',
+    dominantGenres: ['rock', 'indie', 'punk'],
     recommendations: [
-      { trackId: '4u7EnebtmKWzUH433cf5Qv', reason: '六分鐘的旅程，從歌劇到硬搖滾，每個轉折都是驚喜' },
-      { trackId: '2MuWTIM3b0YEAskbeeFE1i', reason: '金屬樂不是噪音，這首的吉他 riff 精密到像瑞士鐘錶' },
-      { trackId: '3B3eOgLJSqPEA0RfboIQVM', reason: '用最少的樂器說最多的故事，indie folk 的教科書' },
-      { trackId: '3n3Ppam7vgaVa1iaRUc9Lp', reason: '二十年前的歌到現在每個派對還是必放，這就是經典' },
-      { trackId: '3bhiCVExl89MfoAjx9fMuE', reason: '龐克的精髓就是三分鐘內把情緒全部釋放' },
+      // Dominant genre tracks
+      { spotifyId: '4u7EnebtmKWzUH433cf5Qv', reason: '六分鐘穿越歌劇、搖滾和敘事，每次重聽都有新層次' },
+      { spotifyId: '3n3Ppam7vgaVa1iaRUc9Lp', reason: '二十年過去了，Mr. Brightside 在每個搖滾夜依然是終曲' },
+      { spotifyId: '3bhiCVExl89MfoAjx9fMuE', reason: '龐克的精髓就是三個和弦加上一腔不顧一切的熱血' },
+      { spotifyId: '0pqnGHJpmpxLKifKRmU6WP', reason: '輕快的旋律底下藏著暗黑歌詞，indie 的反差魅力' },
+      // Cross-genre diversity
+      { spotifyId: '2MuWTIM3b0YEAskbeeFE1i', reason: '金屬樂的結構可以精密得像交響樂，Metallica 證明了這點' },
+      { spotifyId: '5Z01UMMf7V1o0MzF86s6WJ', reason: '嘻哈和搖滾共享的是那股不服輸的勁，Eminem 把它推到極致' },
+      { spotifyId: '3B3eOgLJSqPEA0RfboIQVM', reason: '小木屋裡的假音和吉他，indie folk 最動人的起點' },
     ],
   },
   {
-    email: 'luna-jazz@taste-roulette.bot',
-    displayName: 'Luna',
-    // Strong jazz/classical/soul/blues preference
-    tasteVector: [0.0, 0.0, 0.0, 0.2, 0.9, 0.7, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.6, 0.5, 0.0, 0.1, 0.2, 0.0, 0.0],
+    email: 'seed-jazz@taste-roulette.local',
+    displayName: 'Jazz Soul',
+    dominantGenres: ['jazz', 'blues', 'soul'],
     recommendations: [
-      { trackId: '1YQWosTIljIvxAgHWTp7KP', reason: '5/4 拍竟然能這麼自然地搖擺，Dave Brubeck 是天才' },
-      { trackId: '6Er8Fz6fuZNi5cvwQjv1ya', reason: '月光下的鋼琴，一百年後依然動人，適合下雨天獨處' },
-      { trackId: '1h2xVEoJORqrg71HocgqXd', reason: 'Stevie Wonder 的 groove 感是超越時代的，funky 到骨子裡' },
-      { trackId: '1BxfuPKGuaTgP7aM0Bbdwr', reason: 'Nina Simone 的版本讓這首歌從標準曲變成了宣言' },
-      { trackId: '6mFkJmJqdDVQ1REhVfGgd1', reason: 'Satie 的留白比其他人的千音萬音都有力量' },
+      // Dominant genre tracks
+      { spotifyId: '1YQWosTIljIvxAgHWTp7KP', reason: '5/4 拍竟然聽起來這麼自然，爵士入門的最佳起點' },
+      { spotifyId: '1BxfuPKGuaTgP7aM0Bbdwr', reason: 'Nina Simone 的聲音讓平凡的早晨都變成電影場景' },
+      { spotifyId: '4gMgiXfqyzZLMhsksGmbQV', reason: 'B.B. King 的吉他真的會哭，每個彎音都是一個故事' },
+      { spotifyId: '1h2xVEoJORqrg71HocgqXd', reason: 'Stevie Wonder 的 groove 從第一秒就把你抓住不放' },
+      // Cross-genre diversity
+      { spotifyId: '3DamFFqW32WihKkTVlwTYQ', reason: 'Childish Gambino 把七零年代靈魂樂帶進了 2020 年代' },
+      { spotifyId: '6mFkJmJqdDVQ1REhVfGgd1', reason: '薩提的極簡鋼琴和爵士共享一種「留白的美」' },
     ],
   },
   {
-    email: 'nova-electronic@taste-roulette.bot',
-    displayName: 'Nova',
-    // Strong electronic/ambient/hip-hop preference
-    tasteVector: [0.2, 0.0, 0.5, 0.1, 0.0, 0.0, 0.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.7, 0.1, 0.1],
+    email: 'seed-electronic@taste-roulette.local',
+    displayName: 'Electronic Mind',
+    dominantGenres: ['electronic', 'ambient'],
     recommendations: [
-      { trackId: '6c9EGVj5CaOeoKd9ecMW1U', reason: '前面慢慢鋪陳，等到 drop 的時候整個人都站起來了' },
-      { trackId: '6kkwzB6hXLIONkEk9JciA6', reason: '科學研究說能降低 65% 的焦慮，我覺得是 100%' },
-      { trackId: '5Z01UMMf7V1o0MzF86s6WJ', reason: '嘻哈的能量感是很純粹的，前奏一下就進入狀態' },
-      { trackId: '7GhIk7Il098yCjg4BQjzvb', reason: 'EDM 也可以讓人鼻酸，副歌的情感張力出乎意料' },
-      { trackId: '5ghIJDpPoe3CfHMGu71E6T', reason: 'Daft Punk 的製作加上 The Weeknd，未來復古的完美結合' },
+      // Dominant genre tracks
+      { spotifyId: '6c9EGVj5CaOeoKd9ecMW1U', reason: '七分鐘的鋪陳等到 drop 落下的瞬間，整個世界都亮了' },
+      { spotifyId: '6kkwzB6hXLIONkEk9JciA6', reason: '科學實證能降低焦慮 65% 的音樂，睡前必聽' },
+      { spotifyId: '7GhIk7Il098yCjg4BQjzvb', reason: 'Swedish House Mafia 證明了電子樂也能承載深刻的情感' },
+      { spotifyId: '5ghIJDpPoe3CfHMGu71E6T', reason: 'Daft Punk 的製作加上 The Weeknd 的聲線，未來感十足' },
+      // Cross-genre diversity
+      { spotifyId: '6mFkJmJqdDVQ1REhVfGgd1', reason: '薩提在一百多年前就預見了環境音樂的概念' },
+      { spotifyId: '0VjIjW4GlUZAMYd2vXMi3b', reason: '合成器浪潮的最佳代言，復古的聲音設計令人著迷' },
+      { spotifyId: '04TshWXkhV1qkqHzf31Hn6', reason: '米津玄師的電子編曲風格跟 J-Pop 旋律的融合很巧妙' },
     ],
   },
   {
-    email: 'rio-world@taste-roulette.bot',
-    displayName: 'Rio',
-    // Strong latin/reggae/world/folk/j-pop preference (eclectic)
-    tasteVector: [0.1, 0.0, 0.0, 0.1, 0.1, 0.0, 0.0, 0.8, 0.2, 0.5, 0.0, 0.0, 0.0, 0.1, 0.1, 0.7, 0.6, 0.0, 0.0, 0.5],
+    email: 'seed-hiphop@taste-roulette.local',
+    displayName: 'Hip-Hop Head',
+    dominantGenres: ['hip-hop', 'r&b', 'soul'],
     recommendations: [
-      { trackId: '6habFhsOp2NvshLv26DqMb', reason: '拉丁節奏的感染力不需要翻譯，身體會自己動起來' },
-      { trackId: '3PQLYVskjUeRmRIfECsL0X', reason: '雷鬼的慵懶節奏裡藏著最溫柔的力量，適合放空' },
-      { trackId: '04TshWXkhV1qkqHzf31Hn6', reason: '米津玄師的旋律超越語言，聽不懂日文也會被打動' },
-      { trackId: '1mea3bSkSGXuIRvnWJo9Id', reason: '全世界一起唱的那個夏天，音樂真的能連接人' },
-      { trackId: '2gMXnyrvIjhVBUZwvLZDMP', reason: '三個和弦就寫出讓你想回家的感覺，民謠的魔力' },
+      // Dominant genre tracks
+      { spotifyId: '5Z01UMMf7V1o0MzF86s6WJ', reason: '不管聽幾次，前奏一下就自動進入戰鬥模式' },
+      { spotifyId: '3DamFFqW32WihKkTVlwTYQ', reason: '復古靈魂樂的溫度配上現代製作，時空穿越的質感' },
+      { spotifyId: '1h2xVEoJORqrg71HocgqXd', reason: 'Funk 和嘻哈是親兄弟，Stevie Wonder 是共同的祖先' },
+      { spotifyId: '2374M0fQpWi3dLnB54qaLX', reason: '八零年代最偉大的副歌之一，旋律刻進 DNA 的那種' },
+      // Cross-genre diversity
+      { spotifyId: '0VjIjW4GlUZAMYd2vXMi3b', reason: 'The Weeknd 模糊了 R&B 和流行的界線，這就是進化' },
+      { spotifyId: '0e7ipj03S05BNilyu5bRzt', reason: '另類搖滾也能有嘻哈的節奏感，試試看打開新世界' },
+      { spotifyId: '6habFhsOp2NvshLv26DqMb', reason: '拉丁節拍和嘻哈的律動有異曲同工之妙' },
     ],
   },
   {
-    email: 'zoe-indie@taste-roulette.bot',
-    displayName: 'Zoe',
-    // Strong indie/folk/ambient/blues preference
-    tasteVector: [0.1, 0.2, 0.0, 0.0, 0.1, 0.0, 0.1, 0.0, 0.0, 0.7, 0.0, 0.0, 0.9, 0.2, 0.4, 0.0, 0.0, 0.5, 0.0, 0.0],
+    email: 'seed-classical@taste-roulette.local',
+    displayName: 'Classical Purist',
+    dominantGenres: ['classical', 'ambient'],
     recommendations: [
-      { trackId: '3B3eOgLJSqPEA0RfboIQVM', reason: '冬天的小木屋、假音和心碎，indie folk 的起點' },
-      { trackId: '0pqnGHJpmpxLKifKRmU6WP', reason: '旋律太 catchy 你不會注意歌詞有多暗黑，indie 的反差' },
-      { trackId: '4gMgiXfqyzZLMhsksGmbQV', reason: 'B.B. King 的吉他不只是彈奏，是在對你說話' },
-      { trackId: '6kkwzB6hXLIONkEk9JciA6', reason: '工作到深夜時放這首，整個世界會安靜下來' },
-      { trackId: '0e7ipj03S05BNilyu5bRzt', reason: '分手歌寫到這個境界，不苦也不怨，就是一聲嘆息' },
+      // Dominant genre tracks
+      { spotifyId: '6Er8Fz6fuZNi5cvwQjv1ya', reason: '月光下的鋼琴，百年前的音樂依然讓人起雞皮疙瘩' },
+      { spotifyId: '6mFkJmJqdDVQ1REhVfGgd1', reason: '薩提的每個留白都是刻意的美，極簡主義的先驅' },
+      { spotifyId: '6kkwzB6hXLIONkEk9JciA6', reason: '現代環境音樂和古典一脈相承，都追求聲音的純粹' },
+      // Cross-genre diversity
+      { spotifyId: '1YQWosTIljIvxAgHWTp7KP', reason: '爵士的即興和古典的結構美學其實是硬幣的兩面' },
+      { spotifyId: '3B3eOgLJSqPEA0RfboIQVM', reason: '民謠的簡單和古典的留白有種共通的寧靜' },
+      { spotifyId: '4u7EnebtmKWzUH433cf5Qv', reason: 'Queen 把歌劇元素融入搖滾，古典樂迷會懂那個結構' },
     ],
   },
   {
-    email: 'max-hiphop@taste-roulette.bot',
-    displayName: 'Max',
-    // Strong hip-hop/r&b/soul/electronic preference
-    tasteVector: [0.3, 0.0, 0.9, 0.7, 0.0, 0.0, 0.4, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.2, 0.0],
+    email: 'seed-world@taste-roulette.local',
+    displayName: 'World Wanderer',
+    dominantGenres: ['world', 'latin', 'reggae', 'folk'],
     recommendations: [
-      { trackId: '5Z01UMMf7V1o0MzF86s6WJ', reason: 'Eminem 把焦慮寫成了戰歌，每次重要時刻前必聽' },
-      { trackId: '3DamFFqW32WihKkTVlwTYQ', reason: '70 年代靈魂樂穿越到 2016 年，復古但完全不過時' },
-      { trackId: '1h2xVEoJORqrg71HocgqXd', reason: '這首的 bass line 是音樂史上最 funky 的三十秒' },
-      { trackId: '0VjIjW4GlUZAMYd2vXMi3b', reason: '合成器 + R&B 嗓音，凌晨三點開車的完美配樂' },
-      { trackId: '7GhIk7Il098yCjg4BQjzvb', reason: '電子樂也有靈魂，這首的副歌會讓你舉起手' },
+      // Dominant genre tracks
+      { spotifyId: '1mea3bSkSGXuIRvnWJo9Id', reason: '世界盃的集體記憶，這首歌讓全場不分國籍一起跳' },
+      { spotifyId: '6habFhsOp2NvshLv26DqMb', reason: '拉丁節奏的感染力跨越語言，身體比大腦先反應' },
+      { spotifyId: '3PQLYVskjUeRmRIfECsL0X', reason: '雷鬼的慵懶裡藏著最深的溫柔，Bob Marley 是永恆的' },
+      { spotifyId: '2gMXnyrvIjhVBUZwvLZDMP', reason: '三個和弦就寫出了想回家的感覺，民謠的魔力' },
+      // Cross-genre diversity
+      { spotifyId: '03UrZgTINDqvnUMbbIMhql', reason: 'K-Pop 也是一種世界音樂，PSY 把韓國推向全球' },
+      { spotifyId: '4i8xlL0EqaSj9piUVUOQQO', reason: '鄉村音樂的敘事傳統和民謠一脈相承' },
+      { spotifyId: '1h2xVEoJORqrg71HocgqXd', reason: '放克的律動是全世界共通的身體語言' },
     ],
   },
   {
-    email: 'yuki-asia@taste-roulette.bot',
-    displayName: 'Yuki',
-    // Strong k-pop/j-pop/pop/electronic preference
-    tasteVector: [0.6, 0.0, 0.1, 0.3, 0.0, 0.0, 0.4, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.1, 0.9, 0.8],
+    email: 'seed-metal@taste-roulette.local',
+    displayName: 'Metal Forge',
+    dominantGenres: ['metal', 'rock', 'punk'],
     recommendations: [
-      { trackId: '5XeFesFbtLpXzIVDNQP22n', reason: 'K-Pop 的編曲密度是流行樂界最高的，每個八拍都有驚喜' },
-      { trackId: '04TshWXkhV1qkqHzf31Hn6', reason: '米津玄師證明了 J-Pop 不只是動漫主題曲' },
-      { trackId: '03UrZgTINDqvnUMbbIMhql', reason: 'PSY 用幽默包裝了完美的 dance pop 結構' },
-      { trackId: '7qiZfU4dY1lWllzX7mPBI3', reason: 'Ed Sheeran 只用一把吉他就能填滿整個體育場' },
-      { trackId: '5ghIJDpPoe3CfHMGu71E6T', reason: 'The Weeknd 和 Daft Punk 的合作是流行樂的巔峰之一' },
+      // Dominant genre tracks
+      { spotifyId: '2MuWTIM3b0YEAskbeeFE1i', reason: '金屬不只是噪音，Master of Puppets 的結構精密如交響曲' },
+      { spotifyId: '4u7EnebtmKWzUH433cf5Qv', reason: 'Queen 的搖滾精神和金屬一樣不妥協，經典就是經典' },
+      { spotifyId: '3bhiCVExl89MfoAjx9fMuE', reason: '龐克的三和弦哲學：不需要炫技，只需要態度' },
+      { spotifyId: '3n3Ppam7vgaVa1iaRUc9Lp', reason: '搖滾的能量不分年代，The Killers 的能量場永不斷電' },
+      // Cross-genre diversity
+      { spotifyId: '6c9EGVj5CaOeoKd9ecMW1U', reason: '電子樂的 build-up 和金屬的 riff 有類似的張力釋放' },
+      { spotifyId: '5Z01UMMf7V1o0MzF86s6WJ', reason: 'Eminem 的攻擊性和金屬一樣猛烈，只是武器不同' },
+      { spotifyId: '6Er8Fz6fuZNi5cvwQjv1ya', reason: '很多金屬樂手的古典底子都很深，試試源頭的聲音' },
     ],
   },
 ];
 
 async function seedUsers() {
-  console.log('Starting seed users...\n');
+  console.log('=== Seed Users Script ===\n');
 
-  // Verify tracks exist
-  const { data: trackCount } = await supabase
-    .from('tracks')
-    .select('spotify_id', { count: 'exact', head: true });
-
-  console.log(`Found ${trackCount?.length ?? 0} tracks in database.\n`);
+  let usersCreated = 0;
+  let usersUpdated = 0;
+  let recsLoaded = 0;
 
   for (const seedUser of SEED_USERS) {
-    console.log(`--- ${seedUser.displayName} (${seedUser.email}) ---`);
+    console.log(`Processing: ${seedUser.displayName} (${seedUser.email})`);
 
-    // 1. Create auth user (or get existing)
+    // 1. Check if auth user already exists
     let userId: string;
 
-    const { data: existingUsers } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('display_name', seedUser.displayName)
-      .limit(1);
+    const { data: existingList } = await supabaseAdmin.auth.admin.listUsers();
+    const existing = existingList?.users?.find((u) => u.email === seedUser.email);
 
-    if (existingUsers && existingUsers.length > 0) {
-      userId = existingUsers[0].id;
-      console.log(`  EXISTS: ${userId}`);
+    if (existing) {
+      userId = existing.id;
+      console.log(`  Auth user already exists: ${userId}`);
+      usersUpdated++;
     } else {
-      // Create via admin API
-      const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+      const { data: newUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
         email: seedUser.email,
-        password: `seed-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         email_confirm: true,
+        password: SEED_PASSWORD,
       });
 
       if (authError) {
@@ -180,56 +202,90 @@ async function seedUsers() {
         continue;
       }
 
-      userId = authUser.user.id;
-      console.log(`  CREATED: ${userId}`);
+      userId = newUser.user.id;
+      console.log(`  Created auth user: ${userId}`);
+      usersCreated++;
     }
 
-    // 2. Update profile with taste vector and display name
-    const { error: profileError } = await supabase
+    // 2. Compute taste vector from dominant genres
+    const tasteVector = buildTasteVector(seedUser.dominantGenres);
+    console.log(`  Dominant genres: ${seedUser.dominantGenres.join(', ')}`);
+    console.log(`  Taste vector: [${tasteVector.map((v) => v.toFixed(1)).join(', ')}]`);
+
+    // 3. Upsert profile
+    const { error: profileError } = await supabaseAdmin
       .from('profiles')
-      .update({
-        display_name: seedUser.displayName,
-        taste_vector: seedUser.tasteVector,
-        onboarding_completed: true,
-        is_curator: true,
-        curator_weight: 1.5,
-      })
-      .eq('id', userId);
+      .upsert(
+        {
+          id: userId,
+          display_name: seedUser.displayName,
+          taste_vector: tasteVector,
+          onboarding_completed: true,
+          is_curator: true,
+          curator_weight: 1.5,
+          streak_count: 0,
+        },
+        { onConflict: 'id' }
+      );
 
     if (profileError) {
-      console.error(`  FAILED to update profile: ${profileError.message}`);
+      console.error(`  FAILED to upsert profile: ${profileError.message}`);
       continue;
     }
-    console.log(`  Profile updated (${seedUser.tasteVector.filter(v => v > 0.3).length} strong genres)`);
+    console.log(`  Profile upserted (is_curator=true, curator_weight=1.5)`);
 
-    // 3. Insert recommendations (skip if already exist)
+    // 4. Clear existing recommendations for this user (idempotency)
+    const { error: deleteError } = await supabaseAdmin
+      .from('user_recommendations')
+      .delete()
+      .eq('user_id', userId);
+
+    if (deleteError) {
+      console.error(`  WARN: failed to clear old recommendations: ${deleteError.message}`);
+    }
+
+    // 5. Verify each track exists in DB, then insert recommendations
+    const recs: {
+      user_id: string;
+      track_id: string;
+      reason: string;
+      used: boolean;
+      is_curator_pick: boolean;
+    }[] = [];
+
     for (const rec of seedUser.recommendations) {
-      const { data: existing } = await supabase
-        .from('user_recommendations')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('track_id', rec.trackId)
-        .limit(1);
+      const { data: track } = await supabaseAdmin
+        .from('tracks')
+        .select('spotify_id, title, artist')
+        .eq('spotify_id', rec.spotifyId)
+        .single();
 
-      if (existing && existing.length > 0) {
-        console.log(`  REC EXISTS: ${rec.trackId}`);
+      if (!track) {
+        console.warn(`  SKIP rec: track ${rec.spotifyId} not found in DB`);
         continue;
       }
 
-      const { error: recError } = await supabase
+      recs.push({
+        user_id: userId,
+        track_id: rec.spotifyId,
+        reason: rec.reason,
+        used: false,
+        is_curator_pick: true,
+      });
+
+      console.log(`  + ${track.artist} — ${track.title}`);
+    }
+
+    if (recs.length > 0) {
+      const { error: recError } = await supabaseAdmin
         .from('user_recommendations')
-        .insert({
-          user_id: userId,
-          track_id: rec.trackId,
-          reason: rec.reason,
-          is_curator_pick: true,
-          used: false,
-        });
+        .insert(recs);
 
       if (recError) {
-        console.error(`  FAILED to insert rec ${rec.trackId}: ${recError.message}`);
+        console.error(`  FAILED to insert recommendations: ${recError.message}`);
       } else {
-        console.log(`  REC OK: ${rec.trackId}`);
+        recsLoaded += recs.length;
+        console.log(`  Loaded ${recs.length} recommendations`);
       }
     }
 
@@ -237,15 +293,17 @@ async function seedUsers() {
   }
 
   // Summary
-  const { count: totalRecs } = await supabase
+  const { count: totalRecs } = await supabaseAdmin
     .from('user_recommendations')
     .select('id', { count: 'exact', head: true })
     .eq('used', false);
 
-  console.log(`\n=== DONE ===`);
-  console.log(`Seed users: ${SEED_USERS.length}`);
+  console.log('=== Summary ===');
+  console.log(`Users created: ${usersCreated}`);
+  console.log(`Users updated: ${usersUpdated}`);
+  console.log(`Recommendations loaded: ${recsLoaded}`);
   console.log(`Total unused recommendations in pool: ${totalRecs ?? 'unknown'}`);
-  console.log(`\nThe matching engine will now use these recommendations for real users.`);
+  console.log('Done!');
 }
 
 seedUsers().catch((err) => {

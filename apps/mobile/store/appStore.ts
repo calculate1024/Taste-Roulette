@@ -20,7 +20,11 @@ interface AppState {
   // Onboarding
   onboardingCompleted: boolean;
   onboardingResponses: OnboardingResponse[];
+  recognizedTracks: string[];
+  spotifyOnboarding: boolean;
   addResponse: (trackId: string, reaction: Reaction) => void;
+  setRecognizedTracks: (ids: string[]) => void;
+  setSpotifyOnboarding: (v: boolean) => void;
   completeOnboarding: () => void;
   resetOnboarding: () => void;
   loadPersistedState: () => Promise<void>;
@@ -42,12 +46,17 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   onboardingCompleted: false,
   onboardingResponses: [],
+  recognizedTracks: [],
+  spotifyOnboarding: false,
 
   addResponse: (trackId, reaction) => {
     set((state) => ({
       onboardingResponses: [...state.onboardingResponses, { trackId, reaction }],
     }));
   },
+
+  setRecognizedTracks: (ids) => set({ recognizedTracks: ids }),
+  setSpotifyOnboarding: (v) => set({ spotifyOnboarding: v }),
 
   completeOnboarding: () => {
     set({ onboardingCompleted: true });
@@ -62,7 +71,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   resetOnboarding: () => {
-    set({ onboardingCompleted: false, onboardingResponses: [] });
+    set({ onboardingCompleted: false, onboardingResponses: [], recognizedTracks: [], spotifyOnboarding: false });
     AsyncStorage.removeItem(STORAGE_KEY);
   },
 

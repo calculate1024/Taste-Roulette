@@ -94,12 +94,15 @@ taste-roulette/
 - **First Discovery Badge** — genre category badge unlocks on first "surprised" reaction per category (6 categories)
 - **Contextual Recommendation Prompt** — dynamic subtitle and placeholder based on just-heard track
 
-### Phase 4: Cold Start Experience
+### Phase 4: Cold Start & Onboarding
 - **Taste-aware curator fallback** — system recommendations now use cosine distance sweet spot instead of random picks
 - **Warm curator reasons** — each seed track has a hand-written, human-sounding recommendation reason
 - **Curator taste labels** — curator cards show genre-based labels (e.g., "爵士迷") instead of "Curator 策展人"
-- **Seed users** — 5 virtual users with diverse taste vectors and pre-loaded recommendations, enabling the matching engine to deliver real sweet-spot matches from day 1
+- **Seed users** — 8 virtual users with diverse taste vectors (Pop/Rock/Jazz/Electronic/Hip-Hop/Classical/World/Metal) and 5-8 pre-loaded recommendations each, enabling the matching engine to deliver real sweet-spot matches from day 1
+- **Auto-expanded track pool** — `seed:expand` script searches Spotify by genre to auto-populate 100-160 tracks (5-8 per genre × 20 genres), with familiarity tiers (anchor/familiar/discovery) based on popularity
 - **First card upgrade** — onboarding completion now delivers a taste-aware first card with distance + label
+- **Spotify-first onboarding** — users connect Spotify before swipe, so onboarding uses their own listening history (~100% recognition rate)
+- **Recognition fallback** — for non-Spotify users: quick "聽過嗎？" recognition phase filters tracks before swipe, ensuring 80%+ familiarity
 
 ## Taste Distance Algorithm
 
@@ -181,8 +184,9 @@ Badge Categories (6):
 
 4. **Seed data**
    ```bash
-   cd apps/api && npm run seed         # Seed 15 tracks with Spotify metadata
-   cd apps/api && npm run seed:users   # Seed 5 virtual users with recommendations
+   cd apps/api && npm run seed           # Seed 30 hand-picked tracks with Spotify metadata
+   cd apps/api && npm run seed:expand    # Auto-expand to 100-160 tracks via Spotify genre search
+   cd apps/api && npm run seed:users     # Seed 8 virtual users with 40+ recommendations
    ```
 
 5. **Start dev servers**
@@ -201,7 +205,8 @@ Badge Categories (6):
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/api/onboarding/tracks` | JWT | Onboarding track list |
+| GET | `/api/onboarding/tracks` | JWT | Onboarding track list (generic pool) |
+| GET | `/api/onboarding/personal-tracks` | JWT | Personalized tracks from Spotify history |
 | POST | `/api/onboarding/responses` | JWT | Submit swipe responses |
 | POST | `/api/onboarding/complete` | JWT | Complete onboarding |
 | GET | `/api/roulette/today` | JWT | Today's card |

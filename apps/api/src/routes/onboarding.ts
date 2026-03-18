@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { supabaseAdmin } from '../services/supabase';
 import { computeTasteVector, curatorFallback } from '../services/matching';
+import { refreshAccessToken, getUserTopTracks, ensureTrackCached } from '../services/spotify';
 
 const router = Router();
 
@@ -20,6 +21,67 @@ router.get('/tracks', async (_req: Request, res: Response) => {
   const shuffled = (data || []).sort(() => Math.random() - 0.5).slice(0, 15);
 
   res.json({ tracks: shuffled });
+});
+
+// GET /api/onboarding/personal-tracks — get user's Spotify top tracks for onboarding
+router.get('/personal-tracks', async (req: Request, res: Response) => {
+  const userId = req.userId!;
+
+  // Get user's Spotify refresh token from profiles
+  const { data: profile, error: profileError } = await supabaseAdmin
+    .from('profiles')
+    .select('spotify_refresh_token')
+    .eq('id', userId)
+    .single();
+
+  if (profileError || !profile?.spotify_refresh_token) {
+    res.status(400).json({ error: 'Spotify not connected' });
+    return;
+  }
+
+  try {
+    // Refresh access token
+    const accessToken = await refreshAccessToken(profile.spotify_refresh_token);
+
+    // Fetch user's top tracks (medium_term, limit 15)
+    const topTracks = await getUserTopTracks(accessToken, 'medium_term', 15);
+
+    // Cache tracks in DB (best-effort, don't block response)
+    const cachePromises = topTracks.map((t) =>
+      ensureTrackCached(t.spotify_id).catch(() => {})
+    );
+    await Promise.allSettled(cachePromises);
+
+    // Fetch genres from cached tracks to include in response
+    const trackIds = topTracks.map((t) => t.spotify_id);
+    const { data: cachedTracks } = await supabaseAdmin
+      .from('tracks')
+      .select('spotify_id, genres')
+      .in('spotify_id', trackIds);
+
+    const genreMap = new Map<string, string[]>();
+    if (cachedTracks) {
+      for (const ct of cachedTracks) {
+        genreMap.set(ct.spotify_id, ct.genres || []);
+      }
+    }
+
+    // Format response like /tracks endpoint
+    const tracks = topTracks.map((t) => ({
+      spotify_id: t.spotify_id,
+      title: t.title,
+      artist: t.artist,
+      album: t.album,
+      cover_url: t.cover_url,
+      spotify_url: t.spotify_url,
+      genres: genreMap.get(t.spotify_id) || [],
+    }));
+
+    res.json({ tracks });
+  } catch (err: any) {
+    console.error('Failed to fetch personal tracks:', err);
+    res.status(500).json({ error: 'Failed to fetch Spotify tracks' });
+  }
 });
 
 // POST /api/onboarding/responses — submit swipe responses
