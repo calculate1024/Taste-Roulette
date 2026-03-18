@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { RouletteCard, Track, FeedbackReaction, TasteJourneyData, TasteTwinsData } from '../../../packages/shared/types';
+import type { RouletteCard, Track, FeedbackReaction, FeedbackInsight, TasteJourneyData, TasteTwinsData } from '../../../packages/shared/types';
 
 // Mock data for development without Supabase
 const MOCK_CARD: RouletteCard & { track: Track } = {
@@ -9,6 +9,7 @@ const MOCK_CARD: RouletteCard & { track: Track } = {
   trackId: '4u7EnebtmKWzUH433cf5Qv',
   reason: '這首歌的吉他 solo 會讓你重新愛上搖滾',
   tasteDistance: 0.63,
+  recommenderTasteLabel: '搖滾魂',
   status: 'delivered',
   deliveredAt: new Date().toISOString(),
   openedAt: null,
@@ -130,6 +131,7 @@ export async function getTodayCard(
     trackId: cardData.track_id,
     reason: cardData.reason,
     tasteDistance: cardData.taste_distance,
+    recommenderTasteLabel: cardData.recommender_taste_label ?? null,
     status: cardData.status,
     deliveredAt: cardData.delivered_at,
     openedAt: cardData.opened_at,
@@ -151,26 +153,60 @@ export async function openCard(cardId: string): Promise<void> {
 }
 
 /**
- * Submit feedback for a card.
+ * Submit feedback for a card via backend API.
+ * Returns micro-insight data (taste vector delta) for post-feedback UI.
  */
 export async function submitFeedback(
   cardId: string,
   userId: string,
   reaction: FeedbackReaction,
   comment?: string
-): Promise<void> {
-  if (!isSupabaseConfigured()) return;
+): Promise<FeedbackInsight | null> {
+  if (!isSupabaseConfigured()) return null;
 
-  // Insert feedback and update card status in parallel
-  const [feedbackResult, cardResult] = await Promise.all([
-    supabase.from('feedbacks').insert({
-      card_id: cardId,
-      user_id: userId,
-      reaction,
-      comment: comment || null,
-    }),
-    supabase.from('roulette_cards').update({ status: 'feedback_given' }).eq('id', cardId),
-  ]);
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  try {
+    const res = await fetch(`${apiUrl}/api/roulette/${cardId}/feedback`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ reaction, comment: comment || null }),
+    });
+
+    if (!res.ok) {
+      console.warn('Feedback submission failed:', res.status);
+      return null;
+    }
+
+    const json = await res.json();
+    if (json.insight) {
+      return {
+        oldVector: json.insight.old_vector || [],
+        newVector: json.insight.new_vector || [],
+        dominantShift: json.insight.dominant_shift || null,
+        genresExplored: json.insight.genres_explored || 0,
+      };
+    }
+    return null;
+  } catch (err) {
+    console.warn('Feedback submission error:', err);
+    // Fallback: direct Supabase insert
+    await Promise.all([
+      supabase.from('feedbacks').insert({
+        card_id: cardId,
+        user_id: userId,
+        reaction,
+        comment: comment || null,
+      }),
+      supabase.from('roulette_cards').update({ status: 'feedback_given' }).eq('id', cardId),
+    ]);
+    return null;
+  }
 }
 
 /**
@@ -391,30 +427,53 @@ export interface ProfileStats {
   totalCards: number;
   surprisedCount: number;
   streakCount: number;
+  impactSurprised: number;
 }
 
 /**
  * Get profile stats for a user.
+ * Tries backend API first, falls back to direct Supabase queries.
  */
 export async function getProfile(userId: string): Promise<ProfileStats> {
   if (!isSupabaseConfigured()) {
-    return { totalCards: 7, surprisedCount: 3, streakCount: 5 };
+    return { totalCards: 7, surprisedCount: 3, streakCount: 5, impactSurprised: 2 };
   }
 
-  // Total cards received
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  // Try backend API (includes impact stats)
+  try {
+    const res = await fetch(`${apiUrl}/api/profile/me`, {
+      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    });
+    if (res.ok) {
+      const json = await res.json();
+      const s = json.profile?.stats || {};
+      return {
+        totalCards: s.total_cards ?? 0,
+        surprisedCount: s.total_surprises ?? 0,
+        streakCount: json.profile?.streak_count ?? 0,
+        impactSurprised: s.impact_surprised ?? 0,
+      };
+    }
+  } catch {
+    // Fall through to direct Supabase queries
+  }
+
+  // Fallback: direct Supabase queries
   const { count: totalCards } = await supabase
     .from('roulette_cards')
     .select('id', { count: 'exact', head: true })
     .eq('recipient_id', userId);
 
-  // Surprised reactions count
   const { count: surprisedCount } = await supabase
     .from('feedbacks')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', userId)
     .eq('reaction', 'surprised');
 
-  // Streak from users table
   const { data: userData } = await supabase
     .from('profiles')
     .select('streak_count')
@@ -425,5 +484,6 @@ export async function getProfile(userId: string): Promise<ProfileStats> {
     totalCards: totalCards ?? 0,
     surprisedCount: surprisedCount ?? 0,
     streakCount: userData?.streak_count ?? 0,
+    impactSurprised: 0,
   };
 }

@@ -125,6 +125,20 @@ export default function ProfileScreen() {
           </View>
         )}
 
+        {/* Impact section — only show if user has made recommendations */}
+        {stats && stats.impactSurprised > 0 && (
+          <View style={styles.impactSection}>
+            <Text style={styles.impactTitle}>你的推薦影響力</Text>
+            <View style={styles.impactRow}>
+              <Text style={styles.impactEmoji}>🎉</Text>
+              <View>
+                <Text style={styles.impactNumber}>{stats.impactSurprised}</Text>
+                <Text style={styles.impactLabel}>讓人驚喜</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
         <Text style={styles.email}>{session?.user?.email}</Text>
 
         {/* Spotify connection section */}
@@ -224,6 +238,39 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#8E8E93',
     marginTop: 4,
+  },
+  // Impact section
+  impactSection: {
+    backgroundColor: 'rgba(108,92,231,0.1)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(108,92,231,0.2)',
+  },
+  impactTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#8E8E93',
+    marginBottom: 12,
+  },
+  impactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  impactEmoji: {
+    fontSize: 32,
+    marginRight: 16,
+  },
+  impactNumber: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#6C5CE7',
+  },
+  impactLabel: {
+    fontSize: 12,
+    color: '#8E8E93',
+    marginTop: 2,
   },
   email: {
     fontSize: 14,

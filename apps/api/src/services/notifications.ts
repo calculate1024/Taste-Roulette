@@ -86,3 +86,30 @@ export async function sendDailyNotifications(): Promise<number> {
   console.log(`Daily notifications: ${successCount}/${messages.length} sent`);
   return successCount;
 }
+
+/** Send echo notification to recommender when their song gets a 'surprised' reaction. */
+export async function sendReactionEcho(
+  recommenderId: string,
+  trackTitle: string,
+  recipientTasteLabel: string
+): Promise<boolean> {
+  const { data: profile } = await supabaseAdmin
+    .from('profiles')
+    .select('push_token')
+    .eq('id', recommenderId)
+    .single();
+
+  if (!profile?.push_token) return false;
+
+  const messages: ExpoPushMessage[] = [{
+    to: profile.push_token,
+    title: '🎉 你的推薦讓人驚喜了！',
+    body: `你推薦的「${trackTitle}」讓一位${recipientTasteLabel}感到驚喜！`,
+    data: { type: 'reaction_echo' },
+    sound: 'default',
+    channelId: 'reaction-echo',
+  }];
+
+  const tickets = await sendPushNotifications(messages);
+  return tickets.length > 0 && tickets[0].status === 'ok';
+}

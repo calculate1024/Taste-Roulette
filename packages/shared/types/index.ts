@@ -31,11 +31,19 @@ export interface RouletteCard {
   trackId: string;
   reason: string | null;
   tasteDistance: number | null;
+  recommenderTasteLabel: string | null;
   status: CardStatus;
   deliveredAt: string | null;
   openedAt: string | null;
   createdAt: string;
   track?: Track;
+}
+
+export interface FeedbackInsight {
+  oldVector: number[];
+  newVector: number[];
+  dominantShift: { genre: string; label: string; change: number } | null;
+  genresExplored: number;
 }
 
 export interface Feedback {

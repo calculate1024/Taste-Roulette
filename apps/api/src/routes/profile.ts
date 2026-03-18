@@ -43,6 +43,23 @@ router.get('/me', async (req: Request, res: Response) => {
     .select('id', { count: 'exact', head: true })
     .eq('user_id', userId);
 
+  // Count how many times this user's recommendations got 'surprised' reactions
+  let impactSurprised = 0;
+  const { data: myCards } = await supabaseAdmin
+    .from('roulette_cards')
+    .select('id')
+    .eq('recommender_id', userId);
+
+  const myCardIds = (myCards || []).map((c: any) => c.id);
+  if (myCardIds.length > 0) {
+    const { count } = await supabaseAdmin
+      .from('feedbacks')
+      .select('id', { count: 'exact', head: true })
+      .eq('reaction', 'surprised')
+      .in('card_id', myCardIds);
+    impactSurprised = count ?? 0;
+  }
+
   res.json({
     profile: {
       display_name: profile.display_name,
@@ -51,6 +68,7 @@ router.get('/me', async (req: Request, res: Response) => {
         total_cards: totalCards ?? 0,
         total_surprises: totalSurprises ?? 0,
         total_recommendations: totalRecommendations ?? 0,
+        impact_surprised: impactSurprised,
       },
     },
   });

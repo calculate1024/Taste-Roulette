@@ -66,10 +66,10 @@ export default function HomeScreen() {
 
   const handleFeedbackSubmit = useCallback(
     async (reaction: FeedbackReaction, comment?: string) => {
-      if (!todayCard) return;
-      if (!userId) return;
-      await submitFeedback(todayCard.id, userId, reaction, comment);
+      if (!todayCard || !userId) return null;
+      const insight = await submitFeedback(todayCard.id, userId, reaction, comment);
       setFeedbackGiven(true);
+      return insight;
     },
     [todayCard, userId, setFeedbackGiven]
   );

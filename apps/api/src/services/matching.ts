@@ -1,6 +1,6 @@
 import { supabaseAdmin } from './supabase';
 import { getTodayStartUTC8 } from '../utils/date';
-import { VECTOR_DIM, REACTION_WEIGHTS, genreToVector } from '../utils/genres';
+import { VECTOR_DIM, GENRES, REACTION_WEIGHTS, genreToVector, getTasteLabel, TASTE_LABELS } from '../utils/genres';
 import { cosineDistance } from '../utils/vector';
 
 const SWEET_SPOT_MIN = 0.3;
@@ -195,6 +195,10 @@ export async function runDailyMatching(): Promise<MatchingSummary> {
       if (scored.length > 0) {
         const best = scored[0];
 
+        // Compute recommender taste label for progressive reveal
+        const recommenderVector = userVectorMap[best.rec.user_id] || [];
+        const tasteLabel = getTasteLabel(recommenderVector);
+
         // Create the roulette card
         const { error: cardError } = await supabaseAdmin
           .from('roulette_cards')
@@ -204,6 +208,7 @@ export async function runDailyMatching(): Promise<MatchingSummary> {
             track_id: best.rec.track_id,
             reason: best.rec.reason,
             taste_distance: best.dist,
+            recommender_taste_label: tasteLabel,
             status: 'pending',
           });
 
@@ -236,6 +241,7 @@ export async function runDailyMatching(): Promise<MatchingSummary> {
             track_id: fallbackResult.trackId,
             reason: fallbackResult.reason,
             taste_distance: null,
+            recommender_taste_label: 'Curator 策展人',
             status: 'pending',
           });
 
@@ -251,4 +257,103 @@ export async function runDailyMatching(): Promise<MatchingSummary> {
   }
 
   return summary;
+}
+
+// --- Feedback-driven taste vector update ---
+
+const FEEDBACK_LEARNING_RATE = 0.1;
+const FEEDBACK_WEIGHTS: Record<string, number> = {
+  surprised: 1.0,
+  okay: 0.2,
+  not_for_me: -0.3,
+};
+
+export interface TasteInsight {
+  oldVector: number[];
+  newVector: number[];
+  delta: number[];
+  dominantShift: { genre: string; label: string; change: number } | null;
+  genresExplored: number;
+}
+
+/** Incrementally update taste vector based on feedback reaction. */
+export async function updateTasteVectorFromFeedback(
+  userId: string,
+  trackId: string,
+  reaction: string
+): Promise<TasteInsight> {
+  // 1. Get current vector
+  const { data: profile } = await supabaseAdmin
+    .from('profiles')
+    .select('taste_vector')
+    .eq('id', userId)
+    .single();
+
+  const oldVector: number[] = profile?.taste_vector || new Array(VECTOR_DIM).fill(0);
+
+  // 2. Get track genres
+  const { data: track } = await supabaseAdmin
+    .from('tracks')
+    .select('genres')
+    .eq('spotify_id', trackId)
+    .single();
+
+  const genres: string[] = track?.genres || [];
+  if (genres.length === 0) {
+    return {
+      oldVector,
+      newVector: oldVector,
+      delta: new Array(VECTOR_DIM).fill(0),
+      dominantShift: null,
+      genresExplored: 0,
+    };
+  }
+
+  // 3. Compute delta
+  const genreVec = genreToVector(genres);
+  const weight = FEEDBACK_WEIGHTS[reaction] ?? 0;
+  const delta = genreVec.map((v: number) => v * weight * FEEDBACK_LEARNING_RATE);
+
+  // 4. Apply delta
+  const newVector = oldVector.map((v: number, i: number) => v + delta[i]);
+
+  // 5. Save updated vector
+  await supabaseAdmin
+    .from('profiles')
+    .update({ taste_vector: newVector })
+    .eq('id', userId);
+
+  // 6. Find dominant shift (largest absolute delta)
+  let maxIdx = 0;
+  let maxAbs = 0;
+  for (let i = 0; i < delta.length; i++) {
+    if (Math.abs(delta[i]) > maxAbs) {
+      maxAbs = Math.abs(delta[i]);
+      maxIdx = i;
+    }
+  }
+
+  const dominantShift = maxAbs > 0
+    ? {
+        genre: GENRES[maxIdx],
+        label: TASTE_LABELS[GENRES[maxIdx]] || GENRES[maxIdx],
+        change: +(delta[maxIdx].toFixed(3)),
+      }
+    : null;
+
+  // 7. Count genres explored from all received cards
+  const { data: receivedTracks } = await supabaseAdmin
+    .from('roulette_cards')
+    .select('tracks:track_id(genres)')
+    .eq('recipient_id', userId);
+
+  const genreSet = new Set<string>();
+  if (receivedTracks) {
+    for (const row of receivedTracks) {
+      const t = row.tracks as unknown as { genres: string[] } | null;
+      if (t?.genres) t.genres.forEach((g: string) => genreSet.add(g));
+    }
+  }
+
+  return { oldVector, newVector, delta, dominantShift, genresExplored: genreSet.size };
 }

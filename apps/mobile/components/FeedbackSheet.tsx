@@ -10,13 +10,14 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import type { FeedbackReaction } from '../../../packages/shared/types';
+import type { FeedbackReaction, FeedbackInsight } from '../../../packages/shared/types';
+import TasteRadar from './TasteRadar';
 
 interface FeedbackSheetProps {
   visible: boolean;
   cardId: string;
   tasteDistance: number;
-  onSubmit: (reaction: FeedbackReaction, comment?: string) => Promise<void> | void;
+  onSubmit: (reaction: FeedbackReaction, comment?: string) => Promise<FeedbackInsight | null | void>;
   onClose: () => void;
   onSharePress?: () => void;
 }
@@ -40,6 +41,7 @@ export default function FeedbackSheet({
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [insight, setInsight] = useState<FeedbackInsight | null>(null);
 
   // Reset state when modal opens
   useEffect(() => {
@@ -49,6 +51,7 @@ export default function FeedbackSheet({
       setSubmitted(false);
       setSubmitError(null);
       setSubmitting(false);
+      setInsight(null);
     }
   }, [visible]);
 
@@ -59,7 +62,10 @@ export default function FeedbackSheet({
     setSubmitting(true);
     setSubmitError(null);
     try {
-      await onSubmit(selectedReaction, comment.trim() || undefined);
+      const result = await onSubmit(selectedReaction, comment.trim() || undefined);
+      if (result && 'oldVector' in result) {
+        setInsight(result as FeedbackInsight);
+      }
       setSubmitted(true);
     } catch (e) {
       setSubmitError('Failed to submit feedback. Please try again.');
@@ -71,6 +77,9 @@ export default function FeedbackSheet({
   const handleClose = () => {
     onClose();
   };
+
+  // Determine if this was a "surprised" reaction
+  const isSurprised = selectedReaction === 'surprised';
 
   return (
     <Modal
@@ -90,21 +99,74 @@ export default function FeedbackSheet({
           <View style={styles.handle} />
 
           {submitted ? (
-            // Post-submit: taste distance visualization
+            // Post-submit: micro-insight visualization
             <View style={styles.submittedContainer}>
-              <Text style={styles.submittedEmoji}>✨</Text>
-              <Text style={styles.submittedTitle}>感謝你的回饋！</Text>
+              {isSurprised ? (
+                // Special "surprised" celebration
+                <>
+                  <Text style={styles.celebrationEmoji}>🎉</Text>
+                  <Text style={styles.submittedTitle}>新領域解鎖！</Text>
+                  {insight?.dominantShift && (
+                    <Text style={styles.shiftHighlight}>
+                      你在 {insight.dominantShift.label} 區域踏出了新的一步
+                    </Text>
+                  )}
+                </>
+              ) : (
+                // Normal feedback
+                <>
+                  <Text style={styles.submittedEmoji}>✨</Text>
+                  <Text style={styles.submittedTitle}>
+                    {insight ? '你的品味地圖剛剛擴展了！' : '感謝你的回饋！'}
+                  </Text>
+                </>
+              )}
 
-              {/* Taste distance bar */}
-              <View style={styles.distanceContainer}>
-                <Text style={styles.distanceLabel}>品味距離</Text>
-                <View style={styles.distanceBarBg}>
-                  <View
-                    style={[styles.distanceBarFill, { width: `${tastePercent}%` }]}
+              {/* Radar chart: before/after */}
+              {insight && insight.oldVector.length > 0 && (
+                <View style={styles.radarContainer}>
+                  <TasteRadar
+                    tasteVector={insight.newVector}
+                    beforeVector={insight.oldVector}
+                    size={160}
+                    mini
                   />
                 </View>
-                <Text style={styles.distanceValue}>{tastePercent}%</Text>
-              </View>
+              )}
+
+              {/* Dominant shift indicator */}
+              {insight?.dominantShift && !isSurprised && (
+                <View style={styles.shiftRow}>
+                  <Text style={styles.shiftGenre}>{insight.dominantShift.label}</Text>
+                  <Text style={[
+                    styles.shiftChange,
+                    { color: insight.dominantShift.change > 0 ? '#2ECC71' : '#E74C3C' }
+                  ]}>
+                    {insight.dominantShift.change > 0 ? '+' : ''}{insight.dominantShift.change}
+                    {insight.dominantShift.change > 0 ? ' ↑' : ' ↓'}
+                  </Text>
+                </View>
+              )}
+
+              {/* Genres explored count */}
+              {insight && insight.genresExplored > 0 && (
+                <Text style={styles.exploredText}>
+                  已探索 {insight.genresExplored} 個品味區域
+                </Text>
+              )}
+
+              {/* Fallback: taste distance bar (when no insight data) */}
+              {!insight && (
+                <View style={styles.distanceContainer}>
+                  <Text style={styles.distanceLabel}>品味距離</Text>
+                  <View style={styles.distanceBarBg}>
+                    <View
+                      style={[styles.distanceBarFill, { width: `${tastePercent}%` }]}
+                    />
+                  </View>
+                  <Text style={styles.distanceValue}>{tastePercent}%</Text>
+                </View>
+              )}
 
               <Text style={styles.distanceHint}>
                 {tastePercent > 60
@@ -257,18 +319,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
   },
-  reactionEmoji: {
-    fontSize: 36,
-    marginBottom: 8,
-  },
-  reactionLabel: {
-    fontSize: 14,
-    color: '#8E8E93',
-    fontWeight: '600',
-  },
-  reactionLabelActive: {
-    color: '#FFFFFF',
-  },
+  reactionEmoji: { fontSize: 36, marginBottom: 8 },
+  reactionLabel: { fontSize: 14, color: '#8E8E93', fontWeight: '600' },
+  reactionLabelActive: { color: '#FFFFFF' },
 
   // Comment
   commentInput: {
@@ -298,14 +351,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  submitButtonDisabled: {
-    opacity: 0.4,
-  },
-  submitButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
-  },
+  submitButtonDisabled: { opacity: 0.4 },
+  submitButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
 
   errorText: {
     color: '#E74C3C',
@@ -314,31 +361,62 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
-  dismissButton: {
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  dismissText: {
-    color: '#8E8E93',
-    fontSize: 14,
-  },
+  dismissButton: { alignItems: 'center', paddingVertical: 8 },
+  dismissText: { color: '#8E8E93', fontSize: 14 },
 
-  // Submitted state
+  // Submitted state — micro-insight
   submittedContainer: {
     alignItems: 'center',
     paddingVertical: 16,
   },
-  submittedEmoji: {
-    fontSize: 48,
-    marginBottom: 16,
-  },
+  submittedEmoji: { fontSize: 48, marginBottom: 12 },
+  celebrationEmoji: { fontSize: 56, marginBottom: 12 },
   submittedTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: '#FFFFFF',
-    marginBottom: 32,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  shiftHighlight: {
+    fontSize: 15,
+    color: '#6C5CE7',
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 16,
   },
 
+  // Radar
+  radarContainer: {
+    marginVertical: 16,
+    alignItems: 'center',
+  },
+
+  // Shift indicator
+  shiftRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  shiftGenre: {
+    fontSize: 15,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    marginRight: 8,
+  },
+  shiftChange: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+
+  // Explored count
+  exploredText: {
+    fontSize: 13,
+    color: '#8E8E93',
+    marginBottom: 20,
+  },
+
+  // Fallback distance bar
   distanceContainer: {
     width: '100%',
     marginBottom: 12,
@@ -372,7 +450,7 @@ const styles = StyleSheet.create({
     color: '#BBBBBB',
     textAlign: 'center',
     marginTop: 8,
-    marginBottom: 32,
+    marginBottom: 24,
   },
 
   shareButton: {
@@ -385,11 +463,7 @@ const styles = StyleSheet.create({
     borderColor: '#6C5CE7',
     marginBottom: 12,
   },
-  shareButtonText: {
-    color: '#6C5CE7',
-    fontSize: 16,
-    fontWeight: '700',
-  },
+  shareButtonText: { color: '#6C5CE7', fontSize: 16, fontWeight: '700' },
 
   closeButton: {
     backgroundColor: '#6C5CE7',
@@ -398,9 +472,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 48,
     alignItems: 'center',
   },
-  closeButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
-  },
+  closeButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
 });

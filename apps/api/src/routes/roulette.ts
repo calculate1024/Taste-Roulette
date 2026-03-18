@@ -1,6 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { supabaseAdmin } from '../services/supabase';
 import { updateStreak } from '../services/streak';
+import { updateTasteVectorFromFeedback } from '../services/matching';
+import { sendReactionEcho } from '../services/notifications';
+import { getTasteLabel } from '../utils/genres';
 import { getTodayStartUTC8 } from '../utils/date';
 
 const router = Router();
@@ -15,7 +18,7 @@ router.get('/today', async (req: Request, res: Response) => {
   const { data: card, error } = await supabaseAdmin
     .from('roulette_cards')
     .select(`
-      id, reason, taste_distance, status, delivered_at, opened_at,
+      id, reason, taste_distance, recommender_taste_label, status, delivered_at, opened_at,
       tracks:track_id (spotify_id, title, artist, album, cover_url, spotify_url, genres)
     `)
     .eq('recipient_id', userId)
@@ -57,6 +60,7 @@ router.get('/today', async (req: Request, res: Response) => {
       track: card.tracks,
       reason: card.reason,
       taste_distance: card.taste_distance,
+      recommender_taste_label: (card as any).recommender_taste_label || null,
       status: card.status,
     },
   });
@@ -128,7 +132,61 @@ router.post('/:cardId/feedback', async (req: Request, res: Response) => {
     return;
   }
 
-  res.json({ ok: true, card_id: cardId });
+  // Fetch card data for insight computation and echo
+  const { data: cardData } = await supabaseAdmin
+    .from('roulette_cards')
+    .select('track_id, recommender_id, taste_distance')
+    .eq('id', cardId)
+    .single();
+
+  // Compute taste vector update (micro-insight)
+  let insightPayload = null;
+  if (cardData?.track_id) {
+    try {
+      const insight = await updateTasteVectorFromFeedback(userId, cardData.track_id, reaction);
+      insightPayload = {
+        old_vector: insight.oldVector,
+        new_vector: insight.newVector,
+        dominant_shift: insight.dominantShift,
+        genres_explored: insight.genresExplored,
+      };
+    } catch (err) {
+      console.warn('Insight computation failed:', err);
+    }
+  }
+
+  // Trigger echo notification for 'surprised' reactions (fire and forget)
+  if (reaction === 'surprised' && cardData?.recommender_id) {
+    (async () => {
+      try {
+        const { data: track } = await supabaseAdmin
+          .from('tracks')
+          .select('title')
+          .eq('spotify_id', cardData.track_id)
+          .single();
+
+        const { data: recipientProfile } = await supabaseAdmin
+          .from('profiles')
+          .select('taste_vector')
+          .eq('id', userId)
+          .single();
+
+        const recipientLabel = recipientProfile?.taste_vector
+          ? getTasteLabel(recipientProfile.taste_vector)
+          : '音樂探索者';
+
+        await sendReactionEcho(
+          cardData.recommender_id!,
+          track?.title || '未知曲目',
+          recipientLabel
+        );
+      } catch (err) {
+        console.warn('Echo notification failed:', err);
+      }
+    })();
+  }
+
+  res.json({ ok: true, card_id: cardId, insight: insightPayload });
 });
 
 export default router;
