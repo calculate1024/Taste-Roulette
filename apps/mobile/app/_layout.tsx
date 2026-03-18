@@ -6,6 +6,7 @@ import { PostHogProvider } from 'posthog-react-native';
 import { supabase } from '../services/supabase';
 import { useAppStore } from '../store/appStore';
 import { useNotifications } from '../hooks/useNotifications';
+import '../i18n';
 
 // Initialize Sentry
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN || '';

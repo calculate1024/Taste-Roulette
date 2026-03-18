@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import ViewShot from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
+import { useTranslation } from 'react-i18next';
 
 interface ShareCardProps {
   track: { title: string; artist: string; coverUrl: string };
@@ -23,6 +24,7 @@ export default function ShareCard({
   onShare,
   onClose,
 }: ShareCardProps) {
+  const { t } = useTranslation();
   const viewShotRef = useRef<ViewShot>(null);
   const tastePercent = Math.round(tasteDistance * 100);
 
@@ -82,7 +84,7 @@ export default function ShareCard({
                 {/* Taste distance message */}
                 <View style={styles.distanceBadge}>
                   <Text style={styles.distanceText}>
-                    有人推薦了一首跟我品味距離 {tastePercent}% 的歌
+                    {t('shareCard.distanceMessage', { percent: tastePercent })}
                   </Text>
                 </View>
 
@@ -91,7 +93,7 @@ export default function ShareCard({
                   <Text style={styles.brandingIcon}>🎲</Text>
                   <Text style={styles.brandingText}>Taste Roulette</Text>
                   <Text style={styles.brandingTagline}>
-                    走出品味舒適圈
+                    {t('shareCard.tagline')}
                   </Text>
                 </View>
               </View>
@@ -101,10 +103,10 @@ export default function ShareCard({
           {/* Action buttons (not captured) */}
           <View style={styles.actions}>
             <Pressable style={styles.shareButton} onPress={handleShare}>
-              <Text style={styles.shareButtonText}>分享到社群</Text>
+              <Text style={styles.shareButtonText}>{t('shareCard.shareToSocial')}</Text>
             </Pressable>
             <Pressable style={styles.closeButton} onPress={onClose}>
-              <Text style={styles.closeButtonText}>關閉</Text>
+              <Text style={styles.closeButtonText}>{t('shareCard.close')}</Text>
             </Pressable>
           </View>
         </View>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -16,6 +17,7 @@ const SPOTIFY_GREEN = '#1DB954';
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
 export default function SpotifyConnectScreen() {
+  const { t } = useTranslation();
   const session = useAppStore((s) => s.session);
   const userId = session?.user?.id;
   const [loading, setLoading] = useState(false);
@@ -81,22 +83,22 @@ export default function SpotifyConnectScreen() {
           </View>
         </View>
 
-        <Text style={styles.title}>連結 Spotify</Text>
+        <Text style={styles.title}>{t('spotifyConnect.connectSpotify')}</Text>
         <Text style={styles.subtitle}>
-          連結你的 Spotify 帳號，我們可以更了解你的品味
+          {t('spotifyConnect.connectSubtitle')}
         </Text>
 
         {/* Benefits list */}
         <View style={styles.benefitsList}>
-          <BenefitItem text="更精準的品味分析" />
-          <BenefitItem text="更好的推薦配對" />
-          <BenefitItem text="更豐富的品味輪廓" />
-          <BenefitItem text="追蹤你的聆聽偏好變化" />
+          <BenefitItem text={t('spotifyConnect.accurateAnalysis')} />
+          <BenefitItem text={t('spotifyConnect.betterMatching')} />
+          <BenefitItem text={t('spotifyConnect.richerProfile')} />
+          <BenefitItem text={t('spotifyConnect.trackPreferences')} />
         </View>
 
         {/* Privacy note */}
         <Text style={styles.privacyNote}>
-          我們只會讀取你的聆聽紀錄，不會修改你的 Spotify 帳號內容。
+          {t('spotifyConnect.privacyNote')}
         </Text>
 
         {/* Connect button */}
@@ -108,13 +110,13 @@ export default function SpotifyConnectScreen() {
           {loading ? (
             <ActivityIndicator color="#FFFFFF" size="small" />
           ) : (
-            <Text style={styles.connectButtonText}>連結 Spotify 帳號</Text>
+            <Text style={styles.connectButtonText}>{t('spotifyConnect.connectAccount')}</Text>
           )}
         </Pressable>
 
         {/* Skip button */}
         <Pressable style={styles.skipButton} onPress={handleSkip}>
-          <Text style={styles.skipButtonText}>稍後再說</Text>
+          <Text style={styles.skipButtonText}>{t('spotifyConnect.maybeLater')}</Text>
         </Pressable>
       </View>
     </SafeAreaView>

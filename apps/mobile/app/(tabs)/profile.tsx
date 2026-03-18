@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -19,6 +20,7 @@ import { colors, spacing, radius, typo, layout, shadow } from '../../constants/t
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
 export default function ProfileScreen() {
+  const { t } = useTranslation();
   const session = useAppStore((s) => s.session);
   const resetOnboarding = useAppStore((s) => s.resetOnboarding);
   const [stats, setStats] = useState<ProfileStats | null>(null);
@@ -63,12 +65,12 @@ export default function ProfileScreen() {
 
   const handleDisconnectSpotify = () => {
     Alert.alert(
-      '取消連結 Spotify',
-      '確定要取消連結 Spotify 帳號嗎？你的品味向量將僅基於 Onboarding 資料重新計算。',
+      t('profile.disconnectSpotify'),
+      t('profile.disconnectSpotifyConfirm'),
       [
-        { text: '取消', style: 'cancel' },
+        { text: t('profile.cancel'), style: 'cancel' },
         {
-          text: '確定',
+          text: t('profile.confirm'),
           style: 'destructive',
           onPress: async () => {
             setDisconnecting(true);
@@ -99,16 +101,16 @@ export default function ProfileScreen() {
   };
 
   const statItems = [
-    { label: '收到卡片', value: stats?.totalCards ?? 0 },
-    { label: '驚喜次數', value: stats?.surprisedCount ?? 0 },
-    { label: '連續天數', value: stats?.streakCount ?? 0 },
+    { label: t('profile.cardsReceived'), value: stats?.totalCards ?? 0 },
+    { label: t('profile.surprises'), value: stats?.surprisedCount ?? 0 },
+    { label: t('profile.streakDays'), value: stats?.streakCount ?? 0 },
   ];
 
   return (
     <SafeAreaView style={styles.container}>
       <Animated.View entering={FadeIn.duration(400)} style={styles.content}>
-        <Text style={styles.title}>個人檔案</Text>
-        <Text style={styles.subtitle}>你的品味旅程從這裡開始</Text>
+        <Text style={styles.title}>{t('profile.profile')}</Text>
+        <Text style={styles.subtitle}>{t('profile.tasteJourneyStartsHere')}</Text>
 
         {loading ? (
           <ActivityIndicator
@@ -134,12 +136,12 @@ export default function ProfileScreen() {
         {/* Impact section — only show if user has made recommendations */}
         {stats && stats.impactSurprised > 0 && (
           <Animated.View entering={FadeIn.delay(300).duration(400)} style={styles.impactSection}>
-            <Text style={styles.impactTitle}>你的推薦影響力</Text>
+            <Text style={styles.impactTitle}>{t('profile.yourRecommendationImpact')}</Text>
             <View style={styles.impactRow}>
               <Text style={styles.impactEmoji}>🎉</Text>
               <View>
                 <CountingNumber value={stats.impactSurprised} style={styles.impactNumber} />
-                <Text style={styles.impactLabel}>讓人驚喜</Text>
+                <Text style={styles.impactLabel}>{t('profile.madePeopleSurprised')}</Text>
               </View>
             </View>
           </Animated.View>
@@ -155,7 +157,7 @@ export default function ProfileScreen() {
                 <View style={styles.spotifyDot} />
                 <View>
                   <Text style={styles.spotifyConnectedText}>
-                    Spotify 已連結
+                    {t('profile.spotifyConnected')}
                   </Text>
                   {spotifyName && (
                     <Text style={styles.spotifyNameText}>{spotifyName}</Text>
@@ -170,7 +172,7 @@ export default function ProfileScreen() {
                 {disconnecting ? (
                   <ActivityIndicator color={colors.error} size="small" />
                 ) : (
-                  <Text style={styles.disconnectText}>取消連結</Text>
+                  <Text style={styles.disconnectText}>{t('profile.disconnect')}</Text>
                 )}
               </Pressable>
             </View>
@@ -179,17 +181,17 @@ export default function ProfileScreen() {
               style={styles.spotifyConnectButton}
               onPress={handleConnectSpotify}
             >
-              <Text style={styles.spotifyConnectText}>連結 Spotify 帳號</Text>
+              <Text style={styles.spotifyConnectText}>{t('profile.connectSpotifyAccount')}</Text>
             </Pressable>
           )}
         </View>
 
         <Pressable style={styles.resetButton} onPress={resetOnboarding}>
-          <Text style={styles.resetText}>重置 Onboarding (Dev)</Text>
+          <Text style={styles.resetText}>{t('profile.resetOnboarding')}</Text>
         </Pressable>
 
         <Pressable style={styles.signOutButton} onPress={handleSignOut}>
-          <Text style={styles.signOutText}>登出</Text>
+          <Text style={styles.signOutText}>{t('profile.signOut')}</Text>
         </Pressable>
       </Animated.View>
     </SafeAreaView>

@@ -21,6 +21,7 @@ import Animated, {
 } from 'react-native-reanimated';
 // WebView embed removed — cookie consent popup blocks playback.
 // Using "Open in Spotify" deep link instead.
+import { useTranslation } from 'react-i18next';
 import type { RouletteCard as RouletteCardType, Track } from '../../../packages/shared/types';
 import { getAdventureLevel } from '../utils/adventureLevel';
 import { colors, spacing, radius, typo, shadow } from '../constants/theme';
@@ -50,6 +51,7 @@ function revealReducer(state: RevealStep, action: RevealAction): RevealStep {
 }
 
 export default function RouletteCard({ card, onFeedback }: RouletteCardProps) {
+  const { t } = useTranslation();
   const { width: SCREEN_WIDTH } = useWindowDimensions();
   const CARD_WIDTH = SCREEN_WIDTH - 48;
 
@@ -146,8 +148,8 @@ export default function RouletteCard({ card, onFeedback }: RouletteCardProps) {
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyIcon}>🕐</Text>
-        <Text style={styles.emptyTitle}>今天還沒有卡片</Text>
-        <Text style={styles.emptySubtitle}>明天再來看看吧！</Text>
+        <Text style={styles.emptyTitle}>{t('rouletteCard.noCardToday')}</Text>
+        <Text style={styles.emptySubtitle}>{t('rouletteCard.comeBackTomorrow')}</Text>
       </View>
     );
   }
@@ -157,7 +159,7 @@ export default function RouletteCard({ card, onFeedback }: RouletteCardProps) {
     ? Math.round(card.tasteDistance * 100)
     : null;
   const adventure = getAdventureLevel(card.tasteDistance);
-  const tasteLabel = (card as any).recommender_taste_label || card.recommenderTasteLabel || '某位音樂愛好者';
+  const tasteLabel = (card as any).recommender_taste_label || card.recommenderTasteLabel || t('rouletteCard.someMusicLover');
   const spotifyTrackUrl = track?.spotifyId
     ? `https://open.spotify.com/track/${track.spotifyId}`
     : null;
@@ -180,11 +182,11 @@ export default function RouletteCard({ card, onFeedback }: RouletteCardProps) {
           {/* === STEP 1: Recommender identity + adventure level === */}
           {step >= 1 && step < 2 && (
             <Animated.View entering={FadeIn.duration(500)} style={styles.identityContainer}>
-              <Text style={styles.identityPrefix}>一位</Text>
+              <Text style={styles.identityPrefix}>{t('rouletteCard.aPrefix')}</Text>
               <Text style={[styles.identityLabel, { color: adventure.color }]}>
                 {tasteLabel}
               </Text>
-              <Text style={styles.identityPrefix}>推薦了你一首歌</Text>
+              <Text style={styles.identityPrefix}>{t('rouletteCard.someoneRecommended')}</Text>
 
               {tastePercent !== null && (
                 <View style={styles.adventureSection}>
@@ -195,18 +197,18 @@ export default function RouletteCard({ card, onFeedback }: RouletteCardProps) {
                   ]}>
                     <Text style={styles.adventureEmoji}>{adventure.emoji}</Text>
                     <Text style={[styles.adventureLabel, { color: adventure.color }]}>
-                      {adventure.label}
+                      {t(adventure.labelKey)}
                     </Text>
                   </View>
-                  <Text style={styles.distanceText}>品味距離 {tastePercent}%</Text>
+                  <Text style={styles.distanceText}>{t('rouletteCard.tasteDistance', { percent: tastePercent })}</Text>
                   <Text style={[styles.adventureDesc, { color: adventure.color }]}>
-                    {adventure.description}
+                    {t(adventure.descriptionKey)}
                   </Text>
                 </View>
               )}
 
               <View style={styles.tapHint}>
-                <Text style={styles.tapHintText}>點擊揭示 →</Text>
+                <Text style={styles.tapHintText}>{t('rouletteCard.tapToReveal')}</Text>
               </View>
             </Animated.View>
           )}
@@ -231,7 +233,7 @@ export default function RouletteCard({ card, onFeedback }: RouletteCardProps) {
                 <View style={[styles.compactBadge, { backgroundColor: `${adventure.color}20`, borderColor: `${adventure.color}40` }]}>
                   <Text style={{ fontSize: 10 }}>{adventure.emoji}</Text>
                   <Text style={[styles.compactBadgeText, { color: adventure.color }]}>
-                    {adventure.label} · {tastePercent}%
+                    {t(adventure.labelKey)} · {tastePercent}%
                   </Text>
                 </View>
                 <Text style={[styles.tasteLabelCompact, { color: adventure.color }]}>
@@ -244,10 +246,10 @@ export default function RouletteCard({ card, onFeedback }: RouletteCardProps) {
             {step >= 2 && (
               <Animated.View entering={FadeInDown.delay(300).duration(400)}>
                 <Text style={styles.trackTitle} numberOfLines={2}>
-                  {track?.title ?? '未知曲目'}
+                  {track?.title ?? t('rouletteCard.unknownTrack')}
                 </Text>
                 <Text style={styles.trackArtist} numberOfLines={1}>
-                  {track?.artist ?? '未知藝人'}
+                  {track?.artist ?? t('rouletteCard.unknownArtist')}
                 </Text>
               </Animated.View>
             )}
@@ -255,7 +257,7 @@ export default function RouletteCard({ card, onFeedback }: RouletteCardProps) {
             {/* Tap hint for step 2 */}
             {step === 2 && (
               <View style={styles.tapHint}>
-                <Text style={styles.tapHintText}>點擊聆聽 →</Text>
+                <Text style={styles.tapHintText}>{t('rouletteCard.tapToListen')}</Text>
               </View>
             )}
 
@@ -274,10 +276,10 @@ export default function RouletteCard({ card, onFeedback }: RouletteCardProps) {
                     onPress={() => Linking.openURL(spotifyTrackUrl)}
                   >
                     <Text style={styles.spotifyIcon}>🎵</Text>
-                    <Text style={styles.openSpotifyText}>在 Spotify 中聆聽</Text>
+                    <Text style={styles.openSpotifyText}>{t('rouletteCard.listenOnSpotify')}</Text>
                   </Pressable>
                 ) : (
-                  <Text style={styles.noPreviewText}>無法預覽</Text>
+                  <Text style={styles.noPreviewText}>{t('rouletteCard.noPreview')}</Text>
                 )}
               </Animated.View>
             )}
@@ -286,7 +288,7 @@ export default function RouletteCard({ card, onFeedback }: RouletteCardProps) {
             {step >= 4 && (
               <Animated.View style={feedbackAnimStyle}>
                 <Pressable style={styles.feedbackButton} onPress={onFeedback}>
-                  <Text style={styles.feedbackButtonText}>給個回饋</Text>
+                  <Text style={styles.feedbackButtonText}>{t('rouletteCard.giveFeedback')}</Text>
                 </Pressable>
               </Animated.View>
             )}

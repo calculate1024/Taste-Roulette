@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -27,6 +28,7 @@ import { colors, spacing, radius, typo, layout, shadow } from '../constants/them
 import type { Track } from '../../../packages/shared/types';
 
 export default function RecommendScreen() {
+  const { t } = useTranslation();
   const session = useAppStore((s) => s.session);
   const userId = session?.user?.id;
   const params = useLocalSearchParams<{
@@ -37,11 +39,11 @@ export default function RecommendScreen() {
 
   const hasContext = !!params.contextTitle;
   const headerSubtitle = hasContext
-    ? `你剛聽了「${params.contextTitle}」— 推薦一首同樣精彩的歌`
-    : '推薦一首你喜歡的歌給陌生人';
+    ? t('recommend.youJustHeard', { title: params.contextTitle })
+    : t('recommend.recommendToStranger');
   const reasonPlaceholder = hasContext
-    ? `跟 ${params.contextArtist} 比起來，這首歌為什麼值得一聽？`
-    : '用一句話告訴對方為什麼要聽這首';
+    ? t('recommend.whyWorthListening', { artist: params.contextArtist })
+    : t('recommend.tellThemWhy');
 
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Track[]>([]);
@@ -68,7 +70,7 @@ export default function RecommendScreen() {
       const tracks = await searchTracks(query.trim());
       setResults(tracks);
     } catch (e) {
-      Alert.alert('Search failed', 'Please try again later.');
+      Alert.alert(t('recommend.searchFailed'), t('recommend.tryAgainLater'));
       setResults([]);
     } finally {
       setSearching(false);
@@ -114,13 +116,13 @@ export default function RecommendScreen() {
       <SafeAreaView style={styles.container}>
         <Animated.View style={[styles.successContainer, successStyle]}>
           <Text style={styles.successEmoji}>🎉</Text>
-          <Text style={styles.successTitle}>推薦已送出！</Text>
+          <Text style={styles.successTitle}>{t('recommend.recommendationSent')}</Text>
           <Text style={styles.successSubtitle}>
-            某位陌生人即將收到你的推薦
+            {t('recommend.strangerWillReceive')}
           </Text>
           {gotBonusCard && (
             <Text style={styles.bonusText}>
-              🎁 你獲得了一張 Bonus 卡片！
+              {t('recommend.gotBonusCard')}
             </Text>
           )}
         </Animated.View>
@@ -138,13 +140,13 @@ export default function RecommendScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.headerTitle}>推薦一首歌</Text>
+            <Text style={styles.headerTitle}>{t('recommend.recommendASong')}</Text>
             <Text style={styles.headerSubtitle}>
               {headerSubtitle}
             </Text>
           </View>
           <Pressable onPress={() => router.back()}>
-            <Text style={styles.skipText}>下次再說</Text>
+            <Text style={styles.skipText}>{t('recommend.maybeLater')}</Text>
           </Pressable>
         </View>
 
@@ -170,7 +172,7 @@ export default function RecommendScreen() {
                 style={styles.changeButton}
                 onPress={() => setSelectedTrack(null)}
               >
-                <Text style={styles.changeText}>換一首</Text>
+                <Text style={styles.changeText}>{t('recommend.changeSong')}</Text>
               </Pressable>
             </View>
 
@@ -199,7 +201,7 @@ export default function RecommendScreen() {
               {submitting ? (
                 <ActivityIndicator color={colors.textPrimary} size="small" />
               ) : (
-                <Text style={styles.submitText}>送出推薦</Text>
+                <Text style={styles.submitText}>{t('recommend.submitRecommendation')}</Text>
               )}
             </Pressable>
           </View>
@@ -211,7 +213,7 @@ export default function RecommendScreen() {
             <View style={styles.searchRow}>
               <TextInput
                 style={styles.searchInput}
-                placeholder="搜尋歌曲或藝人..."
+                placeholder={t('recommend.searchPlaceholder')}
                 placeholderTextColor={colors.textHint}
                 value={query}
                 onChangeText={setQuery}
@@ -220,7 +222,7 @@ export default function RecommendScreen() {
                 autoFocus
               />
               <Pressable style={styles.searchButton} onPress={handleSearch}>
-                <Text style={styles.searchButtonText}>搜尋</Text>
+                <Text style={styles.searchButtonText}>{t('recommend.search')}</Text>
               </Pressable>
             </View>
 
@@ -264,7 +266,7 @@ export default function RecommendScreen() {
                 ListEmptyComponent={
                   query.trim() && !searching ? (
                     <Text style={styles.emptyText}>
-                      找不到結果，試試其他關鍵字
+                      {t('recommend.noResults')}
                     </Text>
                   ) : null
                 }

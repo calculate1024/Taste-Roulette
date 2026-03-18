@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Animated, { FadeIn } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../../store/appStore';
 import { getAuthHeaders } from '../../services/supabase';
 import { colors, spacing, radius, typo, layout } from '../../constants/theme';
@@ -17,6 +18,7 @@ import { colors, spacing, radius, typo, layout } from '../../constants/theme';
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
 export default function OnboardingGatewayScreen() {
+  const { t } = useTranslation();
   const session = useAppStore((s) => s.session);
   const setSpotifyOnboarding = useAppStore((s) => s.setSpotifyOnboarding);
   const userId = session?.user?.id;
@@ -85,13 +87,13 @@ export default function OnboardingGatewayScreen() {
           </View>
         </View>
 
-        <Text style={styles.title}>Let's get to know you</Text>
+        <Text style={styles.title}>{t('onboarding.letsGetToKnowYou')}</Text>
         <Text style={styles.subtitle}>
-          Connect Spotify to use your own music for taste profiling, or continue without it.
+          {t('onboarding.connectSpotifySubtitle')}
         </Text>
 
         <Text style={styles.description}>
-          {'\u9023\u7d50 Spotify \u5F8C\uFF0C\u6211\u5011\u7528\u4F60\u807D\u904E\u7684\u97F3\u6A02\u4F86\u4E86\u89E3\u4F60\u7684\u54C1\u5473'}
+          {t('onboarding.connectSpotifyDescription')}
         </Text>
 
         {/* Spotify connect button */}
@@ -104,7 +106,7 @@ export default function OnboardingGatewayScreen() {
             <ActivityIndicator color={colors.textPrimary} size="small" />
           ) : (
             <Text style={styles.spotifyButtonText}>
-              {'\u9023\u7D50 Spotify\uFF0C\u7528\u4F60\u7684\u97F3\u6A02\u958B\u59CB'}
+              {t('onboarding.connectSpotifyStart')}
             </Text>
           )}
         </Pressable>
@@ -112,7 +114,7 @@ export default function OnboardingGatewayScreen() {
         {/* Skip link */}
         <Pressable style={styles.skipButton} onPress={handleSkipSpotify}>
           <Text style={styles.skipButtonText}>
-            {'\u4E0D\u4F7F\u7528 Spotify \u7E7C\u7E8C'}
+            {t('onboarding.continueWithoutSpotify')}
           </Text>
         </Pressable>
       </Animated.View>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -8,6 +9,7 @@ import TwinCard from '../components/TwinCard';
 import type { TasteTwinsData } from '../../../packages/shared/types';
 
 export default function TwinsScreen() {
+  const { t } = useTranslation();
   const session = useAppStore((s) => s.session);
   const router = useRouter();
   const [data, setData] = useState<TasteTwinsData | null>(null);
@@ -27,7 +29,7 @@ export default function TwinsScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#6C5CE7" />
-          <Text style={styles.loadingText}>{'\u6B63\u5728\u5C0B\u627E\u54C1\u5473\u96D9\u80DE\u80CE...'}</Text>
+          <Text style={styles.loadingText}>{t('twins.findingTasteTwins')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -43,8 +45,8 @@ export default function TwinsScreen() {
         {/* Header with close button */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>{'\u54C1\u5473\u96D9\u80DE\u80CE & \u4E92\u88DC'}</Text>
-            <Text style={styles.subtitle}>{'\u627E\u5230\u8207\u4F60\u54C1\u5473\u6700\u76F8\u8FD1\u548C\u6700\u4E92\u88DC\u7684\u4EBA'}</Text>
+            <Text style={styles.title}>{t('twins.tasteTwinsTitle')}</Text>
+            <Text style={styles.subtitle}>{t('twins.findSimilarAndComplementary')}</Text>
           </View>
           <Pressable onPress={() => router.back()} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>{'\u2715'}</Text>
@@ -53,9 +55,9 @@ export default function TwinsScreen() {
 
         {isEmpty ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>{'\u9084\u6C92\u6709\u8DB3\u5920\u7684\u7528\u6236'}</Text>
+            <Text style={styles.emptyTitle}>{t('twins.notEnoughUsers')}</Text>
             <Text style={styles.emptySubtitle}>
-              {'\u7576\u66F4\u591A\u4EBA\u52A0\u5165 Taste Roulette \u5F8C\uFF0C\u5C31\u80FD\u70BA\u4F60\u914D\u5C0D\u54C1\u5473\u96D9\u80DE\u80CE\u548C\u4E92\u88DC\u5925\u4F34\u4E86\uFF01'}
+              {t('twins.moreUsersMessage')}
             </Text>
           </View>
         ) : (
@@ -63,8 +65,8 @@ export default function TwinsScreen() {
             {/* Twins section */}
             {twins.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>{'\u6700\u50CF\u4F60\u7684\u4EBA'}</Text>
-                <Text style={styles.sectionSubtitle}>{'\u54C1\u5473\u6700\u76F8\u8FD1\u7684\u7528\u6236'}</Text>
+                <Text style={styles.sectionTitle}>{t('twins.mostLikeYou')}</Text>
+                <Text style={styles.sectionSubtitle}>{t('twins.mostSimilarTaste')}</Text>
                 {twins.map((twin) => (
                   <TwinCard
                     key={twin.anonymousId}
@@ -80,8 +82,8 @@ export default function TwinsScreen() {
             {/* Complements section */}
             {complements.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>{'\u6700\u4E92\u88DC\u7684\u4EBA'}</Text>
-                <Text style={styles.sectionSubtitle}>{'\u54C1\u5473\u6709\u8DDD\u96E2\u4F46\u4E0D\u6703\u6392\u65A5\uFF0C\u6700\u6709\u9A5A\u559C\u611F'}</Text>
+                <Text style={styles.sectionTitle}>{t('twins.mostComplementary')}</Text>
+                <Text style={styles.sectionSubtitle}>{t('twins.distantButSurprising')}</Text>
                 {complements.map((comp) => (
                   <TwinCard
                     key={comp.anonymousId}

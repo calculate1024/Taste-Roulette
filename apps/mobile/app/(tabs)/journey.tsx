@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Pressable } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,6 +12,7 @@ import { colors, spacing, radius, typo, layout, shadow } from '../../constants/t
 import type { TasteJourneyData } from '../../../../packages/shared/types';
 
 export default function JourneyScreen() {
+  const { t } = useTranslation();
   const session = useAppStore((s) => s.session);
   const router = useRouter();
   const [data, setData] = useState<TasteJourneyData | null>(null);
@@ -30,7 +32,7 @@ export default function JourneyScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.accent} />
-          <Text style={styles.loadingText}>正在載入品味旅程...</Text>
+          <Text style={styles.loadingText}>{t('journey.loadingTasteJourney')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -53,8 +55,8 @@ export default function JourneyScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>品味旅程</Text>
-            <Text style={styles.subtitle}>你的音樂探索軌跡</Text>
+            <Text style={styles.title}>{t('journey.tasteJourney')}</Text>
+            <Text style={styles.subtitle}>{t('journey.yourMusicExploration')}</Text>
           </View>
 
           {/* Radar chart */}
@@ -68,7 +70,7 @@ export default function JourneyScreen() {
               style={styles.twinsButton}
               onPress={() => router.push('/twins')}
             >
-              <Text style={styles.twinsButtonText}>查看品味雙胞胎</Text>
+              <Text style={styles.twinsButtonText}>{t('journey.viewTasteTwins')}</Text>
             </Pressable>
           </Animated.View>
 
@@ -76,17 +78,17 @@ export default function JourneyScreen() {
           <Animated.View entering={FadeInDown.delay(300).duration(500)} style={styles.statsRow}>
             <View style={styles.statBox}>
               <Text style={styles.statNumber}>{stats.genresExplored}</Text>
-              <Text style={styles.statLabel}>已探索類型</Text>
+              <Text style={styles.statLabel}>{t('journey.genresExplored')}</Text>
             </View>
             <View style={styles.statBox}>
               <Text style={styles.statNumber}>
                 {Math.round(stats.maxTasteDistance * 100)}%
               </Text>
-              <Text style={styles.statLabel}>最遠距離</Text>
+              <Text style={styles.statLabel}>{t('journey.furthestDistance')}</Text>
             </View>
             <View style={styles.statBox}>
               <Text style={styles.statNumber}>{stats.surprisedCount}</Text>
-              <Text style={styles.statLabel}>總驚喜次數</Text>
+              <Text style={styles.statLabel}>{t('journey.totalSurprises')}</Text>
             </View>
           </Animated.View>
 
@@ -95,14 +97,14 @@ export default function JourneyScreen() {
             <Animated.View entering={FadeInDown.delay(400).duration(500)} style={styles.streakCard}>
               <Text style={styles.streakIcon}>🔥</Text>
               <Text style={styles.streakText}>
-                連續 {stats.streakCount} 天
+                {t('journey.consecutiveDays', { count: stats.streakCount })}
               </Text>
             </Animated.View>
           )}
 
           {/* Badges section */}
           <Animated.View entering={FadeInDown.delay(500).duration(500)} style={styles.section}>
-            <Text style={styles.sectionTitle}>成就徽章</Text>
+            <Text style={styles.sectionTitle}>{t('journey.achievementBadges')}</Text>
             <BadgeGrid stats={stats} />
           </Animated.View>
         </ScrollView>

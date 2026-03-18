@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 import type { FeedbackReaction, FeedbackInsight } from '../../../packages/shared/types';
 import TasteRadar from './TasteRadar';
 import ConfettiEffect from './ConfettiEffect';
@@ -25,10 +26,10 @@ interface FeedbackSheetProps {
   onSharePress?: () => void;
 }
 
-const REACTIONS: { key: FeedbackReaction; emoji: string; label: string; color: string }[] = [
-  { key: 'surprised', emoji: '🤯', label: '驚喜', color: colors.accent },
-  { key: 'okay', emoji: '😐', label: '普通', color: colors.textSecondary },
-  { key: 'not_for_me', emoji: '🙅', label: '不適合', color: '#3A3A4E' },
+const REACTIONS: { key: FeedbackReaction; emoji: string; labelKey: string; color: string }[] = [
+  { key: 'surprised', emoji: '🤯', labelKey: 'feedback.surprised', color: colors.accent },
+  { key: 'okay', emoji: '😐', labelKey: 'feedback.okay', color: colors.textSecondary },
+  { key: 'not_for_me', emoji: '🙅', labelKey: 'feedback.notForMe', color: '#3A3A4E' },
 ];
 
 export default function FeedbackSheet({
@@ -39,6 +40,7 @@ export default function FeedbackSheet({
   onClose,
   onSharePress,
 }: FeedbackSheetProps) {
+  const { t } = useTranslation();
   const [selectedReaction, setSelectedReaction] = useState<FeedbackReaction | null>(null);
   const [comment, setComment] = useState('');
   const [submitted, setSubmitted] = useState(false);
@@ -71,7 +73,7 @@ export default function FeedbackSheet({
       }
       setSubmitted(true);
     } catch (e) {
-      setSubmitError('Failed to submit feedback. Please try again.');
+      setSubmitError(t('common.failedSubmitFeedback'));
     } finally {
       setSubmitting(false);
     }
@@ -111,10 +113,10 @@ export default function FeedbackSheet({
                 // Special "surprised" celebration
                 <>
                   <Text style={styles.celebrationEmoji}>🎉</Text>
-                  <Text style={styles.submittedTitle}>新領域解鎖！</Text>
+                  <Text style={styles.submittedTitle}>{t('feedback.newAreaUnlocked')}</Text>
                   {insight?.dominantShift && (
                     <Text style={styles.shiftHighlight}>
-                      你在 {insight.dominantShift.label} 區域踏出了新的一步
+                      {t('feedback.steppedInto', { label: insight.dominantShift.label })}
                     </Text>
                   )}
                 </>
@@ -123,7 +125,7 @@ export default function FeedbackSheet({
                 <>
                   <Text style={styles.submittedEmoji}>✨</Text>
                   <Text style={styles.submittedTitle}>
-                    {insight ? '你的品味地圖剛剛擴展了！' : '感謝你的回饋！'}
+                    {insight ? t('feedback.tasteMapExpanded') : t('feedback.thankYouFeedback')}
                   </Text>
                 </>
               )}
@@ -144,7 +146,7 @@ export default function FeedbackSheet({
               {insight?.newBadge && (
                 <Animated.View entering={FadeIn.delay(500).duration(600)} style={styles.badgeUnlock}>
                   <Text style={styles.badgeUnlockEmoji}>{insight.newBadge.emoji}</Text>
-                  <Text style={styles.badgeUnlockTitle}>新徽章解鎖！</Text>
+                  <Text style={styles.badgeUnlockTitle}>{t('feedback.newBadgeUnlocked')}</Text>
                   <Text style={styles.badgeUnlockLabel}>{insight.newBadge.label}</Text>
                 </Animated.View>
               )}
@@ -167,7 +169,7 @@ export default function FeedbackSheet({
               {insight && insight.genresExplored > 0 && (
                 <Animated.View entering={FadeIn.delay(500).duration(400)}>
                   <Text style={styles.exploredText}>
-                    已探索 {insight.genresExplored} 個品味區域
+                    {t('feedback.exploredAreas', { count: insight.genresExplored })}
                   </Text>
                 </Animated.View>
               )}
@@ -175,7 +177,7 @@ export default function FeedbackSheet({
               {/* Fallback: taste distance bar (when no insight data) */}
               {!insight && (
                 <Animated.View entering={FadeIn.delay(300).duration(400)} style={styles.distanceContainer}>
-                  <Text style={styles.distanceLabel}>品味距離</Text>
+                  <Text style={styles.distanceLabel}>{t('feedback.tasteDistance')}</Text>
                   <View style={styles.distanceBarBg}>
                     <View
                       style={[styles.distanceBarFill, { width: `${tastePercent}%` }]}
@@ -187,27 +189,27 @@ export default function FeedbackSheet({
 
               <Text style={styles.distanceHint}>
                 {tastePercent > 60
-                  ? '這是一次大膽的品味冒險！'
+                  ? t('feedback.boldAdventure')
                   : tastePercent > 30
-                    ? '有點跳脫，但不至於排斥'
-                    : '跟你的品味蠻接近的'}
+                    ? t('feedback.aLittleOff')
+                    : t('feedback.prettyClose')}
               </Text>
 
               {/* Share button */}
               {onSharePress && (
                 <Pressable style={styles.shareButton} onPress={onSharePress}>
-                  <Text style={styles.shareButtonText}>分享到社群</Text>
+                  <Text style={styles.shareButtonText}>{t('feedback.shareToSocial')}</Text>
                 </Pressable>
               )}
 
               <Pressable style={styles.closeButton} onPress={handleClose}>
-                <Text style={styles.closeButtonText}>完成</Text>
+                <Text style={styles.closeButtonText}>{t('feedback.done')}</Text>
               </Pressable>
             </View>
           ) : (
             // Pre-submit: reaction selection
             <>
-              <Text style={styles.title}>你覺得這首歌如何？</Text>
+              <Text style={styles.title}>{t('feedback.howDoYouFeel')}</Text>
 
               {/* Reaction buttons */}
               <View style={styles.reactionsRow}>
@@ -236,7 +238,7 @@ export default function FeedbackSheet({
                         selectedReaction === r.key && styles.reactionLabelActive,
                       ]}
                     >
-                      {r.label}
+                      {t(r.labelKey)}
                     </Text>
                   </Pressable>
                 ))}
@@ -245,7 +247,7 @@ export default function FeedbackSheet({
               {/* Comment input */}
               <TextInput
                 style={styles.commentInput}
-                placeholder="想說點什麼？"
+                placeholder={t('feedback.wantToSaySomething')}
                 placeholderTextColor={colors.textSecondary}
                 value={comment}
                 onChangeText={setComment}
@@ -272,13 +274,13 @@ export default function FeedbackSheet({
                 {submitting ? (
                   <ActivityIndicator color={colors.textPrimary} size="small" />
                 ) : (
-                  <Text style={styles.submitButtonText}>送出回饋</Text>
+                  <Text style={styles.submitButtonText}>{t('feedback.submitFeedback')}</Text>
                 )}
               </Pressable>
 
               {/* Dismiss */}
               <Pressable style={styles.dismissButton} onPress={handleClose}>
-                <Text style={styles.dismissText}>取消</Text>
+                <Text style={styles.dismissText}>{t('feedback.cancel')}</Text>
               </Pressable>
             </>
           )}

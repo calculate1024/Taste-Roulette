@@ -20,6 +20,7 @@ import Animated, {
   runOnJS,
   FadeIn,
 } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../../store/appStore';
 import { supabase } from '../../services/supabase';
 import { getAuthHeaders } from '../../services/supabase';
@@ -44,6 +45,7 @@ interface TrackItem {
 }
 
 export default function OnboardingSwipeScreen() {
+  const { t } = useTranslation();
   const { source } = useLocalSearchParams<{ source?: string }>();
   const { width: SCREEN_WIDTH } = useWindowDimensions();
   const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.3;
@@ -193,7 +195,7 @@ export default function OnboardingSwipeScreen() {
       completeOnboarding();
       router.replace('/(tabs)/home');
     } catch (error) {
-      Alert.alert('Error', 'Failed to complete onboarding. Please try again.');
+      Alert.alert(t('common.error'), t('common.failedOnboarding'));
       console.error(error);
     } finally {
       setLoading(false);
@@ -284,7 +286,7 @@ export default function OnboardingSwipeScreen() {
         <View style={styles.loadingContainer}>
           <ActivityIndicator color={colors.accent} size="large" />
           <Text style={styles.loadingText}>
-            {source === 'spotify' ? 'Loading your music...' : 'Preparing tracks...'}
+            {source === 'spotify' ? t('onboarding.loadingYourMusic') : t('onboarding.preparingTracks')}
           </Text>
         </View>
       </SafeAreaView>
@@ -301,15 +303,15 @@ export default function OnboardingSwipeScreen() {
       <SafeAreaView style={styles.container}>
         <Animated.View entering={FadeIn.duration(400)} style={styles.earlyExitContainer}>
           <Text style={styles.earlyExitEmoji}>🎯</Text>
-          <Text style={styles.earlyExitTitle}>We've got your vibe!</Text>
+          <Text style={styles.earlyExitTitle}>{t('onboarding.gotYourVibe')}</Text>
           <Text style={styles.earlyExitSubtitle}>
-            Looks like your taste is clear. Ready to start discovering?
+            {t('onboarding.tasteClear')}
           </Text>
           <Pressable style={styles.earlyExitButton} onPress={finishOnboarding} disabled={loading}>
             {loading ? (
               <ActivityIndicator color={colors.textPrimary} size="small" />
             ) : (
-              <Text style={styles.earlyExitButtonText}>Let's go!</Text>
+              <Text style={styles.earlyExitButtonText}>{t('onboarding.letsGo')}</Text>
             )}
           </Pressable>
           <Pressable
@@ -320,7 +322,7 @@ export default function OnboardingSwipeScreen() {
             }}
           >
             <Text style={styles.earlyExitContinueText}>
-              Keep swiping ({totalCards - currentIndex - 1} left)
+              {t('onboarding.keepSwiping', { count: totalCards - currentIndex - 1 })}
             </Text>
           </Pressable>
         </Animated.View>
@@ -333,7 +335,7 @@ export default function OnboardingSwipeScreen() {
         <Animated.View entering={FadeIn.duration(400)} style={{ flex: 1 }}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>What's your vibe?</Text>
+          <Text style={styles.headerTitle}>{t('onboarding.whatsYourVibe')}</Text>
           <Text style={styles.headerSubtitle}>
             {currentIndex + 1} / {totalCards}
           </Text>
@@ -347,7 +349,7 @@ export default function OnboardingSwipeScreen() {
         {/* Source indicator */}
         {fetchError && (
           <Text style={styles.fallbackNotice}>
-            Could not load {source} tracks. Using default selection.
+            {t('onboarding.couldNotLoadTracks', { source })}
           </Text>
         )}
 
@@ -375,23 +377,21 @@ export default function OnboardingSwipeScreen() {
         <View style={styles.hints}>
           <Pressable style={styles.hintButton} onPress={() => animateOut('not_for_me')}>
             <Text style={styles.hintEmoji}>🙅</Text>
-            <Text style={styles.hintText}>Not for me</Text>
+            <Text style={styles.hintText}>{t('onboarding.notForMe')}</Text>
           </Pressable>
           <Pressable style={styles.hintButton} onPress={() => animateOut('okay')}>
             <Text style={styles.hintEmoji}>😐</Text>
-            <Text style={styles.hintText}>Okay</Text>
+            <Text style={styles.hintText}>{t('onboarding.okay')}</Text>
           </Pressable>
           <Pressable style={styles.hintButton} onPress={() => animateOut('love')}>
             <Text style={styles.hintEmoji}>❤️</Text>
-            <Text style={styles.hintText}>Love it</Text>
+            <Text style={styles.hintText}>{t('onboarding.loveIt')}</Text>
           </Pressable>
         </View>
 
         {/* Instructions */}
         <Text style={styles.instructions}>
-          ← swipe left: not for me{'\n'}
-          ↑ swipe up: okay{'\n'}
-          → swipe right: love it
+          {t('onboarding.swipeInstructions')}
         </Text>
         </Animated.View>
       </SafeAreaView>

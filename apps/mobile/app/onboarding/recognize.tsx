@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Animated, { FadeIn } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../../store/appStore';
 import { getAuthHeaders } from '../../services/supabase';
 import { colors, spacing, radius, typo, layout, shadow } from '../../constants/theme';
@@ -26,6 +27,7 @@ interface TrackItem {
 }
 
 export default function OnboardingRecognizeScreen() {
+  const { t } = useTranslation();
   const setRecognizedTracks = useAppStore((s) => s.setRecognizedTracks);
 
   const [tracks, setTracks] = useState<TrackItem[]>([]);
@@ -95,7 +97,7 @@ export default function OnboardingRecognizeScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator color={colors.accent} size="large" />
-          <Text style={styles.loadingText}>Loading tracks...</Text>
+          <Text style={styles.loadingText}>{t('onboarding.loadingTracks')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -105,12 +107,12 @@ export default function OnboardingRecognizeScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.errorText}>Could not load tracks.</Text>
+          <Text style={styles.errorText}>{t('onboarding.couldNotLoadTracksError')}</Text>
           <Pressable
             style={styles.retryButton}
             onPress={() => router.push('/onboarding/swipe?source=fallback')}
           >
-            <Text style={styles.retryButtonText}>Continue anyway</Text>
+            <Text style={styles.retryButtonText}>{t('onboarding.continueAnyway')}</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -125,7 +127,7 @@ export default function OnboardingRecognizeScreen() {
       <Animated.View entering={FadeIn.duration(400)} style={{ flex: 1 }}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{'\u4F60\u807D\u904E\u9019\u4E9B\u6B4C\u55CE\uFF1F'}</Text>
+        <Text style={styles.headerTitle}>{t('onboarding.haveYouHeardThese')}</Text>
         <Text style={styles.headerSubtitle}>
           {currentIndex + 1} / {tracks.length}
         </Text>
@@ -138,10 +140,8 @@ export default function OnboardingRecognizeScreen() {
 
       {/* Recognized count */}
       <Text style={styles.recognizedCount}>
-        {'\u5DF2\u8FA8\u8B58'}: {recognized.length} {'\u9996'}
-        {recognized.length < MIN_RECOGNIZED && (
-          ` (${'\u9700\u8981'} ${MIN_RECOGNIZED} ${'\u9996\u4EE5\u4E0A'})`
-        )}
+        {t('onboarding.recognized', { count: recognized.length })}
+        {recognized.length < MIN_RECOGNIZED && ` ${t('onboarding.needMinSongs', { min: MIN_RECOGNIZED })}`}
       </Text>
 
       {/* Track card */}
@@ -168,14 +168,14 @@ export default function OnboardingRecognizeScreen() {
           onPress={() => handleResponse(false)}
         >
           <Text style={styles.actionButtonEmoji}>✗</Text>
-          <Text style={styles.actionButtonText}>{'\u6C92\u807D\u904E'}</Text>
+          <Text style={styles.actionButtonText}>{t('onboarding.notHeard')}</Text>
         </Pressable>
         <Pressable
           style={[styles.actionButton, styles.yesButton]}
           onPress={() => handleResponse(true)}
         >
           <Text style={styles.actionButtonEmoji}>✓</Text>
-          <Text style={styles.actionButtonText}>{'\u807D\u904E'}</Text>
+          <Text style={styles.actionButtonText}>{t('onboarding.heard')}</Text>
         </Pressable>
       </View>
 
@@ -183,7 +183,7 @@ export default function OnboardingRecognizeScreen() {
       {recognized.length >= MIN_RECOGNIZED && (
         <Pressable style={styles.skipFinish} onPress={handleFinish}>
           <Text style={styles.skipFinishText}>
-            {'\u5DF2\u8DB3\u5920\uFF0C\u958B\u59CB\u54C1\u5473\u5206\u6790'} →
+            {t('onboarding.enoughStartAnalysis')} →
           </Text>
         </Pressable>
       )}

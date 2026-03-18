@@ -7,6 +7,7 @@ import Animated, {
   withDelay,
   FadeInDown,
 } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 import type { YesterdayEcho } from '../services/api';
 
 interface YesterdayEchoProps {
@@ -19,6 +20,7 @@ interface YesterdayEchoProps {
  * Auto-dismisses after 5 seconds.
  */
 export default function YesterdayEchoToast({ echo, onDismiss }: YesterdayEchoProps) {
+  const { t } = useTranslation();
   const opacity = useSharedValue(1);
 
   useEffect(() => {
@@ -40,10 +42,10 @@ export default function YesterdayEchoToast({ echo, onDismiss }: YesterdayEchoPro
         )}
         <View style={styles.textContainer}>
           <Text style={styles.title} numberOfLines={1}>
-            🎉 你的推薦產生了影響！
+            🎉 {t('yesterdayEcho.yourRecommendationHadImpact')}
           </Text>
           <Text style={styles.body} numberOfLines={2}>
-            「{echo.trackTitle}」讓一位{echo.recipientTasteLabel}感到驚喜
+            {t('yesterdayEcho.trackSurprised', { title: echo.trackTitle, label: echo.recipientTasteLabel })}
           </Text>
         </View>
       </Pressable>

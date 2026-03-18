@@ -2,18 +2,18 @@
 
 export interface AdventureLevel {
   key: 'comfort' | 'small' | 'unknown' | 'bold' | 'extreme';
-  label: string;
+  labelKey: string;
   emoji: string;
   color: string;
-  description: string;
+  descriptionKey: string;
 }
 
 const LEVELS: AdventureLevel[] = [
-  { key: 'comfort', label: '舒適圈', emoji: '🟢', color: '#2ECC71', description: '跟你的品味很接近' },
-  { key: 'small', label: '小冒險', emoji: '🔵', color: '#3498DB', description: '稍微跳脫了一點' },
-  { key: 'unknown', label: '未知領域', emoji: '🟣', color: '#6C5CE7', description: '你很少接觸的領域' },
-  { key: 'bold', label: '大膽探索', emoji: '🟠', color: '#E67E22', description: '離你的舒適圈很遠' },
-  { key: 'extreme', label: '極限挑戰', emoji: '🔴', color: '#E74C3C', description: '完全不同的品味世界' },
+  { key: 'comfort', labelKey: 'adventureLevel.comfort', emoji: '🟢', color: '#2ECC71', descriptionKey: 'adventureLevel.comfortDesc' },
+  { key: 'small', labelKey: 'adventureLevel.small', emoji: '🔵', color: '#3498DB', descriptionKey: 'adventureLevel.smallDesc' },
+  { key: 'unknown', labelKey: 'adventureLevel.unknown', emoji: '🟣', color: '#6C5CE7', descriptionKey: 'adventureLevel.unknownDesc' },
+  { key: 'bold', labelKey: 'adventureLevel.bold', emoji: '🟠', color: '#E67E22', descriptionKey: 'adventureLevel.boldDesc' },
+  { key: 'extreme', labelKey: 'adventureLevel.extreme', emoji: '🔴', color: '#E74C3C', descriptionKey: 'adventureLevel.extremeDesc' },
 ];
 
 /** Get adventure level from taste distance (0-1 scale). */

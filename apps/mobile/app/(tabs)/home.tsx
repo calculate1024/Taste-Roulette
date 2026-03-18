@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -24,6 +25,7 @@ import { colors, spacing, radius, typo, button, layout, shadow } from '../../con
 import type { FeedbackReaction } from '../../../../packages/shared/types';
 
 export default function HomeScreen() {
+  const { t } = useTranslation();
   const session = useAppStore((s) => s.session);
   const todayCard = useAppStore((s) => s.todayCard);
   const feedbackGiven = useAppStore((s) => s.feedbackGiven);
@@ -93,7 +95,7 @@ export default function HomeScreen() {
   const handleShare = useCallback(async (uri: string) => {
     await Sharing.shareAsync(uri, {
       mimeType: 'image/png',
-      dialogTitle: '分享你的品味探索',
+      dialogTitle: t('home.shareYourTaste'),
     });
     setShowShareCard(false);
   }, []);
@@ -131,9 +133,9 @@ export default function HomeScreen() {
 
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>今日驚喜</Text>
+            <Text style={styles.headerTitle}>{t('home.todaySurprise')}</Text>
             <Text style={styles.headerSubtitle}>
-              {todayCard ? '有人為你推薦了一首歌' : '今天沒有新推薦'}
+              {todayCard ? t('home.someoneRecommended') : t('home.noNewRecommendation')}
             </Text>
           </View>
 
@@ -146,9 +148,9 @@ export default function HomeScreen() {
           {/* Post-feedback: recommend-back prompt */}
           {feedbackGiven && (
             <View style={styles.recommendPrompt}>
-              <Text style={styles.recommendTitle}>輪到你了！</Text>
+              <Text style={styles.recommendTitle}>{t('home.yourTurn')}</Text>
               <Text style={styles.recommendSubtitle}>
-                推薦一首歌給另一位陌生人
+                {t('home.recommendToStranger')}
               </Text>
               <Pressable
                 style={styles.recommendButton}
@@ -168,10 +170,10 @@ export default function HomeScreen() {
                   }
                 }}
               >
-                <Text style={styles.recommendButtonText}>去推薦</Text>
+                <Text style={styles.recommendButtonText}>{t('home.goRecommend')}</Text>
               </Pressable>
               <Pressable style={styles.skipButton}>
-                <Text style={styles.skipText}>下次再說</Text>
+                <Text style={styles.skipText}>{t('home.maybeLater')}</Text>
               </Pressable>
             </View>
           )}

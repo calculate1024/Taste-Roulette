@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -16,6 +17,7 @@ import { supabase } from '../services/supabase';
 import { colors, spacing, radius, typo, layout } from '../constants/theme';
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
@@ -23,7 +25,7 @@ export default function LoginScreen() {
 
   async function handleAuth() {
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in both fields');
+      Alert.alert(t('common.error'), t('login.fillBothFields'));
       return;
     }
 
@@ -36,7 +38,7 @@ export default function LoginScreen() {
         if (data.session) {
           router.replace('/');
         } else {
-          Alert.alert('Check your email', 'We sent you a confirmation link. Check spam folder too.');
+          Alert.alert(t('login.checkEmail'), t('login.confirmationSent'));
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -58,13 +60,13 @@ export default function LoginScreen() {
           style={styles.content}
         >
           <Text style={styles.emoji}>🎲</Text>
-          <Text style={styles.title}>Taste Roulette</Text>
-          <Text style={styles.subtitle}>Discover music outside your comfort zone</Text>
+          <Text style={styles.title}>{t('login.title')}</Text>
+          <Text style={styles.subtitle}>{t('login.subtitle')}</Text>
 
           <View style={styles.form}>
             <TextInput
               style={styles.input}
-              placeholder="Email"
+              placeholder={t('login.email')}
               placeholderTextColor={colors.textHint}
               value={email}
               onChangeText={setEmail}
@@ -73,7 +75,7 @@ export default function LoginScreen() {
             />
             <TextInput
               style={styles.input}
-              placeholder="Password"
+              placeholder={t('login.password')}
               placeholderTextColor={colors.textHint}
               value={password}
               onChangeText={setPassword}
@@ -85,7 +87,7 @@ export default function LoginScreen() {
               disabled={loading}
             >
               <Text style={styles.buttonText}>
-                {loading ? '...' : isSignUp ? 'Sign Up' : 'Sign In'}
+                {loading ? '...' : isSignUp ? t('login.signUp') : t('login.signIn')}
               </Text>
             </Pressable>
           </View>
@@ -93,8 +95,8 @@ export default function LoginScreen() {
           <Pressable onPress={() => setIsSignUp(!isSignUp)}>
             <Text style={styles.toggleText}>
               {isSignUp
-                ? 'Already have an account? Sign In'
-                : "Don't have an account? Sign Up"}
+                ? t('login.alreadyHaveAccount')
+                : t('login.noAccount')}
             </Text>
           </Pressable>
         </KeyboardAvoidingView>
