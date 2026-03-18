@@ -149,6 +149,7 @@ router.post('/:cardId/feedback', async (req: Request, res: Response) => {
         new_vector: insight.newVector,
         dominant_shift: insight.dominantShift,
         genres_explored: insight.genresExplored,
+        new_badge: insight.newBadge,
       };
     } catch (err) {
       console.warn('Insight computation failed:', err);
@@ -187,6 +188,84 @@ router.post('/:cardId/feedback', async (req: Request, res: Response) => {
   }
 
   res.json({ ok: true, card_id: cardId, insight: insightPayload });
+});
+
+// GET /api/roulette/yesterday-echo — check if user's recommendation got surprised feedback yesterday
+router.get('/yesterday-echo', async (req: Request, res: Response) => {
+  const userId = req.userId!;
+
+  const todayStart = getTodayStartUTC8();
+  const yesterdayStart = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000);
+
+  // Find cards this user recommended that got 'surprised' feedback yesterday
+  const { data: surprisedCards } = await supabaseAdmin
+    .from('roulette_cards')
+    .select('id, track_id')
+    .eq('recommender_id', userId);
+
+  if (!surprisedCards || surprisedCards.length === 0) {
+    res.json({ echo: null });
+    return;
+  }
+
+  const cardIds = surprisedCards.map((c: any) => c.id);
+
+  // Find 'surprised' feedbacks on those cards from yesterday
+  const { data: echoFeedbacks } = await supabaseAdmin
+    .from('feedbacks')
+    .select('card_id')
+    .in('card_id', cardIds)
+    .eq('reaction', 'surprised')
+    .gte('created_at', yesterdayStart.toISOString())
+    .lt('created_at', todayStart.toISOString())
+    .limit(1)
+    .maybeSingle();
+
+  if (!echoFeedbacks) {
+    res.json({ echo: null });
+    return;
+  }
+
+  // Get the card and track details
+  const matchedCard = surprisedCards.find((c: any) => c.id === echoFeedbacks.card_id);
+  if (!matchedCard) {
+    res.json({ echo: null });
+    return;
+  }
+
+  const { data: track } = await supabaseAdmin
+    .from('tracks')
+    .select('title, artist, cover_url')
+    .eq('spotify_id', matchedCard.track_id)
+    .single();
+
+  // Get recipient taste label
+  const { data: recipientCard } = await supabaseAdmin
+    .from('roulette_cards')
+    .select('recipient_id')
+    .eq('id', matchedCard.id)
+    .single();
+
+  let recipientLabel = '音樂探索者';
+  if (recipientCard?.recipient_id) {
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('taste_vector')
+      .eq('id', recipientCard.recipient_id)
+      .single();
+    if (profile?.taste_vector) {
+      recipientLabel = getTasteLabel(profile.taste_vector);
+    }
+  }
+
+  res.json({
+    echo: {
+      track_title: track?.title || '未知曲目',
+      track_artist: track?.artist || '未知藝人',
+      cover_url: track?.cover_url || null,
+      recipient_taste_label: recipientLabel,
+    },
+  });
 });
 
 export default router;

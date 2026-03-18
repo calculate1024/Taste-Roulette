@@ -44,6 +44,7 @@ export interface FeedbackInsight {
   newVector: number[];
   dominantShift: { genre: string; label: string; change: number } | null;
   genresExplored: number;
+  newBadge: { genre: string; label: string; emoji: string } | null;
 }
 
 export interface Feedback {

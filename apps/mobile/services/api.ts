@@ -190,6 +190,7 @@ export async function submitFeedback(
         newVector: json.insight.new_vector || [],
         dominantShift: json.insight.dominant_shift || null,
         genresExplored: json.insight.genres_explored || 0,
+        newBadge: json.insight.new_badge || null,
       };
     }
     return null;
@@ -418,6 +419,41 @@ export async function getTasteTwins(userId: string): Promise<TasteTwinsData> {
   }
 
   return response.json();
+}
+
+/**
+ * Yesterday's echo: notification that user's recommendation was appreciated.
+ */
+export interface YesterdayEcho {
+  trackTitle: string;
+  trackArtist: string;
+  coverUrl: string | null;
+  recipientTasteLabel: string;
+}
+
+export async function getYesterdayEcho(): Promise<YesterdayEcho | null> {
+  if (!isSupabaseConfigured()) return null;
+
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  try {
+    const res = await fetch(`${apiUrl}/api/roulette/yesterday-echo`, {
+      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    if (!json.echo) return null;
+    return {
+      trackTitle: json.echo.track_title,
+      trackArtist: json.echo.track_artist,
+      coverUrl: json.echo.cover_url,
+      recipientTasteLabel: json.echo.recipient_taste_label,
+    };
+  } catch {
+    return null;
+  }
 }
 
 /**

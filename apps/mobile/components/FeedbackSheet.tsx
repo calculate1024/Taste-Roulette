@@ -10,6 +10,7 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import type { FeedbackReaction, FeedbackInsight } from '../../../packages/shared/types';
 import TasteRadar from './TasteRadar';
 
@@ -132,6 +133,15 @@ export default function FeedbackSheet({
                     mini
                   />
                 </View>
+              )}
+
+              {/* Badge unlock animation */}
+              {insight?.newBadge && (
+                <Animated.View entering={FadeIn.delay(500).duration(600)} style={styles.badgeUnlock}>
+                  <Text style={styles.badgeUnlockEmoji}>{insight.newBadge.emoji}</Text>
+                  <Text style={styles.badgeUnlockTitle}>新徽章解鎖！</Text>
+                  <Text style={styles.badgeUnlockLabel}>{insight.newBadge.label}</Text>
+                </Animated.View>
               )}
 
               {/* Dominant shift indicator */}
@@ -473,4 +483,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   closeButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+
+  // Badge unlock
+  badgeUnlock: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(108,92,231,0.15)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(108,92,231,0.3)',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    marginVertical: 12,
+  },
+  badgeUnlockEmoji: { fontSize: 40, marginBottom: 8 },
+  badgeUnlockTitle: { color: '#6C5CE7', fontSize: 14, fontWeight: '700', marginBottom: 4 },
+  badgeUnlockLabel: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
 });

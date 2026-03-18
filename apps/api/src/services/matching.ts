@@ -1,6 +1,6 @@
 import { supabaseAdmin } from './supabase';
 import { getTodayStartUTC8 } from '../utils/date';
-import { VECTOR_DIM, GENRES, REACTION_WEIGHTS, genreToVector, getTasteLabel, TASTE_LABELS } from '../utils/genres';
+import { VECTOR_DIM, GENRES, GENRE_INDEX, REACTION_WEIGHTS, genreToVector, getTasteLabel, TASTE_LABELS } from '../utils/genres';
 import { cosineDistance } from '../utils/vector';
 
 const SWEET_SPOT_MIN = 0.3;
@@ -274,6 +274,7 @@ export interface TasteInsight {
   delta: number[];
   dominantShift: { genre: string; label: string; change: number } | null;
   genresExplored: number;
+  newBadge: { genre: string; label: string; emoji: string } | null;
 }
 
 /** Incrementally update taste vector based on feedback reaction. */
@@ -306,6 +307,7 @@ export async function updateTasteVectorFromFeedback(
       delta: new Array(VECTOR_DIM).fill(0),
       dominantShift: null,
       genresExplored: 0,
+      newBadge: null,
     };
   }
 
@@ -355,5 +357,61 @@ export async function updateTasteVectorFromFeedback(
     }
   }
 
-  return { oldVector, newVector, delta, dominantShift, genresExplored: genreSet.size };
+  // 8. Check for first-time 'surprised' in this genre category (badge unlock)
+  const GENRE_CATEGORIES = [
+    { key: 'pop_rnb', label: 'Pop/R&B 探索者', emoji: '🎤', indices: [0, 3, 18, 19] },
+    { key: 'rock_metal', label: 'Rock/Metal 探索者', emoji: '🎸', indices: [1, 10, 11, 12] },
+    { key: 'hiphop_soul', label: 'Hip-Hop/Soul 探索者', emoji: '🎧', indices: [2, 13, 14] },
+    { key: 'electronic', label: 'Electronic 探索者', emoji: '🎹', indices: [6, 17] },
+    { key: 'jazz_classical', label: 'Jazz/Classical 探索者', emoji: '🎷', indices: [4, 5] },
+    { key: 'world_folk', label: 'World/Folk 探索者', emoji: '🌍', indices: [7, 8, 9, 15, 16] },
+  ];
+
+  let newBadge: TasteInsight['newBadge'] = null;
+  if (reaction === 'surprised' && genres.length > 0) {
+    const trackGenreIndices = genres
+      .map((g: string) => GENRE_INDEX[g.toLowerCase()])
+      .filter((i): i is number => i !== undefined);
+
+    const matchedCategory = GENRE_CATEGORIES.find((cat) =>
+      cat.indices.some((i) => trackGenreIndices.includes(i))
+    );
+
+    if (matchedCategory) {
+      const categoryGenreNames = matchedCategory.indices.map((i) => GENRES[i]);
+
+      // Get all previous 'surprised' feedbacks from this user (excluding current)
+      const { data: prevFeedbacks } = await supabaseAdmin
+        .from('feedbacks')
+        .select('card_id')
+        .eq('user_id', userId)
+        .eq('reaction', 'surprised');
+
+      let hadPrevious = false;
+      if (prevFeedbacks && prevFeedbacks.length > 1) {
+        // Get track genres for all previously surprised cards
+        const prevCardIds = prevFeedbacks.map((f: any) => f.card_id);
+        const { data: prevCards } = await supabaseAdmin
+          .from('roulette_cards')
+          .select('track_id, tracks:track_id(genres)')
+          .in('id', prevCardIds)
+          .neq('track_id', trackId);
+
+        hadPrevious = (prevCards || []).some((card: any) => {
+          const cardGenres: string[] = card.tracks?.genres || [];
+          return cardGenres.some((g: string) => categoryGenreNames.includes(g.toLowerCase()));
+        });
+      }
+
+      if (!hadPrevious) {
+        newBadge = {
+          genre: matchedCategory.key,
+          label: matchedCategory.label,
+          emoji: matchedCategory.emoji,
+        };
+      }
+    }
+  }
+
+  return { oldVector, newVector, delta, dominantShift, genresExplored: genreSet.size, newBadge };
 }

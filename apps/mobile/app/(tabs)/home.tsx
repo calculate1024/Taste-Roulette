@@ -12,10 +12,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { useAppStore } from '../../store/appStore';
-import { getTodayCard, openCard, submitFeedback } from '../../services/api';
+import { getTodayCard, openCard, submitFeedback, getYesterdayEcho } from '../../services/api';
+import type { YesterdayEcho } from '../../services/api';
 import RouletteCard from '../../components/RouletteCard';
 import FeedbackSheet from '../../components/FeedbackSheet';
 import ShareCard from '../../components/ShareCard';
+import YesterdayEchoToast from '../../components/YesterdayEcho';
 import type { FeedbackReaction } from '../../../../packages/shared/types';
 
 export default function HomeScreen() {
@@ -29,6 +31,7 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [showShareCard, setShowShareCard] = useState(false);
+  const [echo, setEcho] = useState<YesterdayEcho | null>(null);
 
   const userId = session?.user?.id;
 
@@ -56,6 +59,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     fetchCard();
+    getYesterdayEcho().then(setEcho).catch(() => {});
   }, [fetchCard]);
 
   const handleRefresh = useCallback(async () => {
@@ -115,6 +119,11 @@ export default function HomeScreen() {
           />
         }
       >
+        {/* Yesterday's echo toast */}
+        {echo && (
+          <YesterdayEchoToast echo={echo} onDismiss={() => setEcho(null)} />
+        )}
+
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>今日驚喜</Text>
@@ -138,7 +147,21 @@ export default function HomeScreen() {
             </Text>
             <Pressable
               style={styles.recommendButton}
-              onPress={() => router.push('/recommend')}
+              onPress={() => {
+                const track = todayCard?.track;
+                if (track) {
+                  router.push({
+                    pathname: '/recommend',
+                    params: {
+                      contextTitle: track.title,
+                      contextArtist: track.artist,
+                      contextGenre: track.genres?.[0] || '',
+                    },
+                  });
+                } else {
+                  router.push('/recommend');
+                }
+              }}
             >
               <Text style={styles.recommendButtonText}>去推薦</Text>
             </Pressable>

@@ -13,7 +13,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -27,6 +27,19 @@ import type { Track } from '../../../packages/shared/types';
 export default function RecommendScreen() {
   const session = useAppStore((s) => s.session);
   const userId = session?.user?.id;
+  const params = useLocalSearchParams<{
+    contextTitle?: string;
+    contextArtist?: string;
+    contextGenre?: string;
+  }>();
+
+  const hasContext = !!params.contextTitle;
+  const headerSubtitle = hasContext
+    ? `你剛聽了「${params.contextTitle}」— 推薦一首同樣精彩的歌`
+    : '推薦一首你喜歡的歌給陌生人';
+  const reasonPlaceholder = hasContext
+    ? `跟 ${params.contextArtist} 比起來，這首歌為什麼值得一聽？`
+    : '用一句話告訴對方為什麼要聽這首';
 
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Track[]>([]);
@@ -124,7 +137,7 @@ export default function RecommendScreen() {
           <View>
             <Text style={styles.headerTitle}>推薦一首歌</Text>
             <Text style={styles.headerSubtitle}>
-              推薦一首你喜歡的歌給陌生人
+              {headerSubtitle}
             </Text>
           </View>
           <Pressable onPress={() => router.back()}>
@@ -161,7 +174,7 @@ export default function RecommendScreen() {
             {/* Reason input */}
             <TextInput
               style={styles.reasonInput}
-              placeholder="用一句話告訴對方為什麼要聽這首"
+              placeholder={reasonPlaceholder}
               placeholderTextColor="#666"
               value={reason}
               onChangeText={setReason}
