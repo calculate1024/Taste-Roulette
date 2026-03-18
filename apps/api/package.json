@@ -10,6 +10,7 @@
     "seed": "tsx src/scripts/seed-tracks.ts",
     "seed:users": "tsx src/scripts/seed-users.ts",
     "seed:expand": "tsx src/scripts/seed-expand.ts",
+    "retag": "tsx src/scripts/retag-tracks.ts",
     "test": "jest"
   },
   "keywords": [],

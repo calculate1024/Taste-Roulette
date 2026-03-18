@@ -5,10 +5,10 @@ import Svg, { Polygon, Line, Circle } from 'react-native-svg';
 // Full genre list matching CLAUDE.md order
 // 0:pop, 1:rock, 2:hip-hop, 3:r&b, 4:jazz, 5:classical, 6:electronic,
 // 7:latin, 8:country, 9:folk, 10:metal, 11:punk, 12:indie, 13:soul,
-// 14:blues, 15:reggae, 16:world, 17:ambient, 18:k-pop, 19:j-pop
+// 14:blues, 15:reggae, 16:world, 17:ambient, 18:k-pop, 19:j-pop, 20:c-pop
 
 const GENRE_CATEGORIES_MAPPED = [
-  { label: 'Pop/R&B', indices: [0, 3, 18, 19] },
+  { label: 'Pop/R&B', indices: [0, 3, 18, 19, 20] },
   { label: 'Rock/Metal', indices: [1, 10, 11, 12] },
   { label: 'Hip-Hop/Soul', indices: [2, 13, 14] },
   { label: 'Electronic', indices: [6, 17] },
@@ -23,7 +23,7 @@ interface TasteRadarProps {
   beforeVector?: number[];
 }
 
-/** Compute category values from a 20-dim taste vector. */
+/** Compute category values from a 21-dim taste vector. */
 function computeCategoryValues(vector: number[]): number[] {
   return GENRE_CATEGORIES_MAPPED.map((cat) => {
     if (!vector || vector.length === 0) return 0;
@@ -37,7 +37,7 @@ function computeCategoryValues(vector: number[]): number[] {
 
 /**
  * Radar/spider chart showing user's taste profile across genre categories.
- * Groups 20-dim taste vector into 6 categories by averaging.
+ * Groups 21-dim taste vector into 6 categories by averaging.
  *
  * - mini: compact mode for inline display (no labels, smaller)
  * - beforeVector: show a "before" overlay polygon for comparison

@@ -15,7 +15,7 @@ const FEEDBACK_WEIGHTS: Record<string, number> = {
 
 // Mirror the genre categories from matching.ts (badge detection)
 const GENRE_CATEGORIES = [
-  { key: 'pop_rnb', label: 'Pop/R&B 探索者', emoji: '🎤', indices: [0, 3, 18, 19] },
+  { key: 'pop_rnb', label: 'Pop/R&B 探索者', emoji: '🎤', indices: [0, 3, 18, 19, 20] },
   { key: 'rock_metal', label: 'Rock/Metal 探索者', emoji: '🎸', indices: [1, 10, 11, 12] },
   { key: 'hiphop_soul', label: 'Hip-Hop/Soul 探索者', emoji: '🎧', indices: [2, 13, 14] },
   { key: 'electronic', label: 'Electronic 探索者', emoji: '🎹', indices: [6, 17] },
@@ -264,7 +264,7 @@ describe('badge category detection', () => {
     expect(['rock_metal', 'jazz_classical']).toContain(cat!.key);
   });
 
-  it('all 20 genres map to exactly one category', () => {
+  it('all 21 genres map to exactly one category', () => {
     // Verify every genre in GENRES is covered by exactly one category
     for (const genre of GENRES) {
       const cat = findBadgeCategory([genre]);
@@ -272,9 +272,9 @@ describe('badge category detection', () => {
     }
   });
 
-  it('categories cover all genre indices 0-19', () => {
+  it('categories cover all genre indices 0-20', () => {
     const allIndices = GENRE_CATEGORIES.flatMap((c) => c.indices).sort((a, b) => a - b);
-    const expected = Array.from({ length: 20 }, (_, i) => i);
+    const expected = Array.from({ length: 21 }, (_, i) => i);
     expect(allIndices).toEqual(expected);
   });
 

@@ -87,6 +87,7 @@ export const GENRE_CURATOR_LABELS: Record<string, string> = {
   'ambient': '氛圍派',
   'k-pop': 'K-Pop 粉',
   'j-pop': 'J-Pop 迷',
+  'c-pop': '華語流行迷',
   'funk': '放克玩家',
 };
 

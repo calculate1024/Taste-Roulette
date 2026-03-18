@@ -10,8 +10,9 @@ import {
 } from '../utils/genres';
 
 describe('genre constants', () => {
-  it('has 20 genres', () => {
-    expect(GENRES).toHaveLength(20);
+  it('has 21 genres (including c-pop)', () => {
+    expect(GENRES).toHaveLength(21);
+    expect(GENRES).toContain('c-pop');
   });
 
   it('VECTOR_DIM matches GENRES length', () => {
@@ -64,10 +65,16 @@ describe('genreToVector', () => {
     expect(vec[GENRE_INDEX['jazz']]).toBe(1.0);
   });
 
-  it('handles partial genre matching (e.g., "indie rock")', () => {
+  it('handles alias matching (e.g., "indie rock" → indie)', () => {
     const vec = genreToVector(['indie rock']);
-    expect(vec[GENRE_INDEX['indie']]).toBe(0.5);
-    expect(vec[GENRE_INDEX['rock']]).toBe(0.5);
+    // "indie rock" is in GENRE_ALIASES → mapped to 'indie' at 1.0
+    expect(vec[GENRE_INDEX['indie']]).toBe(1.0);
+  });
+
+  it('handles alias matching for c-pop variants', () => {
+    expect(genreToVector(['mandopop'])[GENRE_INDEX['c-pop']]).toBe(1.0);
+    expect(genreToVector(['cpop'])[GENRE_INDEX['c-pop']]).toBe(1.0);
+    expect(genreToVector(['華語'])[GENRE_INDEX['c-pop']]).toBe(1.0);
   });
 
   it('always returns vector of VECTOR_DIM length', () => {

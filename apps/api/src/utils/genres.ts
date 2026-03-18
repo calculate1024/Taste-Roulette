@@ -4,7 +4,7 @@
 export const GENRES = [
   'pop', 'rock', 'hip-hop', 'r&b', 'jazz', 'classical', 'electronic',
   'latin', 'country', 'folk', 'metal', 'punk', 'indie', 'soul',
-  'blues', 'reggae', 'world', 'ambient', 'k-pop', 'j-pop',
+  'blues', 'reggae', 'world', 'ambient', 'k-pop', 'j-pop', 'c-pop',
 ];
 
 export const GENRE_INDEX: Record<string, number> = {};
@@ -18,20 +18,59 @@ export const REACTION_WEIGHTS: Record<string, number> = {
   not_for_me: -0.5,
 };
 
+const GENRE_ALIASES: Record<string, string> = {
+  'mandopop': 'c-pop',
+  'cpop': 'c-pop',
+  'chinese pop': 'c-pop',
+  '華語': 'c-pop',
+  '華語流行': 'c-pop',
+  'taiwanese pop': 'c-pop',
+  'cantopop': 'c-pop',
+  'indie rock': 'indie',
+  'indie pop': 'indie',
+  'alt rock': 'rock',
+  'alternative rock': 'rock',
+  'hard rock': 'rock',
+  'classic rock': 'rock',
+  'hip hop': 'hip-hop',
+  'rnb': 'r&b',
+  'rhythm and blues': 'r&b',
+  'edm': 'electronic',
+  'electronica': 'electronic',
+  'house': 'electronic',
+  'techno': 'electronic',
+  'death metal': 'metal',
+  'heavy metal': 'metal',
+  'post-punk': 'punk',
+  'kpop': 'k-pop',
+  'korean pop': 'k-pop',
+  'jpop': 'j-pop',
+  'japanese pop': 'j-pop',
+};
+
 /** Convert genre strings to a one-hot-ish vector (mirrors Python genre_to_vector). */
 export function genreToVector(genres: string[]): number[] {
   const vec = new Array(VECTOR_DIM).fill(0);
   for (const genre of genres) {
-    const lower = genre.toLowerCase();
-    // Exact match
+    const lower = genre.toLowerCase().trim();
+    // 1. Exact match
     if (lower in GENRE_INDEX) {
       vec[GENRE_INDEX[lower]] = 1.0;
       continue;
     }
-    // Partial match (e.g., "indie rock" matches both "indie" and "rock")
+    // 2. Alias match
+    if (lower in GENRE_ALIASES) {
+      const mapped = GENRE_ALIASES[lower];
+      if (mapped in GENRE_INDEX) {
+        vec[GENRE_INDEX[mapped]] = 1.0;
+        continue;
+      }
+    }
+    // 3. Fuzzy substring match (reduced weight, only for genre names >= 4 chars
+    //    to avoid 'pop' matching inside 'c-pop', 'k-pop', 'j-pop')
     for (const [g, idx] of Object.entries(GENRE_INDEX)) {
-      if (lower.includes(g) || g.includes(lower)) {
-        vec[idx] = 0.5;
+      if (lower.includes(g) && g.length >= 4) {
+        vec[idx] = Math.max(vec[idx], 0.5);
       }
     }
   }
@@ -87,6 +126,7 @@ export const TASTE_LABELS: Record<string, string> = {
   'ambient': '氛圍派',
   'k-pop': 'K-Pop 粉',
   'j-pop': 'J-Pop 迷',
+  'c-pop': '華語流行迷',
 };
 
 /** Get top N dominant genres from a taste vector. */

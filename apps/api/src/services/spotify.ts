@@ -125,6 +125,7 @@ export async function searchTracks(query: string, limit = 20): Promise<SpotifyTr
 // ========== Track caching ==========
 
 import { supabaseAdmin } from './supabase';
+import { getGenreTags } from './genre-tagger';
 
 /**
  * Ensure a track is cached in the tracks table.
@@ -133,14 +134,36 @@ import { supabaseAdmin } from './supabase';
 export async function ensureTrackCached(trackId: string): Promise<void> {
   const { data: existing } = await supabaseAdmin
     .from('tracks')
-    .select('spotify_id')
+    .select('spotify_id, genres')
     .eq('spotify_id', trackId)
     .maybeSingle();
 
-  if (existing) return;
+  if (existing) {
+    // If track exists but has no genres, try to tag it
+    if (!existing.genres || existing.genres.length === 0) {
+      try {
+        const track = await getTrack(trackId);
+        const tagResult = await getGenreTags(track.artist, track.title);
+        if (tagResult.genres.length > 0) {
+          await supabaseAdmin.from('tracks')
+            .update({ genres: tagResult.genres })
+            .eq('spotify_id', trackId);
+        }
+      } catch { /* best effort */ }
+    }
+    return;
+  }
 
   try {
     const track = await getTrack(trackId);
+
+    // Try to get genres from Last.fm
+    let genres: string[] = [];
+    try {
+      const tagResult = await getGenreTags(track.artist, track.title);
+      genres = tagResult.genres;
+    } catch { /* best effort */ }
+
     await supabaseAdmin.from('tracks').upsert({
       spotify_id: track.spotify_id,
       title: track.title,
@@ -148,6 +171,7 @@ export async function ensureTrackCached(trackId: string): Promise<void> {
       album: track.album,
       cover_url: track.cover_url,
       spotify_url: track.spotify_url,
+      genres,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'spotify_id' });
   } catch (err) {

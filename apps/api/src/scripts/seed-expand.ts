@@ -8,6 +8,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
 
 import { searchTracks, SpotifyTrack } from '../services/spotify';
 import { supabaseAdmin } from '../services/supabase';
+import { getGenreTags } from '../services/genre-tagger';
 import { GENRES } from '../utils/genres';
 
 const SEARCH_LIMIT = 10;
@@ -68,18 +69,36 @@ async function seedExpand() {
       const newTracks = qualified.filter((t) => !existingIds.has(t.spotify_id));
 
       if (newTracks.length > 0) {
-        const rows = newTracks.map((t) => ({
-          spotify_id: t.spotify_id,
-          title: t.title,
-          artist: t.artist,
-          album: t.album,
-          cover_url: t.cover_url,
-          spotify_url: t.spotify_url,
-          artist_id: t.artist_id,
-          genres: [genre],
-          popularity: t.popularity,
-          updated_at: new Date().toISOString(),
-        }));
+        const rows = [];
+        for (const t of newTracks) {
+          // Try Last.fm for better genre tagging
+          let trackGenres = [genre]; // Default to search genre
+          let genreSource = 'search';
+          try {
+            const tagResult = await getGenreTags(t.artist, t.title, [genre]);
+            if (tagResult.source === 'lastfm' && tagResult.genres.length > 0) {
+              trackGenres = tagResult.genres;
+              genreSource = `lastfm(${tagResult.confidence})`;
+            }
+            // Small delay to respect Last.fm rate limit
+            await sleep(200);
+          } catch {
+            // Keep default genre on failure
+          }
+
+          rows.push({
+            spotify_id: t.spotify_id,
+            title: t.title,
+            artist: t.artist,
+            album: t.album,
+            cover_url: t.cover_url,
+            spotify_url: t.spotify_url,
+            artist_id: t.artist_id,
+            genres: trackGenres,
+            popularity: t.popularity,
+            updated_at: new Date().toISOString(),
+          });
+        }
 
         const { error: upsertErr } = await supabaseAdmin
           .from('tracks')

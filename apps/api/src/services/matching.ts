@@ -2,6 +2,7 @@ import { supabaseAdmin } from './supabase';
 import { getTodayStartUTC8 } from '../utils/date';
 import { VECTOR_DIM, GENRES, GENRE_INDEX, REACTION_WEIGHTS, genreToVector, getTasteLabel, TASTE_LABELS } from '../utils/genres';
 import { cosineDistance } from '../utils/vector';
+import { applyCorrelationInference } from '../utils/genre-correlation';
 import { getCuratorReason, getCuratorTasteLabel } from '../utils/curator-reasons';
 
 const SWEET_SPOT_MIN = 0.3;
@@ -56,7 +57,9 @@ export async function computeTasteVector(userId: string): Promise<number[]> {
   }
 
   // Normalize by total weight
-  return weightedSum.map((v: number) => v / weightTotal);
+  const normalized = weightedSum.map((v: number) => v / weightTotal);
+  // Apply correlation inference for cold-start: fill sparse dimensions
+  return applyCorrelationInference(normalized);
 }
 
 // --- Curator fallback ---
@@ -431,7 +434,7 @@ export async function updateTasteVectorFromFeedback(
 
   // 8. Check for first-time 'surprised' in this genre category (badge unlock)
   const GENRE_CATEGORIES = [
-    { key: 'pop_rnb', label: 'Pop/R&B 探索者', emoji: '🎤', indices: [0, 3, 18, 19] },
+    { key: 'pop_rnb', label: 'Pop/R&B 探索者', emoji: '🎤', indices: [0, 3, 18, 19, 20] },
     { key: 'rock_metal', label: 'Rock/Metal 探索者', emoji: '🎸', indices: [1, 10, 11, 12] },
     { key: 'hiphop_soul', label: 'Hip-Hop/Soul 探索者', emoji: '🎧', indices: [2, 13, 14] },
     { key: 'electronic', label: 'Electronic 探索者', emoji: '🎹', indices: [6, 17] },
