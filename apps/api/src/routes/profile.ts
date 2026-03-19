@@ -147,4 +147,21 @@ router.get('/taste-journey', async (req: Request, res: Response) => {
   });
 });
 
+// DELETE /api/profile/me — delete user account and all associated data
+// Required by Apple App Store Review Guidelines (section 5.1.1)
+router.delete('/me', async (req: Request, res: Response) => {
+  const userId = req.userId!;
+
+  // Deleting the auth user cascades to profiles and all related tables
+  // (ON DELETE CASCADE in 001_initial_schema.sql)
+  const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
+
+  if (error) {
+    res.status(500).json({ error: 'Failed to delete account' });
+    return;
+  }
+
+  res.status(204).send();
+});
+
 export default router;

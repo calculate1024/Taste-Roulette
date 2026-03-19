@@ -18,6 +18,8 @@ import curatorRouter from './routes/curator';
 import shareRouter from './routes/share';
 import twinsRouter from './routes/twins';
 import healthRouter from './routes/health';
+import landingRouter from './routes/landing';
+import wellKnownRouter from './routes/well-known';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
@@ -47,6 +49,12 @@ app.use(express.json());
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// Landing page + privacy policy (public, no auth)
+app.use('/', landingRouter);
+
+// .well-known (Universal Links / App Links)
+app.use('/.well-known', wellKnownRouter);
 
 // Protected routes (require auth)
 app.use('/api/onboarding', authMiddleware, onboardingRouter);
