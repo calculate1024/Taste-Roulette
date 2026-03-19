@@ -31,7 +31,15 @@ goals:
   - "Add 5-10 high-quality tracks daily (popularity >= 50)"
   - "No single artist appears more than 3 times per month"
   - "Prioritize underrepresented genres when pool is imbalanced"
-  - "Include at least 20% Asian music (k-pop, j-pop, c-pop)"
+  - "Western indie/alt/electronic/rock must be >= 40% of pool (target market is US/EU)"
+  - "Asian music (k-pop, j-pop, c-pop) capped at <= 20% of pool"
+  - "Scale pool proportional to user count: users * 30 * 1.5x buffer"
+
+# Growth phase pool targets (current_phase is defined in company.yaml)
+pool_targets:
+  month1_beta: 500    # 50 users
+  month2_launch: 800  # 200 users
+  month3_growth: 1200 # 1000 users
 
 quality_criteria:
   track_selection:
@@ -53,3 +61,7 @@ env_setup: |
   IMPORTANT: On Windows, always use curl -k or curl --insecure for HTTPS requests.
   SENTRY_ORG slug: taste-roulette
   Sentry projects: taste-roulette-api, taste-roulette-mobile
+  DB SCHEMA NOTE: There is NO "users" table. User data is in "profiles" (public.profiles),
+  which references auth.users (Supabase built-in auth). Always query "profiles" for user data.
+  Key tables: profiles, onboarding_responses, roulette_cards, feedbacks,
+  user_recommendations, tracks. See supabase/migrations/ for full schema.

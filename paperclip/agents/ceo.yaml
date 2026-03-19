@@ -28,6 +28,34 @@ goals:
   - "Escalate any KPI falling below target within 1 hour of detection"
   - "Keep total agent spend under monthly budget cap"
 
+# Growth milestone: 1,000 users in 3 months (Western/English-speaking market focus)
+growth_targets:
+  # current_phase is defined in company.yaml (single source of truth)
+  month1_beta:
+    cumulative_users: 50
+    focus: "Pre-launch prep + closed beta (TestFlight/APK)"
+    tasks:
+      - "Track Beta user count daily, target 50 by end of month"
+      - "Compile Beta feedback summary for Calvin every Monday"
+      - "Ensure all agents complete pre-launch checklist items on time"
+      - "Escalate any onboarding completion rate < 60% immediately"
+  month2_launch:
+    cumulative_users: 200
+    focus: "Public launch + organic growth via Product Hunt, Reddit, Indie Hackers"
+    tasks:
+      - "Track cumulative users, target 200 by end of month"
+      - "Weekly growth rate report (new users, retention, churn)"
+      - "Coordinate Social + Outreach agents for launch week campaign"
+      - "Monitor ad spend ROI if ads are running"
+  month3_growth:
+    cumulative_users: 1000
+    focus: "Referral + Curator program acceleration"
+    tasks:
+      - "Track cumulative users, target 1000 by end of month"
+      - "Monitor referral funnel (invites sent → installed → completed onboarding)"
+      - "Curator program ROI tracking (users brought per curator)"
+      - "Weekly growth forecast and channel attribution report"
+
 escalation_rules:
   - condition: "d7_retention < 0.30"
     action: "Immediate Slack/email alert to Calvin"
@@ -45,3 +73,7 @@ env_setup: |
   IMPORTANT: On Windows, always use curl -k or curl --insecure for HTTPS requests.
   SENTRY_ORG slug: taste-roulette
   Sentry projects: taste-roulette-api, taste-roulette-mobile
+  DB SCHEMA NOTE: There is NO "users" table. User data is in "profiles" (public.profiles),
+  which references auth.users (Supabase built-in auth). Always query "profiles" for user data.
+  Key tables: profiles, onboarding_responses, roulette_cards, feedbacks,
+  user_recommendations, tracks. See supabase/migrations/ for full schema.

@@ -26,22 +26,43 @@ goals:
   - "Track outreach pipeline (contacted → replied → onboarded)"
   - "Focus on curators covering underrepresented genres in pool"
 
+# Growth phase goals (Western market focus)
+growth_goals:
+  # current_phase is defined in company.yaml (single source of truth)
+  month1_beta:
+    - "Research and compile list of 30+ Western music bloggers/playlist curators/Discord mods"
+    - "Categorize by: platform, follower count, genre focus, engagement rate"
+    - "Identify 10 top candidates for curator program"
+    - "Draft 3 versions of English invitation message for Calvin to choose"
+  month2_launch:
+    - "Expand research to include English-language podcast hosts, Spotify playlist curators"
+    - "Draft personalized outreach to top 5 curator candidates"
+    - "Research 3-5 indie music / tech podcasts for interview opportunities"
+    - "Track outreach pipeline: contacted → replied → interested → onboarded"
+  month3_growth:
+    - "Support Calvin in onboarding 5-10 curators"
+    - "Draft curator onboarding guide (how to submit recommendations)"
+    - "Research cross-promotion with music subreddits and Discord servers"
+    - "Identify potential media coverage angles for indie/tech press"
+
 candidate_criteria:
   - "Active music blog/social presence (posted in last 30 days)"
   - "Demonstrates diverse music taste (not single-genre)"
   - "Has engaged audience (not just follower count)"
-  - "Preferably covers Asian/non-Western music markets"
+  - "Focus on Western/English-speaking music communities (Reddit, Discord, Twitter/X)"
+  - "Bonus: covers cross-cultural or world music"
 
 invitation_template: |
   Hi {name},
 
-  我們正在打造一個「反演算法」音樂推薦 APP — Taste Roulette。
-  每天幫用戶發現一首品味舒適圈之外的好音樂。
+  We're building Taste Roulette — an "anti-algorithm" music recommendation app.
+  Every day, it helps users discover one song outside their taste comfort zone.
 
-  看到你在 {platform} 分享的音樂推薦，覺得你的品味很適合擔任我們的 Curator。
-  Curator 的推薦會直接送到用戶手中，幫助他們擴展音樂視野。
+  We noticed your music recommendations on {platform} and think your taste
+  would be perfect for our Curator program. As a Curator, your picks go directly
+  to users, helping them expand their musical horizons.
 
-  有興趣了解更多嗎？
+  Interested in learning more?
 
   — Taste Roulette Team
 
@@ -54,3 +75,7 @@ env_setup: |
   IMPORTANT: On Windows, always use curl -k or curl --insecure for HTTPS requests.
   SENTRY_ORG slug: taste-roulette
   Sentry projects: taste-roulette-api, taste-roulette-mobile
+  DB SCHEMA NOTE: There is NO "users" table. User data is in "profiles" (public.profiles),
+  which references auth.users (Supabase built-in auth). Always query "profiles" for user data.
+  Key tables: profiles, onboarding_responses, roulette_cards, feedbacks,
+  user_recommendations, tracks. See supabase/migrations/ for full schema.

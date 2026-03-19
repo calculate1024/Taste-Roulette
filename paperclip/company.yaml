@@ -36,9 +36,26 @@ approval_required:
 
 # KPI targets (agents reference these for goal alignment)
 kpi_targets:
-  d7_retention: 0.40        # 40% D7 retention
+  d7_retention: 0.30        # 30% D7 retention
   daily_open_rate: 0.60     # 60% of users open their daily card
   surprise_rate: 0.25       # 25% of feedbacks are "surprised"
   recommend_back_rate: 0.30 # 30% of users submit a recommendation
-  pool_size_min: 200        # Minimum unused tracks in recommendation pool
+  pool_size_min: 500        # Minimum unused tracks in recommendation pool
   genre_diversity_min: 15   # At least 15 of 21 genres represented in pool
+
+# Growth strategy: 1,000 users in 3 months (Western/English-speaking market)
+growth:
+  target_market: "US/EU (English-speaking)"
+  budget_monthly_usd: 75   # $50-100 range, excluding Paperclip agent budget
+  current_phase: "month1_beta"  # Update as phases progress
+  milestones:
+    month1: { users: 50, phase: "beta", focus: "Pre-launch + closed beta" }
+    month2: { users: 200, phase: "launch", focus: "Public launch + organic growth" }
+    month3: { users: 1000, phase: "growth", focus: "Referral + Curator acceleration" }
+  launch_channels:
+    primary: ["Product Hunt", "Indie Hackers", "Reddit (music subs)", "Twitter/X"]
+    secondary: ["dev.to / Medium", "IG", "music podcasts"]
+  pool_composition:
+    western_indie_alt_electronic: ">= 40%"
+    asian_music: "<= 20%"
+    other_world_music: "remaining"

@@ -26,11 +26,33 @@ tools:
 requires_approval: true
 
 goals:
-  - "Prepare 1 social post draft daily (IG or Twitter)"
+  - "Prepare 1 social post draft daily (Twitter/X primary, IG secondary)"
   - "Weekly content calendar every Sunday"
   - "Highlight interesting user stats (anonymized)"
   - "Tie posts to music trending topics when relevant"
   - "Maintain brand voice: curious, warm, slightly playful"
+
+# Growth phase goals (English-first, Western market focus)
+growth_goals:
+  # current_phase is defined in company.yaml (single source of truth)
+  month1_beta:
+    - "Prepare 5 launch announcement graphics (App Store screenshots + English tagline)"
+    - "Draft Product Hunt listing materials (English: tagline, description, maker comment)"
+    - "Draft Indie Hackers post about the side project story"
+    - "Create Twitter/X content calendar for first 2 weeks post-launch"
+  month2_launch:
+    - "Publish 1 tweet daily on @tasteroulette (English)"
+    - "Draft 2-3 blog posts for Medium/dev.to (English):"
+    - "  'Why I built an anti-algorithm music app' — product story"
+    - "  'React Native + Supabase + Vercel: full-stack side project' — tech deep-dive"
+    - "  'Measuring taste distance: quantifying music preference' — algorithm explainer"
+    - "Create 2 IG Reels scripts (algorithm vs anti-algorithm comparison)"
+    - "Monitor which content type drives most app downloads (via UTM links)"
+  month3_growth:
+    - "Increase share-to-download conversion tracking"
+    - "Create curator spotlight content (1 per week, highlight each curator's taste)"
+    - "Produce referral program announcement graphics"
+    - "A/B test 2 different social ad creatives (if budget allocated)"
 
 content_themes:
   - "Daily surprise stats (e.g., 'Today a metal fan discovered jazz')"
@@ -42,13 +64,13 @@ content_themes:
 
 brand_voice:
   tone: "Curious, warm, slightly playful"
-  language: "Traditional Chinese (繁體中文)"
+  language: "English (primary), Traditional Chinese (secondary)"
   avoid: "Hard selling, algorithm jargon, personal data"
   hashtags:
     - "#TasteRoulette"
-    - "#每日驚喜"
-    - "#品味冒險"
-    - "#音樂探索"
+    - "#AntiAlgorithm"
+    - "#MusicDiscovery"
+    - "#ExpandYourTaste"
 
 # Environment Setup (CRITICAL — do this first every heartbeat)
 env_setup: |
@@ -59,3 +81,7 @@ env_setup: |
   IMPORTANT: On Windows, always use curl -k or curl --insecure for HTTPS requests.
   SENTRY_ORG slug: taste-roulette
   Sentry projects: taste-roulette-api, taste-roulette-mobile
+  DB SCHEMA NOTE: There is NO "users" table. User data is in "profiles" (public.profiles),
+  which references auth.users (Supabase built-in auth). Always query "profiles" for user data.
+  Key tables: profiles, onboarding_responses, roulette_cards, feedbacks,
+  user_recommendations, tracks. See supabase/migrations/ for full schema.

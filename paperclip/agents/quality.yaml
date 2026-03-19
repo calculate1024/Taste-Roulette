@@ -49,3 +49,7 @@ env_setup: |
   IMPORTANT: On Windows, always use curl -k or curl --insecure for HTTPS requests.
   SENTRY_ORG slug: taste-roulette
   Sentry projects: taste-roulette-api, taste-roulette-mobile
+  DB SCHEMA NOTE: There is NO "users" table. User data is in "profiles" (public.profiles),
+  which references auth.users (Supabase built-in auth). Always query "profiles" for user data.
+  Key tables: profiles, onboarding_responses, roulette_cards, feedbacks,
+  user_recommendations, tracks. See supabase/migrations/ for full schema.
