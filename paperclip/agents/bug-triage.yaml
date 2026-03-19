@@ -45,3 +45,13 @@ classification:
     - "Cosmetic issues"
     - "Edge case handling"
     - "Deprecation warnings"
+
+# Environment Setup (CRITICAL — do this first every heartbeat)
+env_setup: |
+  All API credentials are stored in the project .env file at the project root.
+  To read credentials: cat .env | grep VARIABLE_NAME
+  Key variables: SUPABASE_URL, SUPABASE_SERVICE_KEY, SPOTIFY_CLIENT_ID,
+  SPOTIFY_CLIENT_SECRET, SENTRY_AUTH_TOKEN, SENTRY_ORG, POSTHOG_API_KEY
+  IMPORTANT: On Windows, always use curl -k or curl --insecure for HTTPS requests.
+  SENTRY_ORG slug: taste-roulette
+  Sentry projects: taste-roulette-api, taste-roulette-mobile
