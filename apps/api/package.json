@@ -11,6 +11,7 @@
     "seed:users": "tsx src/scripts/seed-users.ts",
     "seed:expand": "tsx src/scripts/seed-expand.ts",
     "retag": "tsx src/scripts/retag-tracks.ts",
+    "seed:simulate": "tsx src/scripts/seed-simulation.ts",
     "test": "jest"
   },
   "keywords": [],
