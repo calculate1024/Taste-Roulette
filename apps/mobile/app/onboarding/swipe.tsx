@@ -25,6 +25,7 @@ import { useAppStore } from '../../store/appStore';
 import { supabase } from '../../services/supabase';
 import { getAuthHeaders } from '../../services/supabase';
 import { ONBOARDING_TRACKS, OnboardingTrack } from '../../constants/mockTracks';
+import { useAnalytics, Events } from '../../hooks/useAnalytics';
 import { colors, spacing, radius, typo, layout, shadow } from '../../constants/theme';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
@@ -61,6 +62,8 @@ export default function OnboardingSwipeScreen() {
   const completeOnboarding = useAppStore((s) => s.completeOnboarding);
   const session = useAppStore((s) => s.session);
   const recognizedTracks = useAppStore((s) => s.recognizedTracks);
+
+  const { track: trackEvent } = useAnalytics();
 
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
@@ -145,6 +148,7 @@ export default function OnboardingSwipeScreen() {
     }
 
     loadTracks();
+    trackEvent(Events.ONBOARDING_STARTED, { source: source || 'default' });
   }, [source, recognizedTracks]);
 
   const track = tracks[currentIndex];
@@ -192,6 +196,10 @@ export default function OnboardingSwipeScreen() {
       if (!response.ok) throw new Error('Failed to complete onboarding');
 
       // 3. Update local state
+      trackEvent(Events.ONBOARDING_COMPLETED, {
+        source: source || 'default',
+        totalResponses: useAppStore.getState().onboardingResponses.length,
+      });
       completeOnboarding();
       router.replace('/(tabs)/home');
     } catch (error) {
@@ -214,10 +222,17 @@ export default function OnboardingSwipeScreen() {
       if (!track) return;
       addResponse(track.id, reaction);
       reactions.current.push(reaction);
+      trackEvent(Events.ONBOARDING_SWIPED, {
+        reaction,
+        trackId: track.id,
+        cardIndex: currentIndex,
+        totalCards,
+      });
 
       if (isLastCard) {
         finishOnboarding();
       } else if (shouldOfferEarlyExit(reactions.current)) {
+        trackEvent(Events.ONBOARDING_EARLY_EXIT_SHOWN, { cardIndex: currentIndex });
         setShowEarlyExit(true);
       } else {
         setCurrentIndex((i) => i + 1);
@@ -307,7 +322,7 @@ export default function OnboardingSwipeScreen() {
           <Text style={styles.earlyExitSubtitle}>
             {t('onboarding.tasteClear')}
           </Text>
-          <Pressable style={styles.earlyExitButton} onPress={finishOnboarding} disabled={loading}>
+          <Pressable style={styles.earlyExitButton} onPress={() => { trackEvent(Events.ONBOARDING_EARLY_EXIT_CONFIRMED); finishOnboarding(); }} disabled={loading}>
             {loading ? (
               <ActivityIndicator color={colors.textPrimary} size="small" />
             ) : (
@@ -317,6 +332,7 @@ export default function OnboardingSwipeScreen() {
           <Pressable
             style={styles.earlyExitContinue}
             onPress={() => {
+              trackEvent(Events.ONBOARDING_EARLY_EXIT_DECLINED);
               setShowEarlyExit(false);
               setCurrentIndex((i) => i + 1);
             }}

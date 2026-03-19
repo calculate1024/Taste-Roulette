@@ -22,6 +22,7 @@ import YesterdayEchoToast from '../../components/YesterdayEcho';
 import BlurBackground from '../../components/BlurBackground';
 import SkeletonCard from '../../components/SkeletonCard';
 import { colors, spacing, radius, typo, button, layout, shadow } from '../../constants/theme';
+import { useAnalytics, Events } from '../../hooks/useAnalytics';
 import type { FeedbackReaction } from '../../../../packages/shared/types';
 
 export default function HomeScreen() {
@@ -37,6 +38,7 @@ export default function HomeScreen() {
   const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [showShareCard, setShowShareCard] = useState(false);
   const [echo, setEcho] = useState<YesterdayEcho | null>(null);
+  const { track: trackEvent } = useAnalytics();
 
   const userId = session?.user?.id;
 
@@ -46,9 +48,17 @@ export default function HomeScreen() {
       const card = await getTodayCard(userId);
       setTodayCard(card);
 
+      if (card) {
+        trackEvent(Events.CARD_VIEWED, {
+          cardId: card.id,
+          tasteDistance: card.tasteDistance,
+        });
+      }
+
       // Mark as opened if pending/delivered
       if (card && (card.status === 'pending' || card.status === 'delivered')) {
         await openCard(card.id);
+        trackEvent(Events.CARD_OPENED, { cardId: card.id });
       }
 
       // Check if feedback was already given
@@ -77,6 +87,12 @@ export default function HomeScreen() {
     async (reaction: FeedbackReaction, comment?: string) => {
       if (!todayCard || !userId) return null;
       const insight = await submitFeedback(todayCard.id, userId, reaction, comment);
+      trackEvent(Events.CARD_FEEDBACK_SUBMITTED, {
+        cardId: todayCard.id,
+        reaction,
+        hasComment: !!comment,
+        tasteDistance: todayCard.tasteDistance,
+      });
       setFeedbackGiven(true);
       return insight;
     },
@@ -88,17 +104,19 @@ export default function HomeScreen() {
   }, []);
 
   const handleSharePress = useCallback(() => {
+    trackEvent(Events.CARD_SHARE_PRESSED, { cardId: todayCard?.id });
     setFeedbackVisible(false);
     setShowShareCard(true);
-  }, []);
+  }, [todayCard]);
 
   const handleShare = useCallback(async (uri: string) => {
     await Sharing.shareAsync(uri, {
       mimeType: 'image/png',
       dialogTitle: t('home.shareYourTaste'),
     });
+    trackEvent(Events.CARD_SHARED, { cardId: todayCard?.id });
     setShowShareCard(false);
-  }, []);
+  }, [todayCard]);
 
   // Loading state
   if (loading) {
@@ -155,6 +173,7 @@ export default function HomeScreen() {
               <Pressable
                 style={styles.recommendButton}
                 onPress={() => {
+                  trackEvent(Events.RECOMMEND_BACK_PRESSED);
                   const track = todayCard?.track;
                   if (track) {
                     router.push({
@@ -172,7 +191,7 @@ export default function HomeScreen() {
               >
                 <Text style={styles.recommendButtonText}>{t('home.goRecommend')}</Text>
               </Pressable>
-              <Pressable style={styles.skipButton}>
+              <Pressable style={styles.skipButton} onPress={() => trackEvent(Events.RECOMMEND_BACK_SKIPPED)}>
                 <Text style={styles.skipText}>{t('home.maybeLater')}</Text>
               </Pressable>
             </View>

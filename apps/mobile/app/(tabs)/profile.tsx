@@ -15,6 +15,7 @@ import { useAppStore } from '../../store/appStore';
 import { supabase, getAuthHeaders } from '../../services/supabase';
 import { getProfile, type ProfileStats } from '../../services/api';
 import CountingNumber from '../../components/CountingNumber';
+import { useAnalytics, Events } from '../../hooks/useAnalytics';
 import { colors, spacing, radius, typo, layout, shadow } from '../../constants/theme';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
@@ -28,6 +29,7 @@ export default function ProfileScreen() {
   const [spotifyConnected, setSpotifyConnected] = useState(false);
   const [spotifyName, setSpotifyName] = useState<string | null>(null);
   const [disconnecting, setDisconnecting] = useState(false);
+  const { track: trackEvent } = useAnalytics();
 
   const userId = session?.user?.id;
 
@@ -41,6 +43,7 @@ export default function ProfileScreen() {
 
   useEffect(() => {
     if (!userId) return;
+    trackEvent(Events.PROFILE_VIEWED);
     getProfile(userId)
       .then(setStats)
       .finally(() => setLoading(false));
@@ -60,6 +63,7 @@ export default function ProfileScreen() {
   };
 
   const handleConnectSpotify = () => {
+    trackEvent(Events.SPOTIFY_CONNECT_PRESSED);
     router.push('/spotify-connect');
   };
 
@@ -95,6 +99,7 @@ export default function ProfileScreen() {
   };
 
   const handleSignOut = async () => {
+    trackEvent(Events.SIGN_OUT);
     await supabase.auth.signOut();
     resetOnboarding();
     router.replace('/login');

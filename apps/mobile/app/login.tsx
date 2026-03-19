@@ -14,6 +14,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { supabase } from '../services/supabase';
+import { useAnalytics, Events } from '../hooks/useAnalytics';
 import { colors, spacing, radius, typo, layout } from '../constants/theme';
 
 export default function LoginScreen() {
@@ -22,6 +23,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { track, identify } = useAnalytics();
 
   async function handleAuth() {
     if (!email || !password) {
@@ -34,15 +36,20 @@ export default function LoginScreen() {
       if (isSignUp) {
         const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        // If email confirmation is disabled, session is returned immediately
         if (data.session) {
+          identify(data.session.user.id, { email });
+          track(Events.SIGNUP_SUCCESS);
           router.replace('/');
         } else {
           Alert.alert(t('login.checkEmail'), t('login.confirmationSent'));
         }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        if (data.session) {
+          identify(data.session.user.id, { email });
+        }
+        track(Events.LOGIN_SUCCESS);
         router.replace('/');
       }
     } catch (err: any) {

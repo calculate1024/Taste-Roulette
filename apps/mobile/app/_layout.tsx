@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as Sentry from '@sentry/react-native';
-import { PostHogProvider } from 'posthog-react-native';
+import { PostHogProvider, usePostHog } from 'posthog-react-native';
 import { supabase } from '../services/supabase';
 import { useAppStore } from '../store/appStore';
 import { useNotifications } from '../hooks/useNotifications';
@@ -41,7 +41,7 @@ export default function RootLayout() {
       setAuthReady(true);
     });
 
-    // Listen for auth state changes
+    // Listen for auth state changes + PostHog identify
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);

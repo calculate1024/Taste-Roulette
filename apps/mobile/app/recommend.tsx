@@ -25,6 +25,7 @@ import Animated, {
 import { useAppStore } from '../store/appStore';
 import { searchTracks, submitRecommendation } from '../services/api';
 import { colors, spacing, radius, typo, layout, shadow } from '../constants/theme';
+import { useAnalytics, Events } from '../hooks/useAnalytics';
 import type { Track } from '../../../packages/shared/types';
 
 export default function RecommendScreen() {
@@ -53,6 +54,7 @@ export default function RecommendScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [gotBonusCard, setGotBonusCard] = useState(false);
+  const { track: trackEvent } = useAnalytics();
 
   // Success animation
   const successScale = useSharedValue(0);
@@ -68,6 +70,7 @@ export default function RecommendScreen() {
     setSearching(true);
     try {
       const tracks = await searchTracks(query.trim());
+      trackEvent(Events.RECOMMEND_SEARCH, { query: query.trim(), resultCount: tracks.length });
       setResults(tracks);
     } catch (e) {
       Alert.alert(t('recommend.searchFailed'), t('recommend.tryAgainLater'));
@@ -78,6 +81,7 @@ export default function RecommendScreen() {
   }, [query]);
 
   const handleSelect = useCallback((track: Track) => {
+    trackEvent(Events.RECOMMEND_TRACK_SELECTED, { trackId: track.spotifyId });
     setSelectedTrack(track);
   }, []);
 
@@ -86,6 +90,10 @@ export default function RecommendScreen() {
     setSubmitting(true);
     try {
       const result = await submitRecommendation(userId, selectedTrack.spotifyId, reason.trim());
+      trackEvent(Events.RECOMMEND_SUBMITTED, {
+        trackId: selectedTrack.spotifyId,
+        gotBonus: !!result.bonus_card,
+      });
       setSubmitted(true);
       if (result.bonus_card) setGotBonusCard(true);
       // Play success animation
