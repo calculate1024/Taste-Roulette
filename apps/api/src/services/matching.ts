@@ -7,6 +7,8 @@ import { getCuratorReason, getCuratorTasteLabel } from '../utils/curator-reasons
 
 const SWEET_SPOT_MIN = 0.3;
 const SWEET_SPOT_MAX = 0.7;
+const SWEET_SPOT_CENTER = 0.4;    // Prefer lower distance — sweet_low (0.35-0.5) has best surprise/reject ratio
+const USER_REC_DIST_CAP = 0.75;   // Hard cap: reject user recs where recipient distance > 0.75
 
 /** Compute taste vector from onboarding responses. Same algorithm as Python taste_engine.py. */
 export async function computeTasteVector(userId: string): Promise<number[]> {
@@ -124,11 +126,11 @@ export async function curatorFallback(
       scored.push({ spotify_id: track.spotify_id, genres: trackGenres, dist });
     }
 
-    // Prefer sweet spot (0.3-0.7), closest to 0.5
+    // Prefer sweet spot (0.3-0.7), closest to SWEET_SPOT_CENTER (0.4)
     const sweetSpot = scored.filter((t) => t.dist >= SWEET_SPOT_MIN && t.dist <= SWEET_SPOT_MAX);
 
     if (sweetSpot.length > 0) {
-      sweetSpot.sort((a, b) => Math.abs(a.dist - 0.5) - Math.abs(b.dist - 0.5));
+      sweetSpot.sort((a, b) => Math.abs(a.dist - SWEET_SPOT_CENTER) - Math.abs(b.dist - SWEET_SPOT_CENTER));
       // Add slight randomness: pick from top 3 instead of always #1
       const topN = sweetSpot.slice(0, Math.min(3, sweetSpot.length));
       const pick = topN[Math.floor(Math.random() * topN.length)];
@@ -250,6 +252,8 @@ export async function runDailyMatching(): Promise<MatchingSummary> {
         if (!recommenderVector || recommenderVector.length === 0) continue;
 
         const dist = cosineDistance(userVector, recommenderVector);
+        // P0: Hard cap — skip user recs that are too far apart
+        if (dist > USER_REC_DIST_CAP) continue;
         if (dist >= SWEET_SPOT_MIN && dist <= SWEET_SPOT_MAX) {
           const isCurator = rec.is_curator_pick === true;
           const weight = isCurator ? (curatorWeightMap[rec.user_id] || 1.5) : 1.0;
@@ -257,14 +261,14 @@ export async function runDailyMatching(): Promise<MatchingSummary> {
         }
       }
 
-      // Sort: curator picks first (by weight descending), then by distance to 0.5
+      // Sort: curator picks first (by weight descending), then prefer distance near SWEET_SPOT_CENTER
       scored.sort((a, b) => {
         // Curator picks come before non-curator picks
         if (a.isCurator !== b.isCurator) return a.isCurator ? -1 : 1;
         // Among curators, higher weight first
         if (a.isCurator && b.isCurator && a.weight !== b.weight) return b.weight - a.weight;
-        // Then by distance to the sweet spot center (0.5)
-        return Math.abs(a.dist - 0.5) - Math.abs(b.dist - 0.5);
+        // Then by distance to sweet spot center (0.4 — sweet_low zone has best surprise ratio)
+        return Math.abs(a.dist - SWEET_SPOT_CENTER) - Math.abs(b.dist - SWEET_SPOT_CENTER);
       });
 
       if (scored.length > 0) {

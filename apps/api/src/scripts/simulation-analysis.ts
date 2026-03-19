@@ -173,6 +173,10 @@ interface ScenarioConfig {
   // Matching filter: min/max taste distance for curator fallback
   matchMinDist: number;
   matchMaxDist: number;
+  // Center preference for distance sorting (default 0.5)
+  matchCenter: number;
+  // Hard cap on user rec distance (default: no cap = 1.0)
+  userRecDistCap: number;
   // Whether user recs are available (false = curator-only)
   userRecsEnabled: boolean;
   // Genre repeat penalty enabled
@@ -239,8 +243,12 @@ function runSimulation(
       // Try user rec pool first
       let matched = false;
       if (config.userRecsEnabled && recPool.length > 0) {
-        // Find a rec from someone else
-        const recIdx = recPool.findIndex((r) => r.fromUser !== userIdx);
+        // Find a rec from someone else, respecting distance cap
+        const recIdx = recPool.findIndex((r) => {
+          if (r.fromUser === userIdx) return false;
+          const d = cosineDistance(user.vec, tracks[r.trackIdx].vec);
+          return d <= config.userRecDistCap;
+        });
         if (recIdx >= 0) {
           const rec = recPool.splice(recIdx, 1)[0];
           const track = tracks[rec.trackIdx];
@@ -255,7 +263,7 @@ function runSimulation(
         const candidates = tracks
           .map((t) => ({ track: t, dist: cosineDistance(user.vec, t.vec) }))
           .filter((c) => c.dist >= config.matchMinDist && c.dist <= config.matchMaxDist)
-          .sort((a, b) => Math.abs(a.dist - 0.5) - Math.abs(b.dist - 0.5));
+          .sort((a, b) => Math.abs(a.dist - config.matchCenter) - Math.abs(b.dist - config.matchCenter));
 
         if (candidates.length === 0) {
           // No match possible — pick anything
@@ -463,48 +471,49 @@ async function main() {
   const configA: ScenarioConfig = {
     name: 'A) Current Design (0.3-0.7)',
     userCount: 100, days: 7,
-    matchMinDist: 0.3, matchMaxDist: 0.7,
-    userRecsEnabled: true,
-    genreRepeatPenalty: false,
+    matchMinDist: 0.3, matchMaxDist: 0.7, matchCenter: 0.5, userRecDistCap: 1.0,
+    userRecsEnabled: true, genreRepeatPenalty: false,
   };
 
-  // ─── Scenario B: Full range (no filter) ─────────────────────────────
   const configB: ScenarioConfig = {
-    name: 'B) Full Range (0.0-1.0, no filter)',
+    name: 'B) Full Range (no filter)',
     userCount: 100, days: 7,
-    matchMinDist: 0.0, matchMaxDist: 1.0,
-    userRecsEnabled: true,
-    genreRepeatPenalty: false,
+    matchMinDist: 0.0, matchMaxDist: 1.0, matchCenter: 0.5, userRecDistCap: 1.0,
+    userRecsEnabled: true, genreRepeatPenalty: false,
   };
 
-  // ─── Scenario C: Tighter sweet spot (0.3-0.55) ─────────────────────
   const configC: ScenarioConfig = {
-    name: 'C) Tighter Sweet Spot (0.3-0.55)',
+    name: 'C) Tighter (0.3-0.55)',
     userCount: 100, days: 7,
-    matchMinDist: 0.3, matchMaxDist: 0.55,
-    userRecsEnabled: true,
-    genreRepeatPenalty: false,
+    matchMinDist: 0.3, matchMaxDist: 0.55, matchCenter: 0.5, userRecDistCap: 1.0,
+    userRecsEnabled: true, genreRepeatPenalty: false,
   };
 
-  // ─── Scenario D: Cold start (10 users, curator only) ───────────────
   const configD: ScenarioConfig = {
-    name: 'D) Cold Start (10 users, curator only)',
+    name: 'D) Cold Start (10 users)',
     userCount: 10, days: 7,
-    matchMinDist: 0.3, matchMaxDist: 0.7,
-    userRecsEnabled: false,
-    genreRepeatPenalty: false,
+    matchMinDist: 0.3, matchMaxDist: 0.7, matchCenter: 0.5, userRecDistCap: 1.0,
+    userRecsEnabled: false, genreRepeatPenalty: false,
   };
 
-  // ─── Scenario E: Current + genre repeat penalty ────────────────────
   const configE: ScenarioConfig = {
-    name: 'E) Current Design + Genre Repeat Penalty',
+    name: 'E) + Genre Penalty',
+    userCount: 100, days: 7,
+    matchMinDist: 0.3, matchMaxDist: 0.7, matchCenter: 0.5, userRecDistCap: 1.0,
+    userRecsEnabled: true, genreRepeatPenalty: true,
+  };
+
+  // ─── Scenario F: Tuned parameters from simulation findings ─────────
+  const configF: ScenarioConfig = {
+    name: 'F) TUNED (center=0.4, cap=0.75)',
     userCount: 100, days: 7,
     matchMinDist: 0.3, matchMaxDist: 0.7,
-    userRecsEnabled: true,
-    genreRepeatPenalty: true,
+    matchCenter: 0.4,          // P1: prefer sweet_low zone
+    userRecDistCap: 0.75,      // P0: reject too-far user recs
+    userRecsEnabled: true, genreRepeatPenalty: false,
   };
 
-  const scenarios = [configA, configB, configC, configD, configE];
+  const scenarios = [configA, configB, configC, configD, configE, configF];
 
   for (const config of scenarios) {
     process.stdout.write(`Running ${config.name} (${RUNS}x)...`);
