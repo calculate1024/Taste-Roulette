@@ -35,6 +35,7 @@ taste-roulette/
 │   ├── mobile/              # React Native (Expo) app
 │   │   ├── app/             # Expo Router pages
 │   │   ├── components/      # Shared components
+│   │   ├── i18n/            # Internationalization (en, zh-TW)
 │   │   ├── services/        # API & Supabase clients
 │   │   ├── store/           # Zustand state
 │   │   └── hooks/           # Custom hooks
@@ -130,6 +131,13 @@ taste-roulette/
 | Social | Share card content, community engagement | Daily |
 | Outreach | Growth experiments, user feedback | Weekly |
 | Feedback | In-app reaction analysis, trend detection | Daily |
+
+## Internationalization (i18n)
+
+- **Library**: expo-localization + i18next + react-i18next
+- **Auto-detection**: device language detected via `expo-localization`
+- **Supported locales**: English (en, default) + Traditional Chinese (zh-TW)
+- **Translation files**: `apps/mobile/i18n/en.json`, `apps/mobile/i18n/zh-TW.json`
 
 ## Taste Distance Algorithm
 
@@ -253,7 +261,7 @@ Badge Categories (6):
 ## Testing
 
 ```bash
-cd apps/api && npx jest --verbose
+cd apps/api && npx jest --verbose    # 246 tests
 ```
 
 | Test Suite | Coverage |
