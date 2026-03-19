@@ -3,6 +3,7 @@ import { supabaseAdmin } from '../services/supabase';
 import { searchTracks as spotifySearch, ensureTrackCached } from '../services/spotify';
 import { curatorFallback } from '../services/matching';
 import { getTodayStartUTC8 } from '../utils/date';
+import { trackEvent } from '../utils/analytics';
 
 const router = Router();
 
@@ -82,6 +83,8 @@ router.post('/submit', async (req: Request, res: Response) => {
   } catch {
     // Bonus card is best-effort; don't fail the recommendation
   }
+
+  trackEvent(userId, 'recommend_submitted', { bonus_card_issued: !!bonusCard });
 
   res.json({ ok: true, bonus_card: bonusCard });
 });

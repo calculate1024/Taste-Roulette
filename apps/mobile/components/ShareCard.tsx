@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 interface ShareCardProps {
   track: { title: string; artist: string; coverUrl: string };
   tasteDistance: number;
+  referralCode?: string;
   onShare: (uri: string) => void;
   onClose: () => void;
 }
@@ -21,6 +22,7 @@ interface ShareCardProps {
 export default function ShareCard({
   track,
   tasteDistance,
+  referralCode,
   onShare,
   onClose,
 }: ShareCardProps) {
@@ -88,13 +90,18 @@ export default function ShareCard({
                   </Text>
                 </View>
 
-                {/* Bottom branding */}
+                {/* Bottom branding + referral */}
                 <View style={styles.branding}>
                   <Text style={styles.brandingIcon}>🎲</Text>
                   <Text style={styles.brandingText}>Taste Roulette</Text>
                   <Text style={styles.brandingTagline}>
                     {t('shareCard.tagline')}
                   </Text>
+                  {referralCode ? (
+                    <Text style={styles.referralText}>
+                      Join me: taste-roulette.vercel.app/invite/{referralCode}
+                    </Text>
+                  ) : null}
                 </View>
               </View>
             </View>
@@ -238,6 +245,12 @@ const styles = StyleSheet.create({
   brandingTagline: {
     fontSize: 12,
     color: '#8E8E93',
+  },
+  referralText: {
+    fontSize: 11,
+    color: '#6C5CE7',
+    marginTop: 8,
+    textAlign: 'center',
   },
 
   // Actions (outside captured area)

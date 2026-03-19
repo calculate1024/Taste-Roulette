@@ -18,6 +18,7 @@ import curatorRouter from './routes/curator';
 import shareRouter from './routes/share';
 import twinsRouter from './routes/twins';
 import healthRouter from './routes/health';
+import referralRouter from './routes/referral';
 import landingRouter from './routes/landing';
 import wellKnownRouter from './routes/well-known';
 
@@ -64,10 +65,27 @@ app.use('/api/profile', authMiddleware, profileRouter);
 app.use('/api/spotify', spotifyAuthRouter); // has mix of public/protected
 app.use('/api/curator', authMiddleware, curatorRouter);
 app.use('/api/twins', authMiddleware, twinsRouter);
+app.use('/api/referral', authMiddleware, referralRouter);
 
 // Public routes (no auth middleware)
 app.use('/api/health', healthRouter);
 app.use('/api/share', shareRouter);
+
+// Invite deep link — redirects to app or store
+app.get('/invite/:code', (req, res) => {
+  const code = req.params.code.replace(/[^A-Za-z0-9]/g, '');
+  res.send(`<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8" />
+  <meta property="og:title" content="Join me on Taste Roulette" />
+  <meta property="og:description" content="Discover music outside your comfort zone" />
+  <meta name="twitter:card" content="summary" />
+  <meta http-equiv="refresh" content="0;url=taste-roulette://referral/${code}" />
+</head><body>
+  <p>Opening Taste Roulette...</p>
+  <p>Don't have the app? <a href="https://taste-roulette.vercel.app/">Download here</a></p>
+</body></html>`);
+});
 
 // Admin routes (API key, no auth middleware)
 app.use('/api/admin', matchingRouter);

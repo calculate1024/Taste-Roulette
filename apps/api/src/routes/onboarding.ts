@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { supabaseAdmin } from '../services/supabase';
 import { computeTasteVector, curatorFallback } from '../services/matching';
 import { refreshAccessToken, getUserTopTracks, ensureTrackCached } from '../services/spotify';
+import { trackEvent } from '../utils/analytics';
 
 const router = Router();
 
@@ -172,6 +173,11 @@ router.post('/complete', async (req: Request, res: Response) => {
       firstCard = card.id;
     }
   }
+
+  trackEvent(userId, 'onboarding_completed', {
+    taste_vector_dims: tasteVector.length,
+    first_card_issued: !!firstCard,
+  });
 
   res.json({ ok: true, taste_vector_dims: tasteVector.length, first_card_id: firstCard });
 });

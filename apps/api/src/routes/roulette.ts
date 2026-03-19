@@ -3,6 +3,7 @@ import { supabaseAdmin } from '../services/supabase';
 import { updateStreak } from '../services/streak';
 import { updateTasteVectorFromFeedback } from '../services/matching';
 import { sendReactionEcho } from '../services/notifications';
+import { trackEvent } from '../utils/analytics';
 import { getTasteLabel } from '../utils/genres';
 import { getTodayStartUTC8 } from '../utils/date';
 
@@ -84,6 +85,8 @@ router.post('/:cardId/open', async (req: Request, res: Response) => {
 
   // Update streak count after marking card as opened
   const streakCount = await updateStreak(userId);
+
+  trackEvent(userId, 'card_opened', { card_id: cardId, streak_count: streakCount });
 
   res.json({ ok: true, streak_count: streakCount });
 });
@@ -186,6 +189,12 @@ router.post('/:cardId/feedback', async (req: Request, res: Response) => {
       }
     })();
   }
+
+  trackEvent(userId, 'feedback_given', {
+    card_id: cardId,
+    reaction,
+    taste_distance: cardData?.taste_distance,
+  });
 
   res.json({ ok: true, card_id: cardId, insight: insightPayload });
 });

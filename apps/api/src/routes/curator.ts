@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { supabaseAdmin } from '../services/supabase';
 import { ensureTrackCached } from '../services/spotify';
-import crypto from 'crypto';
+import { generateCode } from '../utils/code';
 
 const router = Router();
 
@@ -267,15 +267,6 @@ router.get('/recommendations', requireCurator, async (req: Request, res: Respons
   res.json({ recommendations: enriched });
 });
 
-/** Generate a random alphanumeric code of given length (uppercase). */
-function generateCode(length: number): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclude ambiguous chars (0, O, 1, I)
-  const bytes = crypto.randomBytes(length);
-  let code = '';
-  for (let i = 0; i < length; i++) {
-    code += chars[bytes[i] % chars.length];
-  }
-  return code;
-}
+// generateCode moved to ../utils/code.ts
 
 export default router;
