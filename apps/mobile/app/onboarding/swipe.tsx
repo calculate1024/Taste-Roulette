@@ -8,8 +8,8 @@ import {
   Alert,
   ActivityIndicator,
   useWindowDimensions,
-  Linking,
 } from 'react-native';
+import { WebView } from 'react-native-webview';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -58,6 +58,7 @@ export default function OnboardingSwipeScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showEarlyExit, setShowEarlyExit] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [playing, setPlaying] = useState(false);
   const reactions = useRef<Reaction[]>([]);
   const addResponse = useAppStore((s) => s.addResponse);
   const completeOnboarding = useAppStore((s) => s.completeOnboarding);
@@ -230,6 +231,7 @@ export default function OnboardingSwipeScreen() {
         totalCards,
       });
 
+      setPlaying(false); // Reset player on card change
       if (isLastCard) {
         finishOnboarding();
       } else if (shouldOfferEarlyExit(reactions.current)) {
@@ -386,16 +388,30 @@ export default function OnboardingSwipeScreen() {
                   <Text style={styles.trackGenres}>
                     {track.genres.join(' · ')}
                   </Text>
-                  <Pressable
-                    style={styles.previewButton}
-                    onPress={() => {
-                      trackEvent('onboarding_preview_pressed', { trackId: track.id });
-                      Linking.openURL(track.spotifyUrl);
-                    }}
-                  >
-                    <Text style={styles.previewButtonText}>▶ Preview</Text>
-                  </Pressable>
+                  {!playing && (
+                    <Pressable
+                      style={styles.previewButton}
+                      onPress={() => {
+                        trackEvent('onboarding_preview_pressed', { trackId: track.id });
+                        setPlaying(true);
+                      }}
+                    >
+                      <Text style={styles.previewButtonText}>▶ Listen</Text>
+                    </Pressable>
+                  )}
                 </View>
+                {playing && (
+                  <View style={styles.embedContainer}>
+                    <WebView
+                      source={{ uri: `https://open.spotify.com/embed/track/${track.id}?utm_source=generator&theme=0` }}
+                      style={styles.embedPlayer}
+                      scrollEnabled={false}
+                      nestedScrollEnabled={false}
+                      allowsInlineMediaPlayback={true}
+                      mediaPlaybackRequiresUserAction={false}
+                    />
+                  </View>
+                )}
               </View>
             </Animated.View>
           </GestureDetector>
@@ -529,6 +545,16 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontSize: 13,
     fontWeight: '600',
+  },
+  embedContainer: {
+    marginTop: spacing.sm,
+    borderRadius: radius.md,
+    overflow: 'hidden',
+    height: 80,
+  },
+  embedPlayer: {
+    height: 80,
+    backgroundColor: 'transparent',
   },
   hints: {
     flexDirection: 'row',
