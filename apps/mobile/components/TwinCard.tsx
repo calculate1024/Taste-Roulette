@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 interface TwinCardProps {
   label: string;
@@ -33,6 +34,7 @@ const GENRE_DISPLAY: Record<string, string> = {
 };
 
 export default function TwinCard({ label, distance, type, dominantGenres }: TwinCardProps) {
+  const { t } = useTranslation();
   const isTwin = type === 'twin';
   const accentColor = isTwin ? '#00B894' : '#6C5CE7';
 
@@ -41,7 +43,7 @@ export default function TwinCard({ label, distance, type, dominantGenres }: Twin
     ? Math.round((1 - distance) * 100)
     : Math.round(distance * 100);
 
-  const percentLabel = isTwin ? '\u54C1\u5473\u76F8\u4F3C\u5EA6' : '\u54C1\u5473\u4E92\u88DC\u5EA6';
+  const percentLabel = isTwin ? t('twins.tasteSimilarity') : t('twins.tasteComplementarity');
 
   return (
     <View style={[styles.card, { borderColor: accentColor }]}>

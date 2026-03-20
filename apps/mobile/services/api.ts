@@ -78,6 +78,19 @@ const isSupabaseConfigured = (): boolean => {
 };
 
 /**
+ * Check API response for session expiration (401/403).
+ * If expired, sign out and let auth listener redirect to login.
+ */
+async function handleSessionExpiration(res: Response): Promise<boolean> {
+  if (res.status === 401 || res.status === 403) {
+    console.warn('Session expired, signing out');
+    await supabase.auth.signOut();
+    return true;
+  }
+  return false;
+}
+
+/**
  * Get today's roulette card for the user.
  * Falls back to mock data if Supabase is not configured.
  */
@@ -178,6 +191,7 @@ export async function submitFeedback(
       body: JSON.stringify({ reaction, comment: comment || null }),
     });
 
+    if (await handleSessionExpiration(res)) return null;
     if (!res.ok) {
       console.warn('Feedback submission failed:', res.status);
       return null;
@@ -229,6 +243,7 @@ export async function searchTracks(query: string): Promise<Track[]> {
       }
     );
 
+    if (await handleSessionExpiration(res)) return [];
     if (!res.ok) return [];
 
     const json = await res.json();
@@ -273,6 +288,7 @@ export async function submitRecommendation(
     body: JSON.stringify({ track_id: trackId, reason }),
   });
 
+  if (await handleSessionExpiration(response)) return { ok: false };
   if (!response.ok) {
     throw new Error('Failed to submit recommendation');
   }

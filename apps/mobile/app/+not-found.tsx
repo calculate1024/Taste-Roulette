@@ -26,7 +26,7 @@ export default function NotFoundScreen() {
       <View style={styles.content}>
         <Text style={styles.emoji}>🎵</Text>
         <Text style={styles.title}>Page not found</Text>
-        <Pressable style={styles.button} onPress={() => router.replace('/')}>
+        <Pressable style={styles.button} onPress={() => router.replace('/')} accessibilityLabel="Go to home screen">
           <Text style={styles.buttonText}>Go home</Text>
         </Pressable>
       </View>

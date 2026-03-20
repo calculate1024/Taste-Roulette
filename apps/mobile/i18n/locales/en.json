@@ -73,7 +73,8 @@
     "couldNotLoadTracks": "Could not load {{source}} tracks. Using default selection.",
     "loadingTracks": "Loading tracks...",
     "couldNotLoadTracksError": "Could not load tracks.",
-    "continueAnyway": "Continue anyway"
+    "continueAnyway": "Continue anyway",
+    "spotifyAuthFailed": "Could not connect to Spotify. You can try again later or continue without it."
   },
   "recommend": {
     "recommendASong": "Recommend a Song",
@@ -103,7 +104,9 @@
     "mostLikeYou": "Most Like You",
     "mostSimilarTaste": "Users with the most similar taste",
     "mostComplementary": "Most Complementary",
-    "distantButSurprising": "Different taste, not repulsive — the most surprising matches"
+    "distantButSurprising": "Different taste, not repulsive — the most surprising matches",
+    "tasteSimilarity": "Taste Similarity",
+    "tasteComplementarity": "Taste Complementarity"
   },
   "spotifyConnect": {
     "connectSpotify": "Connect Spotify",

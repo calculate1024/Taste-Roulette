@@ -73,7 +73,8 @@
     "couldNotLoadTracks": "無法載入 {{source}} 曲目，使用預設選曲。",
     "loadingTracks": "正在載入曲目...",
     "couldNotLoadTracksError": "無法載入曲目。",
-    "continueAnyway": "繼續"
+    "continueAnyway": "繼續",
+    "spotifyAuthFailed": "無法連結 Spotify。你可以稍後再試，或直接跳過繼續。"
   },
   "recommend": {
     "recommendASong": "推薦一首歌",
@@ -103,7 +104,9 @@
     "mostLikeYou": "最像你的人",
     "mostSimilarTaste": "品味最相近的用戶",
     "mostComplementary": "最互補的人",
-    "distantButSurprising": "品味有距離但不會排斥，最有驚喜感"
+    "distantButSurprising": "品味有距離但不會排斥，最有驚喜感",
+    "tasteSimilarity": "品味相似度",
+    "tasteComplementarity": "品味互補度"
   },
   "spotifyConnect": {
     "connectSpotify": "連結 Spotify",

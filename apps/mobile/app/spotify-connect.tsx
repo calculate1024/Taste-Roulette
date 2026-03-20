@@ -7,6 +7,7 @@ import {
   Pressable,
   ActivityIndicator,
   Linking,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -40,6 +41,10 @@ export default function SpotifyConnectScreen() {
         router.replace('/(tabs)/profile');
       } else if (event.url.includes('spotify=error')) {
         setLoading(false);
+        Alert.alert(
+          t('common.error'),
+          t('onboarding.spotifyAuthFailed'),
+        );
       }
     };
 
