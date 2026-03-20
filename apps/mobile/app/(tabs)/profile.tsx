@@ -7,13 +7,14 @@ import {
   Pressable,
   ActivityIndicator,
   Alert,
+  Share,
 } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
 import { useAppStore } from '../../store/appStore';
 import { supabase, getAuthHeaders } from '../../services/supabase';
-import { getProfile, type ProfileStats } from '../../services/api';
+import { getProfile, generateInviteCode, type ProfileStats } from '../../services/api';
 import CountingNumber from '../../components/CountingNumber';
 import { useAnalytics, Events } from '../../hooks/useAnalytics';
 import { colors, spacing, radius, typo, layout, shadow } from '../../constants/theme';
@@ -29,6 +30,8 @@ export default function ProfileScreen() {
   const [spotifyConnected, setSpotifyConnected] = useState(false);
   const [spotifyName, setSpotifyName] = useState<string | null>(null);
   const [disconnecting, setDisconnecting] = useState(false);
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
+  const [inviteLoading, setInviteLoading] = useState(false);
   const { track: trackEvent } = useAnalytics();
 
   const userId = session?.user?.id;
@@ -136,6 +139,32 @@ export default function ProfileScreen() {
     );
   };
 
+  const handleGenerateInvite = async () => {
+    setInviteLoading(true);
+    try {
+      const result = await generateInviteCode();
+      if (result) {
+        setInviteCode(result.code);
+      }
+    } catch (err) {
+      console.error('Failed to generate invite code:', err);
+      Alert.alert(t('common.error'), t('profile.inviteGenerateFailed'));
+    } finally {
+      setInviteLoading(false);
+    }
+  };
+
+  const handleShareInvite = async () => {
+    if (!inviteCode) return;
+    try {
+      await Share.share({
+        message: t('profile.inviteShareMessage', { code: inviteCode }),
+      });
+    } catch (err) {
+      console.error('Share failed:', err);
+    }
+  };
+
   const statItems = [
     { label: t('profile.cardsReceived'), value: stats?.totalCards ?? 0 },
     { label: t('profile.surprises'), value: stats?.surprisedCount ?? 0 },
@@ -218,6 +247,32 @@ export default function ProfileScreen() {
               onPress={handleConnectSpotify}
             >
               <Text style={styles.spotifyConnectText}>{t('profile.connectSpotifyAccount')}</Text>
+            </Pressable>
+          )}
+        </View>
+
+        {/* Invite Friends section */}
+        <View style={styles.inviteSection}>
+          <Text style={styles.inviteSectionTitle}>{t('profile.inviteFriends')}</Text>
+          {inviteCode ? (
+            <View style={styles.inviteCodeContainer}>
+              <Text style={styles.inviteCodeLabel}>{t('profile.yourInviteCode')}</Text>
+              <Text style={styles.inviteCode}>{inviteCode}</Text>
+              <Pressable style={styles.shareButton} onPress={handleShareInvite}>
+                <Text style={styles.shareButtonText}>{t('profile.shareInvite')}</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <Pressable
+              style={styles.inviteButton}
+              onPress={handleGenerateInvite}
+              disabled={inviteLoading}
+            >
+              {inviteLoading ? (
+                <ActivityIndicator color={colors.textPrimary} size="small" />
+              ) : (
+                <Text style={styles.inviteButtonText}>{t('profile.inviteAFriend')}</Text>
+              )}
             </Pressable>
           )}
         </View>
@@ -380,6 +435,60 @@ const styles = StyleSheet.create({
   disconnectText: {
     color: colors.error,
     fontSize: 13,
+  },
+  // Invite section
+  inviteSection: {
+    marginBottom: spacing.xxl,
+  },
+  inviteSectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+  },
+  inviteButton: {
+    backgroundColor: colors.accent,
+    paddingVertical: 14,
+    paddingHorizontal: spacing.xl,
+    borderRadius: spacing.xl,
+    alignItems: 'center',
+  },
+  inviteButtonText: {
+    color: colors.textPrimary,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  inviteCodeContainer: {
+    backgroundColor: colors.bgElevated,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadow.soft,
+  },
+  inviteCodeLabel: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
+  },
+  inviteCode: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.accent,
+    letterSpacing: 2,
+    marginBottom: spacing.lg,
+  },
+  shareButton: {
+    backgroundColor: colors.accent,
+    paddingVertical: 10,
+    paddingHorizontal: spacing.xxl,
+    borderRadius: spacing.xl,
+  },
+  shareButtonText: {
+    color: colors.textPrimary,
+    fontSize: 14,
+    fontWeight: '600',
   },
   resetButton: {
     alignSelf: 'center',

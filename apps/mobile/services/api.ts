@@ -513,6 +513,36 @@ export async function getYesterdayEcho(): Promise<YesterdayEcho | null> {
 }
 
 /**
+ * Generate an invite code for the current user.
+ * Returns the code and referral URL.
+ */
+export async function generateInviteCode(): Promise<{ code: string; referral_url: string } | null> {
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  if (!token) return null;
+
+  try {
+    const res = await fetch(`${apiUrl}/api/invite/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (await handleSessionExpiration(res)) return null;
+    if (!res.ok) return null;
+
+    return res.json();
+  } catch (err) {
+    console.error('Failed to generate invite code:', err);
+    return null;
+  }
+}
+
+/**
  * Profile stats shape returned by getProfile.
  */
 export interface ProfileStats {

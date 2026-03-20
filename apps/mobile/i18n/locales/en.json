@@ -46,7 +46,13 @@
     "deleteAccount": "Delete Account",
     "deleteAccountConfirm": "This will permanently delete your account and all data. This action cannot be undone.",
     "deleteAccountAction": "Delete",
-    "deleteAccountFailed": "Failed to delete account. Please try again."
+    "deleteAccountFailed": "Failed to delete account. Please try again.",
+    "inviteFriends": "Invite Friends",
+    "inviteAFriend": "Invite a Friend",
+    "yourInviteCode": "Your invite code",
+    "shareInvite": "Share",
+    "inviteShareMessage": "Join me on Taste Roulette — an anti-algorithm music app! Use my invite code: {{code}}. Download: https://taste-roulette.vercel.app",
+    "inviteGenerateFailed": "Failed to generate invite code. Please try again."
   },
   "onboarding": {
     "letsGetToKnowYou": "Let's get to know you",
