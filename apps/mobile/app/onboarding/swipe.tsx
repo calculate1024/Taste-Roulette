@@ -32,7 +32,7 @@ import { colors, spacing, radius, typo, layout, shadow } from '../../constants/t
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
 const MIN_CARDS_BEFORE_EARLY_EXIT = 5;
-const CONSECUTIVE_SAME_FOR_EXIT = 3;
+const CONSECUTIVE_SAME_FOR_EXIT = 5;
 
 type Reaction = 'love' | 'okay' | 'not_for_me';
 

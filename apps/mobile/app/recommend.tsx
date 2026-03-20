@@ -111,7 +111,7 @@ export default function RecommendScreen() {
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
     if (submitted) {
-      timeoutId = setTimeout(() => router.back(), 2000);
+      timeoutId = setTimeout(() => router.back(), 5000);
     }
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
@@ -133,6 +133,12 @@ export default function RecommendScreen() {
               {t('recommend.gotBonusCard')}
             </Text>
           )}
+          <Pressable
+            style={styles.backToHomeButton}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.backToHomeText}>{t('recommend.backToHome')}</Text>
+          </Pressable>
         </Animated.View>
       </SafeAreaView>
     );
@@ -510,5 +516,19 @@ const styles = StyleSheet.create({
     color: colors.spotify,
     textAlign: 'center',
     marginTop: spacing.lg,
+  },
+  backToHomeButton: {
+    marginTop: spacing.xl,
+    backgroundColor: colors.bgElevated,
+    borderRadius: radius.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xxl,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  backToHomeText: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

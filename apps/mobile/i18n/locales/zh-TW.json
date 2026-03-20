@@ -159,7 +159,9 @@
     "listenOnSpotify": "在 Spotify 中聆聽",
     "noPreview": "無法預覽",
     "giveFeedback": "給個回饋",
-    "someMusicLover": "某位音樂愛好者"
+    "someMusicLover": "某位音樂愛好者",
+    "stepCounter": "{{current}}/{{total}}",
+    "distanceExplanation": "0% = 品味相同，100% = 完全相反"
   },
   "shareCard": {
     "distanceMessage": "有人推薦了一首跟我品味距離 {{percent}}% 的歌",

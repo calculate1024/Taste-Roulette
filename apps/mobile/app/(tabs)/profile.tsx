@@ -105,6 +105,35 @@ export default function ProfileScreen() {
     router.replace('/login');
   };
 
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      t('profile.deleteAccount'),
+      t('profile.deleteAccountConfirm'),
+      [
+        { text: t('profile.cancel'), style: 'cancel' },
+        {
+          text: t('profile.deleteAccountAction'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const headers = await getAuthHeaders();
+              await fetch(`${API_BASE}/api/profile/me`, {
+                method: 'DELETE',
+                headers,
+              });
+              await supabase.auth.signOut();
+              resetOnboarding();
+              router.replace('/login');
+            } catch (err) {
+              console.error('Failed to delete account:', err);
+              Alert.alert(t('common.error'), t('profile.deleteAccountFailed'));
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const statItems = [
     { label: t('profile.cardsReceived'), value: stats?.totalCards ?? 0 },
     { label: t('profile.surprises'), value: stats?.surprisedCount ?? 0 },
@@ -191,12 +220,18 @@ export default function ProfileScreen() {
           )}
         </View>
 
-        <Pressable style={styles.resetButton} onPress={resetOnboarding}>
-          <Text style={styles.resetText}>{t('profile.resetOnboarding')}</Text>
-        </Pressable>
+        {__DEV__ && (
+          <Pressable style={styles.resetButton} onPress={resetOnboarding}>
+            <Text style={styles.resetText}>{t('profile.resetOnboarding')}</Text>
+          </Pressable>
+        )}
 
         <Pressable style={styles.signOutButton} onPress={handleSignOut}>
           <Text style={styles.signOutText}>{t('profile.signOut')}</Text>
+        </Pressable>
+
+        <Pressable style={styles.deleteAccountButton} onPress={handleDeleteAccount}>
+          <Text style={styles.deleteAccountText}>{t('profile.deleteAccount')}</Text>
         </Pressable>
       </Animated.View>
     </SafeAreaView>
@@ -365,5 +400,19 @@ const styles = StyleSheet.create({
   signOutText: {
     color: colors.error,
     fontSize: 14,
+  },
+  deleteAccountButton: {
+    alignSelf: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    marginTop: spacing.lg,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.error,
+  },
+  deleteAccountText: {
+    color: colors.error,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

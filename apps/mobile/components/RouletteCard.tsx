@@ -147,9 +147,9 @@ export default function RouletteCard({ card, onFeedback }: RouletteCardProps) {
   if (!card) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyIcon}>🕐</Text>
-        <Text style={styles.emptyTitle}>{t('rouletteCard.noCardToday')}</Text>
-        <Text style={styles.emptySubtitle}>{t('rouletteCard.comeBackTomorrow')}</Text>
+        <Text style={styles.emptyIcon}>🎵</Text>
+        <Text style={styles.emptyTitle}>{t('rouletteCard.nextSurpriseTomorrow')}</Text>
+        <Text style={styles.emptySubtitle}>{t('rouletteCard.pullToRefresh')}</Text>
       </View>
     );
   }
@@ -179,6 +179,13 @@ export default function RouletteCard({ card, onFeedback }: RouletteCardProps) {
       <Animated.View style={[styles.card, { width: CARD_WIDTH }, frontStyle]}>
         <Pressable onPress={handleTap} style={styles.cardPressable}>
 
+          {/* Step counter (steps 1-3) */}
+          {step >= 1 && step <= 3 && (
+            <Text style={styles.stepCounter}>
+              {t('rouletteCard.stepCounter', { current: step, total: 4 })}
+            </Text>
+          )}
+
           {/* === STEP 1: Recommender identity + adventure level === */}
           {step >= 1 && step < 2 && (
             <Animated.View entering={FadeIn.duration(500)} style={styles.identityContainer}>
@@ -201,6 +208,7 @@ export default function RouletteCard({ card, onFeedback }: RouletteCardProps) {
                     </Text>
                   </View>
                   <Text style={styles.distanceText}>{t('rouletteCard.tasteDistance', { percent: tastePercent })}</Text>
+                  <Text style={styles.distanceExplanation}>{t('rouletteCard.distanceExplanation')}</Text>
                   <Text style={[styles.adventureDesc, { color: adventure.color }]}>
                     {t(adventure.descriptionKey)}
                   </Text>
@@ -340,6 +348,16 @@ const styles = StyleSheet.create({
   cardBackEmoji: { fontSize: 64, marginBottom: spacing.lg },
   cardBackText: { fontSize: 24, fontWeight: '700', color: colors.accent },
 
+  // Step counter
+  stepCounter: {
+    position: 'absolute',
+    top: spacing.md,
+    right: spacing.md,
+    fontSize: 12,
+    color: colors.textSecondary,
+    zIndex: 10,
+  },
+
   // Card front
   card: {
     backgroundColor: colors.bgElevated,
@@ -393,6 +411,12 @@ const styles = StyleSheet.create({
   distanceText: {
     fontSize: 14,
     color: colors.textSecondary,
+    marginBottom: spacing.xs,
+  },
+  distanceExplanation: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    fontStyle: 'italic',
     marginBottom: spacing.xs,
   },
   adventureDesc: {

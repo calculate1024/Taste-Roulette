@@ -23,7 +23,25 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState(false);
   const { track, identify } = useAnalytics();
+
+  async function handleForgotPassword() {
+    if (!email) {
+      Alert.alert(t('common.error'), t('login.enterEmailFirst'));
+      return;
+    }
+    setResettingPassword(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) throw error;
+      Alert.alert(t('login.resetPasswordTitle'), t('login.resetPasswordSent'));
+    } catch (err: any) {
+      Alert.alert(t('common.error'), err.message);
+    } finally {
+      setResettingPassword(false);
+    }
+  }
 
   async function handleAuth() {
     if (!email || !password) {
@@ -69,6 +87,7 @@ export default function LoginScreen() {
           <Text style={styles.emoji}>🎲</Text>
           <Text style={styles.title}>{t('login.title')}</Text>
           <Text style={styles.subtitle}>{t('login.subtitle')}</Text>
+          <Text style={styles.description}>{t('login.appDescription')}</Text>
 
           <View style={styles.form}>
             <TextInput
@@ -88,6 +107,13 @@ export default function LoginScreen() {
               onChangeText={setPassword}
               secureTextEntry
             />
+            {!isSignUp && (
+              <Pressable onPress={handleForgotPassword} disabled={resettingPassword}>
+                <Text style={styles.forgotPasswordText}>
+                  {resettingPassword ? '...' : t('login.forgotPassword')}
+                </Text>
+              </Pressable>
+            )}
             <Pressable
               style={[styles.button, loading && styles.buttonDisabled]}
               onPress={handleAuth}
@@ -138,7 +164,14 @@ const styles = StyleSheet.create({
     ...typo.body,
     color: colors.textSecondary,
     textAlign: 'center',
+    marginBottom: spacing.md,
+  },
+  description: {
+    fontSize: 13,
+    color: colors.textHint,
+    textAlign: 'center',
     marginBottom: spacing.xxxl,
+    lineHeight: 18,
   },
   form: {
     gap: spacing.md,
@@ -168,6 +201,11 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontSize: 16,
     fontWeight: '700',
+  },
+  forgotPasswordText: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    textAlign: 'right',
   },
   toggleText: {
     color: colors.accent,

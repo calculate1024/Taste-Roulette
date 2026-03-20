@@ -26,10 +26,10 @@ interface FeedbackSheetProps {
   onSharePress?: () => void;
 }
 
-const REACTIONS: { key: FeedbackReaction; emoji: string; labelKey: string; color: string }[] = [
-  { key: 'surprised', emoji: '🤯', labelKey: 'feedback.surprised', color: colors.accent },
-  { key: 'okay', emoji: '😐', labelKey: 'feedback.okay', color: colors.textSecondary },
-  { key: 'not_for_me', emoji: '🙅', labelKey: 'feedback.notForMe', color: '#3A3A4E' },
+const REACTIONS: { key: FeedbackReaction; emoji: string; labelKey: string; descKey: string; color: string }[] = [
+  { key: 'surprised', emoji: '🤯', labelKey: 'feedback.surprised', descKey: 'feedback.surprisedDesc', color: colors.accent },
+  { key: 'okay', emoji: '😐', labelKey: 'feedback.okay', descKey: 'feedback.okayDesc', color: colors.textSecondary },
+  { key: 'not_for_me', emoji: '🙅', labelKey: 'feedback.notForMe', descKey: 'feedback.notForMeDesc', color: '#3A3A4E' },
 ];
 
 export default function FeedbackSheet({
@@ -240,6 +240,14 @@ export default function FeedbackSheet({
                     >
                       {t(r.labelKey)}
                     </Text>
+                    <Text
+                      style={[
+                        styles.reactionDesc,
+                        selectedReaction === r.key && styles.reactionDescActive,
+                      ]}
+                    >
+                      {t(r.descKey)}
+                    </Text>
                   </Pressable>
                 ))}
               </View>
@@ -339,6 +347,8 @@ const styles = StyleSheet.create({
   reactionEmoji: { fontSize: 36, marginBottom: spacing.sm },
   reactionLabel: { fontSize: 14, color: colors.textSecondary, fontWeight: '600' },
   reactionLabelActive: { color: colors.textPrimary },
+  reactionDesc: { fontSize: 11, color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xs, paddingHorizontal: 2 },
+  reactionDescActive: { color: colors.textPrimary },
 
   // Comment
   commentInput: {

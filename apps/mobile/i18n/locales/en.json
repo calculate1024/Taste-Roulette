@@ -41,7 +41,11 @@
     "cancel": "Cancel",
     "confirm": "Confirm",
     "resetOnboarding": "Reset Onboarding (Dev)",
-    "signOut": "Sign Out"
+    "signOut": "Sign Out",
+    "deleteAccount": "Delete Account",
+    "deleteAccountConfirm": "This will permanently delete your account and all data. This action cannot be undone.",
+    "deleteAccountAction": "Delete",
+    "deleteAccountFailed": "Failed to delete account. Please try again."
   },
   "onboarding": {
     "letsGetToKnowYou": "Let's get to know you",
@@ -113,8 +117,11 @@
   },
   "feedback": {
     "surprised": "Surprised",
+    "surprisedDesc": "Genuinely delighted — didn't expect to enjoy this!",
     "okay": "Okay",
+    "okayDesc": "Not my usual, but I can appreciate it",
     "notForMe": "Not for me",
+    "notForMeDesc": "Too far from my comfort zone right now",
     "howDoYouFeel": "What do you think of this song?",
     "wantToSaySomething": "Want to say something?",
     "submitFeedback": "Submit Feedback",
@@ -149,6 +156,8 @@
   "rouletteCard": {
     "noCardToday": "No card today",
     "comeBackTomorrow": "Come back tomorrow!",
+    "nextSurpriseTomorrow": "Your next surprise arrives tomorrow at 8 AM",
+    "pullToRefresh": "Pull down to refresh",
     "unknownTrack": "Unknown Track",
     "unknownArtist": "Unknown Artist",
     "someoneRecommended": "recommended a song for you",
@@ -159,7 +168,9 @@
     "listenOnSpotify": "Listen on Spotify",
     "noPreview": "No preview available",
     "giveFeedback": "Give Feedback",
-    "someMusicLover": "music lover"
+    "someMusicLover": "music lover",
+    "stepCounter": "{{current}}/{{total}}",
+    "distanceExplanation": "0% = same taste, 100% = complete opposite"
   },
   "shareCard": {
     "distanceMessage": "Someone recommended a song {{percent}}% away from my taste",
