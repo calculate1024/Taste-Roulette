@@ -93,7 +93,11 @@
     "noResults": "No results found. Try different keywords.",
     "searchFailed": "Search failed",
     "tryAgainLater": "Please try again later.",
-    "backToHome": "Back to Home"
+    "backToHome": "Back to Home",
+    "myDiscoveries": "My Discoveries",
+    "searchNew": "Search",
+    "noDiscoveriesYet": "No discoveries yet",
+    "openCardsFirst": "Open your daily cards and give feedback — then you can re-recommend your favorites!"
   },
   "twins": {
     "findingTasteTwins": "Finding your taste twins...",

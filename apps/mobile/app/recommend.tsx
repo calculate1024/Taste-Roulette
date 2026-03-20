@@ -23,10 +23,12 @@ import Animated, {
   FadeIn,
 } from 'react-native-reanimated';
 import { useAppStore } from '../store/appStore';
-import { searchTracks, submitRecommendation } from '../services/api';
+import { searchTracks, submitRecommendation, getMyDiscoveries } from '../services/api';
 import { colors, spacing, radius, typo, layout, shadow } from '../constants/theme';
 import { useAnalytics, Events } from '../hooks/useAnalytics';
 import type { Track } from '../../../packages/shared/types';
+
+type TabMode = 'discoveries' | 'search';
 
 export default function RecommendScreen() {
   const { t } = useTranslation();
@@ -46,6 +48,9 @@ export default function RecommendScreen() {
     ? t('recommend.whyWorthListening', { artist: params.contextArtist })
     : t('recommend.tellThemWhy');
 
+  const [tab, setTab] = useState<TabMode>('discoveries');
+  const [discoveries, setDiscoveries] = useState<Track[]>([]);
+  const [loadingDiscoveries, setLoadingDiscoveries] = useState(true);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Track[]>([]);
   const [searching, setSearching] = useState(false);
@@ -55,6 +60,16 @@ export default function RecommendScreen() {
   const [submitted, setSubmitted] = useState(false);
   const [gotBonusCard, setGotBonusCard] = useState(false);
   const { track: trackEvent } = useAnalytics();
+
+  // Load discoveries on mount
+  useEffect(() => {
+    (async () => {
+      setLoadingDiscoveries(true);
+      const tracks = await getMyDiscoveries();
+      setDiscoveries(tracks);
+      setLoadingDiscoveries(false);
+    })();
+  }, []);
 
   // Success animation
   const successScale = useSharedValue(0);
@@ -221,70 +236,134 @@ export default function RecommendScreen() {
           </View>
         )}
 
-        {/* Search bar — hidden when track is selected */}
+        {/* Tab selector + content — hidden when track is selected */}
         {!selectedTrack && (
           <>
-            <View style={styles.searchRow}>
-              <TextInput
-                style={styles.searchInput}
-                placeholder={t('recommend.searchPlaceholder')}
-                placeholderTextColor={colors.textHint}
-                value={query}
-                onChangeText={setQuery}
-                onSubmitEditing={handleSearch}
-                returnKeyType="search"
-                autoFocus
-              />
-              <Pressable style={styles.searchButton} onPress={handleSearch}>
-                <Text style={styles.searchButtonText}>{t('recommend.search')}</Text>
+            {/* Tabs */}
+            <View style={styles.tabRow}>
+              <Pressable
+                style={[styles.tabButton, tab === 'discoveries' && styles.tabButtonActive]}
+                onPress={() => setTab('discoveries')}
+              >
+                <Text style={[styles.tabText, tab === 'discoveries' && styles.tabTextActive]}>
+                  {t('recommend.myDiscoveries')}
+                </Text>
+              </Pressable>
+              <Pressable
+                style={[styles.tabButton, tab === 'search' && styles.tabButtonActive]}
+                onPress={() => setTab('search')}
+              >
+                <Text style={[styles.tabText, tab === 'search' && styles.tabTextActive]}>
+                  {t('recommend.searchNew')}
+                </Text>
               </Pressable>
             </View>
 
-            {/* Search results */}
-            {searching ? (
-              <ActivityIndicator
-                size="large"
-                color={colors.accent}
-                style={styles.loader}
-              />
-            ) : (
-              <FlatList
-                data={results}
-                keyExtractor={(item) => item.spotifyId}
-                contentContainerStyle={styles.resultsList}
-                renderItem={({ item }) => (
-                  <Pressable
-                    style={styles.resultItem}
-                    onPress={() => handleSelect(item)}
-                  >
-                    {item.coverUrl ? (
-                      <Image
-                        source={{ uri: item.coverUrl }}
-                        style={styles.resultCover}
-                      />
-                    ) : (
-                      <View style={[styles.resultCover, styles.resultCoverPlaceholder]}>
-                        <Text>🎵</Text>
+            {/* Discoveries tab */}
+            {tab === 'discoveries' && (
+              loadingDiscoveries ? (
+                <ActivityIndicator size="large" color={colors.accent} style={styles.loader} />
+              ) : (
+                <FlatList
+                  data={discoveries}
+                  keyExtractor={(item) => item.spotifyId}
+                  contentContainerStyle={styles.resultsList}
+                  renderItem={({ item }) => (
+                    <Pressable
+                      style={styles.resultItem}
+                      onPress={() => handleSelect(item)}
+                    >
+                      {item.coverUrl ? (
+                        <Image source={{ uri: item.coverUrl }} style={styles.resultCover} />
+                      ) : (
+                        <View style={[styles.resultCover, styles.resultCoverPlaceholder]}>
+                          <Text>🎵</Text>
+                        </View>
+                      )}
+                      <View style={styles.resultInfo}>
+                        <Text style={styles.resultTitle} numberOfLines={1}>
+                          {item.title}
+                        </Text>
+                        <Text style={styles.resultArtist} numberOfLines={1}>
+                          {item.artist}
+                        </Text>
                       </View>
-                    )}
-                    <View style={styles.resultInfo}>
-                      <Text style={styles.resultTitle} numberOfLines={1}>
-                        {item.title}
+                      {(item as Track & { reaction?: string }).reaction === 'surprised' && (
+                        <Text style={styles.reactionBadge}>🤯</Text>
+                      )}
+                    </Pressable>
+                  )}
+                  ListEmptyComponent={
+                    <View style={styles.emptyContainer}>
+                      <Text style={styles.emptyEmoji}>🎧</Text>
+                      <Text style={styles.emptyText}>
+                        {t('recommend.noDiscoveriesYet')}
                       </Text>
-                      <Text style={styles.resultArtist} numberOfLines={1}>
-                        {item.artist}
+                      <Text style={styles.emptyHint}>
+                        {t('recommend.openCardsFirst')}
                       </Text>
                     </View>
+                  }
+                />
+              )
+            )}
+
+            {/* Search tab */}
+            {tab === 'search' && (
+              <>
+                <View style={styles.searchRow}>
+                  <TextInput
+                    style={styles.searchInput}
+                    placeholder={t('recommend.searchPlaceholder')}
+                    placeholderTextColor={colors.textHint}
+                    value={query}
+                    onChangeText={setQuery}
+                    onSubmitEditing={handleSearch}
+                    returnKeyType="search"
+                    autoFocus
+                  />
+                  <Pressable style={styles.searchButton} onPress={handleSearch}>
+                    <Text style={styles.searchButtonText}>{t('recommend.search')}</Text>
                   </Pressable>
+                </View>
+
+                {searching ? (
+                  <ActivityIndicator size="large" color={colors.accent} style={styles.loader} />
+                ) : (
+                  <FlatList
+                    data={results}
+                    keyExtractor={(item) => item.spotifyId}
+                    contentContainerStyle={styles.resultsList}
+                    renderItem={({ item }) => (
+                      <Pressable
+                        style={styles.resultItem}
+                        onPress={() => handleSelect(item)}
+                      >
+                        {item.coverUrl ? (
+                          <Image source={{ uri: item.coverUrl }} style={styles.resultCover} />
+                        ) : (
+                          <View style={[styles.resultCover, styles.resultCoverPlaceholder]}>
+                            <Text>🎵</Text>
+                          </View>
+                        )}
+                        <View style={styles.resultInfo}>
+                          <Text style={styles.resultTitle} numberOfLines={1}>
+                            {item.title}
+                          </Text>
+                          <Text style={styles.resultArtist} numberOfLines={1}>
+                            {item.artist}
+                          </Text>
+                        </View>
+                      </Pressable>
+                    )}
+                    ListEmptyComponent={
+                      query.trim() && !searching ? (
+                        <Text style={styles.emptyText}>{t('recommend.noResults')}</Text>
+                      ) : null
+                    }
+                  />
                 )}
-                ListEmptyComponent={
-                  query.trim() && !searching ? (
-                    <Text style={styles.emptyText}>
-                      {t('recommend.noResults')}
-                    </Text>
-                  ) : null
-                }
-              />
+              </>
             )}
           </>
         )}
@@ -325,6 +404,57 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 14,
     paddingTop: spacing.xs,
+  },
+
+  // Tabs
+  tabRow: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.xl,
+    marginBottom: spacing.lg,
+    gap: spacing.sm,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.bgElevated,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  tabButtonActive: {
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  tabTextActive: {
+    color: colors.textPrimary,
+  },
+
+  // Reaction badge on discovery items
+  reactionBadge: {
+    fontSize: 18,
+    marginLeft: spacing.sm,
+  },
+
+  // Empty state for discoveries
+  emptyContainer: {
+    alignItems: 'center',
+    paddingTop: spacing.xxl,
+  },
+  emptyEmoji: {
+    fontSize: 48,
+    marginBottom: spacing.lg,
+  },
+  emptyHint: {
+    fontSize: 13,
+    color: colors.textHint,
+    textAlign: 'center',
+    marginTop: spacing.sm,
   },
 
   // Search

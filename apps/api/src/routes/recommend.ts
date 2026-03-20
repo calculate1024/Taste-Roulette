@@ -7,7 +7,7 @@ import { trackEvent } from '../utils/analytics';
 
 const router = Router();
 
-// GET /api/recommend/search?q=query — search Spotify tracks
+// GET /api/recommend/search?q=query — hybrid search: local DB first, Spotify fallback
 router.get('/search', async (req: Request, res: Response) => {
   const { q } = req.query;
 
@@ -17,19 +17,101 @@ router.get('/search', async (req: Request, res: Response) => {
   }
 
   try {
-    const results = await spotifySearch(q, 20);
-    const tracks = results.map((t) => ({
-      spotify_id: t.spotify_id,
-      title: t.title,
-      artist: t.artist,
-      album: t.album,
-      cover_url: t.cover_url,
-      spotify_url: t.spotify_url,
-    }));
+    // 1. Search local DB first (cached tracks — no API limit)
+    const { data: localResults } = await supabaseAdmin
+      .from('tracks')
+      .select('spotify_id, title, artist, album, cover_url, genres')
+      .or(`title.ilike.%${q}%,artist.ilike.%${q}%`)
+      .limit(20);
 
-    res.json({ tracks });
+    if (localResults && localResults.length >= 5) {
+      res.json({ tracks: localResults, source: 'local' });
+      return;
+    }
+
+    // 2. Fallback to Spotify API (may fail for non-whitelisted users in Dev Mode)
+    try {
+      const spotifyResults = await spotifySearch(q, 20);
+      const tracks = spotifyResults.map((t) => ({
+        spotify_id: t.spotify_id,
+        title: t.title,
+        artist: t.artist,
+        album: t.album,
+        cover_url: t.cover_url,
+        spotify_url: t.spotify_url,
+      }));
+
+      // Merge: local results first, then Spotify (deduplicated)
+      const localIds = new Set((localResults || []).map((t) => t.spotify_id));
+      const merged = [
+        ...(localResults || []),
+        ...tracks.filter((t) => !localIds.has(t.spotify_id)),
+      ].slice(0, 20);
+
+      res.json({ tracks: merged, source: 'hybrid' });
+    } catch {
+      // Spotify failed (rate limit / Dev Mode) — return local results only
+      res.json({ tracks: localResults || [], source: 'local' });
+    }
   } catch {
     res.status(500).json({ error: 'Failed to search tracks' });
+  }
+});
+
+// GET /api/recommend/my-discoveries — tracks the user has received and reacted to
+router.get('/my-discoveries', async (req: Request, res: Response) => {
+  const userId = req.userId!;
+
+  try {
+    // Get cards the user opened + gave positive feedback on
+    const { data: cards } = await supabaseAdmin
+      .from('roulette_cards')
+      .select(`
+        track_id,
+        taste_distance,
+        recommender_taste_label,
+        feedbacks!inner(reaction)
+      `)
+      .eq('recipient_id', userId)
+      .in('status', ['feedback_given', 'opened'])
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (!cards || cards.length === 0) {
+      res.json({ tracks: [] });
+      return;
+    }
+
+    // Get track details
+    const trackIds = cards.map((c) => c.track_id);
+    const { data: tracks } = await supabaseAdmin
+      .from('tracks')
+      .select('spotify_id, title, artist, album, cover_url, genres')
+      .in('spotify_id', trackIds);
+
+    // Merge card metadata with track details, prioritize surprised reactions
+    const trackMap = new Map((tracks || []).map((t) => [t.spotify_id, t]));
+    const discoveries = cards
+      .filter((c) => trackMap.has(c.track_id))
+      .map((c) => {
+        const track = trackMap.get(c.track_id)!;
+        const feedback = Array.isArray(c.feedbacks) ? c.feedbacks[0] : c.feedbacks;
+        return {
+          ...track,
+          reaction: feedback?.reaction || 'okay',
+          taste_distance: c.taste_distance,
+          recommender_taste_label: c.recommender_taste_label,
+        };
+      })
+      // Sort: surprised first, then okay
+      .sort((a, b) => {
+        const order = { surprised: 0, okay: 1, not_for_me: 2 };
+        return (order[a.reaction as keyof typeof order] ?? 1) - (order[b.reaction as keyof typeof order] ?? 1);
+      });
+
+    res.json({ tracks: discoveries });
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch discoveries' });
   }
 });
 

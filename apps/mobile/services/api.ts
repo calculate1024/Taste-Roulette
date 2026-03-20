@@ -268,6 +268,44 @@ export async function searchTracks(query: string): Promise<Track[]> {
 }
 
 /**
+ * Fetch tracks the user discovered (received + opened/feedback).
+ * Sorted by reaction: surprised first.
+ */
+export async function getMyDiscoveries(): Promise<Track[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  try {
+    const res = await fetch(`${apiUrl}/api/recommend/my-discoveries`, {
+      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    });
+    if (await handleSessionExpiration(res)) return [];
+    if (!res.ok) return [];
+
+    const json = await res.json();
+    return (json.tracks || []).map((t: Record<string, unknown>) => ({
+      spotifyId: t.spotify_id as string,
+      title: t.title as string,
+      artist: t.artist as string,
+      album: (t.album as string) ?? null,
+      coverUrl: (t.cover_url as string) ?? null,
+      spotifyUrl: null,
+      artistId: null,
+      genres: (t.genres as string[]) ?? [],
+      popularity: null,
+      moodTags: [],
+      updatedAt: new Date().toISOString(),
+      reaction: t.reaction as string,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Submit a recommendation from the user via API (triggers bonus card incentive).
  */
 export async function submitRecommendation(

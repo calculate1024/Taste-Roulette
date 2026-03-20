@@ -41,6 +41,23 @@ pool_targets:
   month2_launch: 1500 # 200 users
   month3_growth: 3000 # 1000 users
 
+# Weekly batch import — run every Wednesday after deep genre gap analysis
+weekly_batch_import: |
+  When pool_targets gap > 200 tracks:
+  1. Run: cd apps/api && npx tsx src/scripts/pool-expand.ts
+     - This adds 300-500 tracks per run from Spotify + MusicBrainz
+  2. If Spotify rate limited, rely on MusicBrainz-only mode
+  3. Report results to CEO agent
+
+# Spotify API strategy (Dev Mode limitations)
+spotify_strategy: |
+  IMPORTANT: Spotify Extension Request requires 250k MAU + registered business.
+  We are permanently in Dev Mode for user-facing features.
+  However, Client Credentials flow (server-to-server) has NO user limit.
+  - Pool expansion: Use Client Credentials (no restriction)
+  - User search: Falls back to local DB search (see recommend route)
+  - Embed playback: No API needed (works for all users)
+
 # Daily heartbeat workflow — executed at 06:00 UTC+8
 daily_workflow: |
   1. CHECK POOL STATUS:

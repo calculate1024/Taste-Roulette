@@ -93,7 +93,11 @@
     "noResults": "找不到結果，試試其他關鍵字",
     "searchFailed": "搜尋失敗",
     "tryAgainLater": "請稍後再試。",
-    "backToHome": "返回首頁"
+    "backToHome": "返回首頁",
+    "myDiscoveries": "我的發現",
+    "searchNew": "搜尋",
+    "noDiscoveriesYet": "還沒有發現",
+    "openCardsFirst": "先開啟每日卡片並給回饋，就可以把喜歡的歌轉推給別人！"
   },
   "twins": {
     "findingTasteTwins": "正在尋找品味雙胞胎...",
