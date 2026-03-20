@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
   coverImage: {
     width: '100%',
     height: COVER_SIZE,
-    backgroundColor: '#2A2A3E',
+    backgroundColor: colors.bgCard,
   },
   coverPlaceholder: {
     justifyContent: 'center',
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
 
   // Spotify button
   openSpotifyButton: {
-    backgroundColor: '#1DB954',
+    backgroundColor: colors.spotify,
     borderRadius: radius.lg,
     paddingVertical: 14,
     flexDirection: 'row',
@@ -512,7 +512,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginRight: spacing.sm,
   },
-  openSpotifyText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  openSpotifyText: { color: colors.textPrimary, fontSize: 15, fontWeight: '700' },
   noPreviewText: {
     ...typo.caption,
     textAlign: 'center',

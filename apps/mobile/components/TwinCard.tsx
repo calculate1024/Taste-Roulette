@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { colors, spacing, radius } from '../constants/theme';
 
 interface TwinCardProps {
   label: string;
@@ -71,32 +72,32 @@ export default function TwinCard({ label, distance, type, dominantGenres }: Twin
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 16,
+    backgroundColor: colors.bgElevated,
+    borderRadius: radius.lg,
     borderWidth: 1,
-    padding: 20,
-    marginBottom: 12,
+    padding: spacing.xl,
+    marginBottom: spacing.md,
   },
   label: {
     fontSize: 22,
     fontWeight: '700',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   distanceText: {
     fontSize: 14,
-    color: '#8E8E93',
-    marginBottom: 12,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
   },
   tagsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: spacing.sm,
   },
   tag: {
     borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
   },
   tagText: {
     fontSize: 12,
