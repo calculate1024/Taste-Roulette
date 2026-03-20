@@ -13,6 +13,7 @@
     "retag": "tsx src/scripts/retag-tracks.ts",
     "seed:simulate": "tsx src/scripts/seed-simulation.ts",
     "sim:analyze": "tsx src/scripts/simulation-analysis.ts",
+    "pool:expand": "tsx src/scripts/pool-expand.ts",
     "test": "jest"
   },
   "keywords": [],

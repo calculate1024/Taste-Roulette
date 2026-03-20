@@ -49,7 +49,7 @@ router.get('/callback', async (req: Request, res: Response) => {
 
   if (authError) {
     // User denied access or an error occurred
-    res.redirect('taste-roulette://spotify-error');
+    res.redirect('taste-roulette://onboarding?spotify=error');
     return;
   }
 
@@ -88,15 +88,15 @@ router.get('/callback', async (req: Request, res: Response) => {
 
     if (updateError) {
       console.error('Failed to update profile with Spotify data:', updateError);
-      res.redirect('taste-roulette://spotify-error');
+      res.redirect('taste-roulette://onboarding?spotify=error');
       return;
     }
 
     // Redirect to app deep link on success
-    res.redirect('taste-roulette://spotify-connected');
+    res.redirect('taste-roulette://onboarding?spotify=connected');
   } catch (err) {
     console.error('Spotify OAuth callback error:', err);
-    res.redirect('taste-roulette://spotify-error');
+    res.redirect('taste-roulette://onboarding?spotify=error');
   }
 });
 

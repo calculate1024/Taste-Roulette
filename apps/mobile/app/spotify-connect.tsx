@@ -25,7 +25,7 @@ export default function SpotifyConnectScreen() {
   // Handle deep link return from Spotify OAuth
   useEffect(() => {
     const handleDeepLink = async (event: { url: string }) => {
-      if (event.url.includes('spotify-connected')) {
+      if (event.url.includes('spotify=connected')) {
         // Trigger Spotify data import to enrich taste vector
         try {
           const headers = await getAuthHeaders();
@@ -38,7 +38,7 @@ export default function SpotifyConnectScreen() {
           console.warn('Spotify import failed:', err);
         }
         router.replace('/(tabs)/profile');
-      } else if (event.url.includes('spotify-error')) {
+      } else if (event.url.includes('spotify=error')) {
         setLoading(false);
       }
     };

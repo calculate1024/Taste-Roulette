@@ -27,7 +27,7 @@ export default function OnboardingGatewayScreen() {
   // Handle deep link return from Spotify OAuth
   useEffect(() => {
     const handleDeepLink = async (event: { url: string }) => {
-      if (event.url.includes('spotify-connected')) {
+      if (event.url.includes('spotify=connected')) {
         // Spotify connected — trigger import then go to swipe with spotify source
         try {
           const headers = await getAuthHeaders();
@@ -42,7 +42,7 @@ export default function OnboardingGatewayScreen() {
         setSpotifyOnboarding(true);
         setLoading(false);
         router.push('/onboarding/swipe?source=spotify');
-      } else if (event.url.includes('spotify-error')) {
+      } else if (event.url.includes('spotify=error')) {
         setLoading(false);
       }
     };
