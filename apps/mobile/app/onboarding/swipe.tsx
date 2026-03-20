@@ -10,7 +10,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -354,7 +354,12 @@ export default function OnboardingSwipeScreen() {
         <Animated.View entering={FadeIn.duration(400)} style={{ flex: 1 }}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>{t('onboarding.whatsYourVibe')}</Text>
+          <View style={styles.headerLeft}>
+            <Pressable onPress={() => router.back()} style={styles.backButton}>
+              <Text style={styles.backButtonText}>←</Text>
+            </Pressable>
+            <Text style={styles.headerTitle}>{t('onboarding.whatsYourVibe')}</Text>
+          </View>
           <Text style={styles.headerSubtitle}>
             {currentIndex + 1} / {totalCards}
           </Text>
@@ -400,22 +405,30 @@ export default function OnboardingSwipeScreen() {
                     </Pressable>
                   )}
                 </View>
-                {playing && (
-                  <View style={styles.embedContainer}>
-                    <WebView
-                      source={{ uri: `https://open.spotify.com/embed/track/${track.id}?utm_source=generator&theme=0` }}
-                      style={styles.embedPlayer}
-                      scrollEnabled={false}
-                      nestedScrollEnabled={false}
-                      allowsInlineMediaPlayback={true}
-                      mediaPlaybackRequiresUserAction={false}
-                    />
-                  </View>
-                )}
               </View>
             </Animated.View>
           </GestureDetector>
         </View>
+
+        {/* Spotify embed player — outside gesture detector to avoid blocking swipes */}
+        {playing && (
+          <View style={styles.embedContainer}>
+            <WebView
+              source={{ uri: `https://open.spotify.com/embed/track/${track.id}?utm_source=generator&theme=0` }}
+              style={styles.embedPlayer}
+              scrollEnabled={false}
+              nestedScrollEnabled={false}
+              allowsInlineMediaPlayback={true}
+              mediaPlaybackRequiresUserAction={false}
+            />
+            <Pressable
+              style={styles.embedClose}
+              onPress={() => setPlaying(false)}
+            >
+              <Text style={styles.embedCloseText}>✕ Close</Text>
+            </Pressable>
+          </View>
+        )}
 
         {/* Swipe hints */}
         <View style={styles.hints}>
@@ -469,6 +482,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.sm,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  backButton: {
+    paddingVertical: spacing.xs,
+    paddingRight: spacing.sm,
+  },
+  backButtonText: {
+    fontSize: 22,
+    color: colors.textSecondary,
   },
   headerTitle: {
     fontSize: 22,
@@ -547,14 +573,26 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   embedContainer: {
+    marginHorizontal: spacing.xl,
     marginTop: spacing.sm,
     borderRadius: radius.md,
     overflow: 'hidden',
     height: 80,
+    flexDirection: 'row',
   },
   embedPlayer: {
+    flex: 1,
     height: 80,
     backgroundColor: 'transparent',
+  },
+  embedClose: {
+    backgroundColor: colors.bgCard,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+  },
+  embedCloseText: {
+    color: colors.textSecondary,
+    fontSize: 12,
   },
   hints: {
     flexDirection: 'row',

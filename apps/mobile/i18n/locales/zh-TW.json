@@ -41,7 +41,11 @@
     "cancel": "取消",
     "confirm": "確定",
     "resetOnboarding": "重置 Onboarding (Dev)",
-    "signOut": "登出"
+    "signOut": "登出",
+    "deleteAccount": "刪除帳號",
+    "deleteAccountConfirm": "這將永久刪除你的帳號和所有資料，此操作無法撤銷。",
+    "deleteAccountAction": "刪除",
+    "deleteAccountFailed": "刪除帳號失敗，請重試。"
   },
   "onboarding": {
     "letsGetToKnowYou": "讓我們認識你",
@@ -87,7 +91,8 @@
     "search": "搜尋",
     "noResults": "找不到結果，試試其他關鍵字",
     "searchFailed": "搜尋失敗",
-    "tryAgainLater": "請稍後再試。"
+    "tryAgainLater": "請稍後再試。",
+    "backToHome": "返回首頁"
   },
   "twins": {
     "findingTasteTwins": "正在尋找品味雙胞胎...",
@@ -113,8 +118,11 @@
   },
   "feedback": {
     "surprised": "驚喜",
+    "surprisedDesc": "真心喜歡——沒想到會喜歡這首！",
     "okay": "普通",
+    "okayDesc": "不是我的菜，但能理解它的好",
     "notForMe": "不適合",
+    "notForMeDesc": "離我的舒適圈太遠了",
     "howDoYouFeel": "你覺得這首歌如何？",
     "wantToSaySomething": "想說點什麼？",
     "submitFeedback": "送出回饋",
@@ -149,6 +157,8 @@
   "rouletteCard": {
     "noCardToday": "今天還沒有卡片",
     "comeBackTomorrow": "明天再來看看吧！",
+    "nextSurpriseTomorrow": "你的下一個驚喜將在明天早上 8 點到來",
+    "pullToRefresh": "下拉刷新",
     "unknownTrack": "未知曲目",
     "unknownArtist": "未知藝人",
     "someoneRecommended": "推薦了你一首歌",
@@ -201,6 +211,11 @@
     "checkEmail": "請查收信箱",
     "confirmationSent": "我們已寄出確認連結，請檢查垃圾郵件資料夾。",
     "alreadyHaveAccount": "已有帳號？登入",
-    "noAccount": "沒有帳號？註冊"
+    "noAccount": "沒有帳號？註冊",
+    "appDescription": "每天收到一首陌生人推薦的歌——為驚喜而生，不為精準而設。",
+    "forgotPassword": "忘記密碼？",
+    "enterEmailFirst": "請先輸入你的電子信箱。",
+    "resetPasswordTitle": "密碼重設",
+    "resetPasswordSent": "重設連結已寄出，請查收信箱。"
   }
 }

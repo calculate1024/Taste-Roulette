@@ -127,7 +127,12 @@ export default function OnboardingRecognizeScreen() {
       <Animated.View entering={FadeIn.duration(400)} style={{ flex: 1 }}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('onboarding.haveYouHeardThese')}</Text>
+        <View style={styles.headerLeft}>
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <Text style={styles.backButtonText}>←</Text>
+          </Pressable>
+          <Text style={styles.headerTitle}>{t('onboarding.haveYouHeardThese')}</Text>
+        </View>
         <Text style={styles.headerSubtitle}>
           {currentIndex + 1} / {tracks.length}
         </Text>
@@ -228,6 +233,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.sm,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  backButton: {
+    paddingVertical: spacing.xs,
+    paddingRight: spacing.sm,
+  },
+  backButtonText: {
+    fontSize: 22,
+    color: colors.textSecondary,
   },
   headerTitle: {
     fontSize: 22,

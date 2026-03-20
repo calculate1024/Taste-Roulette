@@ -14,14 +14,22 @@ export default function TwinsScreen() {
   const router = useRouter();
   const [data, setData] = useState<TasteTwinsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const userId = session?.user?.id;
 
-  useEffect(() => {
+  const fetchTwins = () => {
     if (!userId) return;
+    setLoading(true);
+    setError(null);
     getTasteTwins(userId)
       .then(setData)
+      .catch((err) => setError(err.message || t('common.error')))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchTwins();
   }, [userId]);
 
   if (loading) {
@@ -53,7 +61,15 @@ export default function TwinsScreen() {
           </Pressable>
         </View>
 
-        {isEmpty ? (
+        {error ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyTitle}>{t('common.error')}</Text>
+            <Text style={styles.emptySubtitle}>{error}</Text>
+            <Pressable onPress={fetchTwins} style={styles.retryButton}>
+              <Text style={styles.retryText}>Retry</Text>
+            </Pressable>
+          </View>
+        ) : isEmpty ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyTitle}>{t('twins.notEnoughUsers')}</Text>
             <Text style={styles.emptySubtitle}>
@@ -186,5 +202,18 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
     textAlign: 'center',
     lineHeight: 22,
+  },
+  retryButton: {
+    marginTop: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#6C5CE7',
+  },
+  retryText: {
+    color: '#6C5CE7',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

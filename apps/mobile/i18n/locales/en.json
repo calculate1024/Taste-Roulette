@@ -91,7 +91,8 @@
     "search": "Search",
     "noResults": "No results found. Try different keywords.",
     "searchFailed": "Search failed",
-    "tryAgainLater": "Please try again later."
+    "tryAgainLater": "Please try again later.",
+    "backToHome": "Back to Home"
   },
   "twins": {
     "findingTasteTwins": "Finding your taste twins...",
@@ -210,6 +211,11 @@
     "checkEmail": "Check your email",
     "confirmationSent": "We sent you a confirmation link. Check spam folder too.",
     "alreadyHaveAccount": "Already have an account? Sign In",
-    "noAccount": "Don't have an account? Sign Up"
+    "noAccount": "Don't have an account? Sign Up",
+    "appDescription": "Every day, receive a music recommendation from a stranger — designed to surprise you, not match you.",
+    "forgotPassword": "Forgot password?",
+    "enterEmailFirst": "Please enter your email address first.",
+    "resetPasswordTitle": "Password Reset",
+    "resetPasswordSent": "Check your email for reset link."
   }
 }
