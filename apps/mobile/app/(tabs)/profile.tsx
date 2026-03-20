@@ -98,11 +98,15 @@ export default function ProfileScreen() {
     );
   };
 
-  const handleSignOut = async () => {
-    trackEvent(Events.SIGN_OUT);
+  const signOutAndRedirect = async () => {
     await supabase.auth.signOut();
     resetOnboarding();
     router.replace('/login');
+  };
+
+  const handleSignOut = async () => {
+    trackEvent(Events.SIGN_OUT);
+    await signOutAndRedirect();
   };
 
   const handleDeleteAccount = () => {
@@ -121,9 +125,7 @@ export default function ProfileScreen() {
                 method: 'DELETE',
                 headers,
               });
-              await supabase.auth.signOut();
-              resetOnboarding();
-              router.replace('/login');
+              await signOutAndRedirect();
             } catch (err) {
               console.error('Failed to delete account:', err);
               Alert.alert(t('common.error'), t('profile.deleteAccountFailed'));

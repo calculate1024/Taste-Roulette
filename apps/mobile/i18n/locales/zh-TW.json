@@ -201,7 +201,10 @@
   "common": {
     "error": "錯誤",
     "failedOnboarding": "無法完成 Onboarding，請重試。",
-    "failedSubmitFeedback": "回饋提交失敗，請重試。"
+    "failedSubmitFeedback": "回饋提交失敗，請重試。",
+    "retry": "重試",
+    "close": "✕ 關閉",
+    "listen": "▶ 試聽"
   },
   "login": {
     "title": "Taste Roulette",

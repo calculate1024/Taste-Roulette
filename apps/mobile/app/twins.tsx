@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { useAppStore } from '../store/appStore';
 import { getTasteTwins } from '../services/api';
 import TwinCard from '../components/TwinCard';
+import { colors, spacing, radius } from '../constants/theme';
 import type { TasteTwinsData } from '../../../packages/shared/types';
 
 export default function TwinsScreen() {
@@ -36,7 +37,7 @@ export default function TwinsScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#6C5CE7" />
+          <ActivityIndicator size="large" color="colors.accent" />
           <Text style={styles.loadingText}>{t('twins.findingTasteTwins')}</Text>
         </View>
       </SafeAreaView>
@@ -66,7 +67,7 @@ export default function TwinsScreen() {
             <Text style={styles.emptyTitle}>{t('common.error')}</Text>
             <Text style={styles.emptySubtitle}>{error}</Text>
             <Pressable onPress={fetchTwins} style={styles.retryButton}>
-              <Text style={styles.retryText}>Retry</Text>
+              <Text style={styles.retryText}>{t('common.retry')}</Text>
             </Pressable>
           </View>
         ) : isEmpty ? (
@@ -121,7 +122,7 @@ export default function TwinsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F0F1A',
+    backgroundColor: colors.bg,
   },
   loadingContainer: {
     flex: 1,
@@ -130,7 +131,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: colors.textSecondary,
     marginTop: 16,
   },
   scrollContent: {
@@ -153,7 +154,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: colors.textSecondary,
   },
   closeButton: {
     width: 32,
@@ -180,7 +181,7 @@ const styles = StyleSheet.create({
   },
   sectionSubtitle: {
     fontSize: 13,
-    color: '#8E8E93',
+    color: colors.textSecondary,
     marginBottom: 16,
   },
   emptyContainer: {
@@ -199,20 +200,20 @@ const styles = StyleSheet.create({
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
   },
   retryButton: {
-    marginTop: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+    marginTop: spacing.lg,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    borderRadius: radius.sm,
     borderWidth: 1,
-    borderColor: '#6C5CE7',
+    borderColor: colors.accent,
   },
   retryText: {
-    color: '#6C5CE7',
+    color: colors.accent,
     fontSize: 14,
     fontWeight: '600',
   },

@@ -10,7 +10,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { router, useLocalSearchParams, useRouter } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -401,7 +401,7 @@ export default function OnboardingSwipeScreen() {
                         setPlaying(true);
                       }}
                     >
-                      <Text style={styles.previewButtonText}>▶ Listen</Text>
+                      <Text style={styles.previewButtonText}>{t('common.listen')}</Text>
                     </Pressable>
                   )}
                 </View>
@@ -425,7 +425,7 @@ export default function OnboardingSwipeScreen() {
               style={styles.embedClose}
               onPress={() => setPlaying(false)}
             >
-              <Text style={styles.embedCloseText}>✕ Close</Text>
+              <Text style={styles.embedCloseText}>{t('common.close')}</Text>
             </Pressable>
           </View>
         )}

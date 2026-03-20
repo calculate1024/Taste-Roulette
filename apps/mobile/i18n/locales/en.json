@@ -201,7 +201,10 @@
   "common": {
     "error": "Error",
     "failedOnboarding": "Failed to complete onboarding. Please try again.",
-    "failedSubmitFeedback": "Failed to submit feedback. Please try again."
+    "failedSubmitFeedback": "Failed to submit feedback. Please try again.",
+    "retry": "Retry",
+    "close": "✕ Close",
+    "listen": "▶ Listen"
   },
   "login": {
     "title": "Taste Roulette",
