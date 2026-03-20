@@ -1,5 +1,8 @@
-// Onboarding tracks — IDs match Spotify track IDs in the tracks table
-// 10 tracks covering diverse genres for taste profiling
+// Onboarding tracks — 20 globally recognizable songs across all genres
+// Criteria: high recognition rate (Billboard/viral level), diverse genres,
+// each track should be identifiable by most 18-35 year olds worldwide.
+// IDs match Spotify track IDs.
+
 export interface OnboardingTrack {
   id: string;
   title: string;
@@ -11,14 +14,15 @@ export interface OnboardingTrack {
 }
 
 export const ONBOARDING_TRACKS: OnboardingTrack[] = [
+  // ── Pop ──
   {
-    id: '4u7EnebtmKWzUH433cf5Qv',
-    title: 'Bohemian Rhapsody',
-    artist: 'Queen',
-    album: 'A Night at the Opera',
-    coverUrl: 'https://i.scdn.co/image/ab67616d0000b273e319baafd16e84f0408af2a0',
-    genres: ['rock'],
-    spotifyUrl: 'https://open.spotify.com/track/4u7EnebtmKWzUH433cf5Qv',
+    id: '3AJwUDP919kvQ9QcozQPxg',
+    title: 'Bad Guy',
+    artist: 'Billie Eilish',
+    album: 'WHEN WE ALL FALL ASLEEP, WHERE DO WE GO?',
+    coverUrl: 'https://i.scdn.co/image/ab67616d0000b27350a3147b4edd7701a876c6ce',
+    genres: ['pop'],
+    spotifyUrl: 'https://open.spotify.com/track/3AJwUDP919kvQ9QcozQPxg',
   },
   {
     id: '0VjIjW4GlUZAMYd2vXMi3b',
@@ -29,23 +33,36 @@ export const ONBOARDING_TRACKS: OnboardingTrack[] = [
     genres: ['pop', 'r&b'],
     spotifyUrl: 'https://open.spotify.com/track/0VjIjW4GlUZAMYd2vXMi3b',
   },
+
+  // ── Rock ──
   {
-    id: '1YQWosTIljIvxAgHWTp7KP',
-    title: 'Take Five',
-    artist: 'The Dave Brubeck Quartet',
-    album: 'Time Out',
-    coverUrl: 'https://i.scdn.co/image/ab67616d0000b273b6bd44cf06bf8f4d5ce1e080',
-    genres: ['jazz'],
-    spotifyUrl: 'https://open.spotify.com/track/1YQWosTIljIvxAgHWTp7KP',
+    id: '4u7EnebtmKWzUH433cf5Qv',
+    title: 'Bohemian Rhapsody',
+    artist: 'Queen',
+    album: 'A Night at the Opera',
+    coverUrl: 'https://i.scdn.co/image/ab67616d0000b273e319baafd16e84f0408af2a0',
+    genres: ['rock'],
+    spotifyUrl: 'https://open.spotify.com/track/4u7EnebtmKWzUH433cf5Qv',
   },
   {
-    id: '6c9EGVj5CaOeoKd9ecMW1U',
-    title: 'Strobe',
-    artist: 'deadmau5',
-    album: 'For Lack of a Better Name',
-    coverUrl: 'https://i.scdn.co/image/ab67616d0000b273ac4c76801e5286f371b5f4b1',
-    genres: ['electronic'],
-    spotifyUrl: 'https://open.spotify.com/track/6c9EGVj5CaOeoKd9ecMW1U',
+    id: '5ghIJDpPoe3CfHMGu71E6T',
+    title: 'Smells Like Teen Spirit',
+    artist: 'Nirvana',
+    album: 'Nevermind',
+    coverUrl: 'https://i.scdn.co/image/ab67616d0000b2739b9b36b0e22870b9f542d937',
+    genres: ['rock', 'punk'],
+    spotifyUrl: 'https://open.spotify.com/track/5ghIJDpPoe3CfHMGu71E6T',
+  },
+
+  // ── Hip-hop ──
+  {
+    id: '7KXjTSCq5nL1LoYtL7XAwS',
+    title: 'HUMBLE.',
+    artist: 'Kendrick Lamar',
+    album: 'DAMN.',
+    coverUrl: 'https://i.scdn.co/image/ab67616d0000b2738b52c6b9bc4e43d873c1e72e',
+    genres: ['hip-hop'],
+    spotifyUrl: 'https://open.spotify.com/track/7KXjTSCq5nL1LoYtL7XAwS',
   },
   {
     id: '5Z01UMMf7V1o0MzF86s6WJ',
@@ -56,6 +73,30 @@ export const ONBOARDING_TRACKS: OnboardingTrack[] = [
     genres: ['hip-hop'],
     spotifyUrl: 'https://open.spotify.com/track/5Z01UMMf7V1o0MzF86s6WJ',
   },
+
+  // ── R&B / Soul ──
+  {
+    id: '3ee8Jmje8o58CHK66QFRcv',
+    title: 'All of Me',
+    artist: 'John Legend',
+    album: 'Love in the Future',
+    coverUrl: 'https://i.scdn.co/image/ab67616d0000b2731d5cf960655990e4dbb1f438',
+    genres: ['r&b', 'soul'],
+    spotifyUrl: 'https://open.spotify.com/track/3ee8Jmje8o58CHK66QFRcv',
+  },
+
+  // ── Electronic ──
+  {
+    id: '2zYzyRzz6pRmhPzyfMEC8s',
+    title: 'Get Lucky',
+    artist: 'Daft Punk',
+    album: 'Random Access Memories',
+    coverUrl: 'https://i.scdn.co/image/ab67616d0000b2739b9b36b0e22870b9f542d937',
+    genres: ['electronic', 'pop'],
+    spotifyUrl: 'https://open.spotify.com/track/2zYzyRzz6pRmhPzyfMEC8s',
+  },
+
+  // ── Latin ──
   {
     id: '6habFhsOp2NvshLv26DqMb',
     title: 'Despacito',
@@ -65,33 +106,63 @@ export const ONBOARDING_TRACKS: OnboardingTrack[] = [
     genres: ['latin'],
     spotifyUrl: 'https://open.spotify.com/track/6habFhsOp2NvshLv26DqMb',
   },
+
+  // ── Jazz ──
   {
-    id: '1h2xVEoJORqrg71HocgqXd',
-    title: 'Superstition',
-    artist: 'Stevie Wonder',
-    album: 'Talking Book',
-    coverUrl: 'https://i.scdn.co/image/ab67616d0000b2739e447b59bd3e2cbefaa31d91',
-    genres: ['soul', 'funk'],
-    spotifyUrl: 'https://open.spotify.com/track/1h2xVEoJORqrg71HocgqXd',
+    id: '0q6LuUqGLUiCPP1cbdwFs3',
+    title: 'Fly Me to the Moon',
+    artist: 'Frank Sinatra',
+    album: 'It Might as Well Be Swing',
+    coverUrl: 'https://i.scdn.co/image/ab67616d0000b2734e8d7d5ae0c4a4af6ca2e0e2',
+    genres: ['jazz'],
+    spotifyUrl: 'https://open.spotify.com/track/0q6LuUqGLUiCPP1cbdwFs3',
   },
+
+  // ── Classical ──
   {
-    id: '2MuWTIM3b0YEAskbeeFE1i',
-    title: 'Master of Puppets',
-    artist: 'Metallica',
-    album: 'Master of Puppets',
-    coverUrl: 'https://i.scdn.co/image/ab67616d0000b273668e3aca3167e6e569a9aa20',
-    genres: ['metal'],
-    spotifyUrl: 'https://open.spotify.com/track/2MuWTIM3b0YEAskbeeFE1i',
-  },
-  {
-    id: '6Er8Fz6fuZNi5cvwQjv1ya',
-    title: 'Clair de Lune',
-    artist: 'Debussy',
-    album: 'Suite bergamasque',
-    coverUrl: 'https://i.scdn.co/image/ab67616d0000b273c21a36e9f0e28c8c60eb502a',
+    id: '5NGtFXVpXSvwunEIGeUKY6',
+    title: 'River Flows in You',
+    artist: 'Yiruma',
+    album: 'First Love',
+    coverUrl: 'https://i.scdn.co/image/ab67616d0000b273612047e498390751fc00a347',
     genres: ['classical'],
-    spotifyUrl: 'https://open.spotify.com/track/6Er8Fz6fuZNi5cvwQjv1ya',
+    spotifyUrl: 'https://open.spotify.com/track/5NGtFXVpXSvwunEIGeUKY6',
   },
+
+  // ── Country ──
+  {
+    id: '1YYhDizHx7PnDhAhko6cFS',
+    title: 'Take Me Home, Country Roads',
+    artist: 'John Denver',
+    album: 'Poems, Prayers & Promises',
+    coverUrl: 'https://i.scdn.co/image/ab67616d0000b273d8f31c72a89a9b98c89a0d73',
+    genres: ['country', 'folk'],
+    spotifyUrl: 'https://open.spotify.com/track/1YYhDizHx7PnDhAhko6cFS',
+  },
+
+  // ── Indie ──
+  {
+    id: '5UWwZ5lm5PKu6eKsHAGxOk',
+    title: 'The Less I Know the Better',
+    artist: 'Tame Impala',
+    album: 'Currents',
+    coverUrl: 'https://i.scdn.co/image/ab67616d0000b2739e1cfc756886ac782e363d79',
+    genres: ['indie', 'rock'],
+    spotifyUrl: 'https://open.spotify.com/track/5UWwZ5lm5PKu6eKsHAGxOk',
+  },
+
+  // ── Metal ──
+  {
+    id: '0snQkGI5qnAmohLE7jTsTn',
+    title: 'Enter Sandman',
+    artist: 'Metallica',
+    album: 'Metallica',
+    coverUrl: 'https://i.scdn.co/image/ab67616d0000b273668e3aca3167e6e569a9aa20',
+    genres: ['metal', 'rock'],
+    spotifyUrl: 'https://open.spotify.com/track/0snQkGI5qnAmohLE7jTsTn',
+  },
+
+  // ── Reggae ──
   {
     id: '3PQLYVskjUeRmRIfECsL0X',
     title: 'No Woman No Cry',
@@ -100,5 +171,60 @@ export const ONBOARDING_TRACKS: OnboardingTrack[] = [
     coverUrl: 'https://i.scdn.co/image/ab67616d0000b273b5a0ee94e2741374ce5c71a2',
     genres: ['reggae'],
     spotifyUrl: 'https://open.spotify.com/track/3PQLYVskjUeRmRIfECsL0X',
+  },
+
+  // ── K-pop ──
+  {
+    id: '5QDLhrAOJJdNAmCTJ8xMyW',
+    title: 'Dynamite',
+    artist: 'BTS',
+    album: 'Dynamite',
+    coverUrl: 'https://i.scdn.co/image/ab67616d0000b273a98e8e3a5e90cfde080e7b82',
+    genres: ['k-pop', 'pop'],
+    spotifyUrl: 'https://open.spotify.com/track/5QDLhrAOJJdNAmCTJ8xMyW',
+  },
+
+  // ── Blues ──
+  {
+    id: '6nOlSBXZVMpREPSyOpeBae',
+    title: 'The Thrill Is Gone',
+    artist: 'B.B. King',
+    album: 'Completely Well',
+    coverUrl: 'https://i.scdn.co/image/ab67616d0000b273c0c02db6a28dfe34cd5a81b7',
+    genres: ['blues'],
+    spotifyUrl: 'https://open.spotify.com/track/6nOlSBXZVMpREPSyOpeBae',
+  },
+
+  // ── Folk ──
+  {
+    id: '1mCsF9Tw4AkIZOjvZbZZdT',
+    title: 'Skinny Love',
+    artist: 'Bon Iver',
+    album: 'For Emma, Forever Ago',
+    coverUrl: 'https://i.scdn.co/image/ab67616d0000b273d5af602b12744aaeb56e4e2e',
+    genres: ['folk', 'indie'],
+    spotifyUrl: 'https://open.spotify.com/track/1mCsF9Tw4AkIZOjvZbZZdT',
+  },
+
+  // ── World / Afrobeats ──
+  {
+    id: '1zi7xx7UVEFkmKfv06H8x0',
+    title: 'Last Last',
+    artist: 'Burna Boy',
+    album: 'Love, Damini',
+    coverUrl: 'https://i.scdn.co/image/ab67616d0000b2732c4ae3c25be30eb42d05f6f0',
+    genres: ['world', 'pop'],
+    spotifyUrl: 'https://open.spotify.com/track/1zi7xx7UVEFkmKfv06H8x0',
+  },
+
+  // ── Ambient / Chill ──
+  {
+    id: '6vuykQgDLUCiZ7YggIpLM9',
+    title: 'Weightless',
+    artist: 'Marconi Union',
+    album: 'Weightless',
+    coverUrl: 'https://i.scdn.co/image/ab67616d0000b273b9e22e87ef75c2e0baade2c7',
+    genres: ['ambient'],
+    spotifyUrl: 'https://open.spotify.com/track/6vuykQgDLUCiZ7YggIpLM9',
   },
 ];

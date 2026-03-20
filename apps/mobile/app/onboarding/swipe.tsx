@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   useWindowDimensions,
+  Linking,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -381,9 +382,20 @@ export default function OnboardingSwipeScreen() {
                 <Text style={styles.trackArtist} numberOfLines={1}>
                   {track.artist}
                 </Text>
-                <Text style={styles.trackGenres}>
-                  {track.genres.join(' · ')}
-                </Text>
+                <View style={styles.cardBottomRow}>
+                  <Text style={styles.trackGenres}>
+                    {track.genres.join(' · ')}
+                  </Text>
+                  <Pressable
+                    style={styles.previewButton}
+                    onPress={() => {
+                      trackEvent('onboarding_preview_pressed', { trackId: track.id });
+                      Linking.openURL(track.spotifyUrl);
+                    }}
+                  >
+                    <Text style={styles.previewButtonText}>▶ Preview</Text>
+                  </Pressable>
+                </View>
               </View>
             </Animated.View>
           </GestureDetector>
@@ -494,11 +506,29 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginBottom: spacing.sm,
   },
+  cardBottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   trackGenres: {
     ...typo.caption,
     color: colors.accent,
     textTransform: 'uppercase',
     letterSpacing: 1,
+    flex: 1,
+  },
+  previewButton: {
+    backgroundColor: colors.spotify,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    marginLeft: spacing.sm,
+  },
+  previewButtonText: {
+    color: colors.textPrimary,
+    fontSize: 13,
+    fontWeight: '600',
   },
   hints: {
     flexDirection: 'row',
