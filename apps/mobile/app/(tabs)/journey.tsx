@@ -48,6 +48,7 @@ export default function JourneyScreen() {
   };
 
   const tasteVector = data?.tasteVector ?? [];
+  const isEarlyStage = stats.totalCards < 5;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -61,7 +62,12 @@ export default function JourneyScreen() {
 
           {/* Radar chart */}
           <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.radarContainer}>
-            <TasteRadar tasteVector={tasteVector} size={280} />
+            <View style={isEarlyStage ? styles.radarEarlyStage : undefined}>
+              <TasteRadar tasteVector={tasteVector} size={280} />
+            </View>
+            {isEarlyStage && (
+              <Text style={styles.radarHint}>{t('journey.radarEarlyHint')}</Text>
+            )}
           </Animated.View>
 
           {/* Taste twins button */}
@@ -145,6 +151,17 @@ const styles = StyleSheet.create({
   radarContainer: {
     alignItems: 'center',
     paddingVertical: spacing.lg,
+  },
+  radarEarlyStage: {
+    opacity: 0.4,
+  },
+  radarHint: {
+    fontSize: 13,
+    color: colors.textHint,
+    textAlign: 'center',
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.xl,
+    fontStyle: 'italic',
   },
   statsRow: {
     flexDirection: 'row',

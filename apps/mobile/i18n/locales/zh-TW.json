@@ -23,7 +23,8 @@
     "furthestDistance": "最遠距離",
     "totalSurprises": "總驚喜次數",
     "consecutiveDays": "連續 {{count}} 天",
-    "achievementBadges": "成就徽章"
+    "achievementBadges": "成就徽章",
+    "radarEarlyHint": "根據你的入門回答繪製。多探索幾張卡片來完善你的品味地圖！"
   },
   "profile": {
     "profile": "個人檔案",

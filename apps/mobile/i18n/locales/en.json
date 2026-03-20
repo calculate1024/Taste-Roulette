@@ -23,7 +23,8 @@
     "furthestDistance": "Furthest Distance",
     "totalSurprises": "Total Surprises",
     "consecutiveDays": "{{count}}-day Streak",
-    "achievementBadges": "Achievement Badges"
+    "achievementBadges": "Achievement Badges",
+    "radarEarlyHint": "Based on your onboarding. Explore more cards to refine your taste map!"
   },
   "profile": {
     "profile": "Profile",
