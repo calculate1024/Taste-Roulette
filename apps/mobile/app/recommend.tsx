@@ -33,6 +33,7 @@ type TabMode = 'discoveries' | 'search';
 export default function RecommendScreen() {
   const { t } = useTranslation();
   const session = useAppStore((s) => s.session);
+  const setFeedbackGiven = useAppStore((s) => s.setFeedbackGiven);
   const userId = session?.user?.id;
   const params = useLocalSearchParams<{
     contextTitle?: string;
@@ -110,6 +111,7 @@ export default function RecommendScreen() {
         gotBonus: !!result.bonus_card,
       });
       setSubmitted(true);
+      setFeedbackGiven(false); // Hide "Your Turn" prompt on home screen
       if (result.bonus_card) setGotBonusCard(true);
       // Play success animation
       successOpacity.value = withTiming(1, { duration: 300 });
