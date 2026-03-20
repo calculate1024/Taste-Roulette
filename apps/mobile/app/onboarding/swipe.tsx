@@ -381,7 +381,11 @@ export default function OnboardingSwipeScreen() {
         <View style={styles.cardContainer}>
           <GestureDetector gesture={panGesture}>
             <Animated.View style={[styles.card, { width: SCREEN_WIDTH - 48 }, cardStyle]}>
-              <Image source={{ uri: track.coverUrl }} style={styles.coverImage} />
+              <Image
+                key={track.id}
+                source={{ uri: track.coverUrl }}
+                style={styles.coverImage}
+              />
               <View style={styles.cardInfo}>
                 <Text style={styles.trackTitle} numberOfLines={1}>
                   {track.title}
