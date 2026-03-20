@@ -81,13 +81,15 @@ const isSupabaseConfigured = (): boolean => {
  * Check API response for session expiration (401/403).
  * If expired, sign out and let auth listener redirect to login.
  */
+let signingOut = false;
 async function handleSessionExpiration(res: Response): Promise<boolean> {
-  if (res.status === 401 || res.status === 403) {
+  if ((res.status === 401 || res.status === 403) && !signingOut) {
+    signingOut = true;
     console.warn('Session expired, signing out');
     await supabase.auth.signOut();
     return true;
   }
-  return false;
+  return res.status === 401 || res.status === 403;
 }
 
 /**
@@ -514,28 +516,17 @@ export async function getProfile(userId: string): Promise<ProfileStats> {
     // Fall through to direct Supabase queries
   }
 
-  // Fallback: direct Supabase queries
-  const { count: totalCards } = await supabase
-    .from('roulette_cards')
-    .select('id', { count: 'exact', head: true })
-    .eq('recipient_id', userId);
-
-  const { count: surprisedCount } = await supabase
-    .from('feedbacks')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .eq('reaction', 'surprised');
-
-  const { data: userData } = await supabase
-    .from('profiles')
-    .select('streak_count')
-    .eq('id', userId)
-    .single();
+  // Fallback: direct Supabase queries (parallel)
+  const [cardsResult, surprisedResult, profileResult] = await Promise.all([
+    supabase.from('roulette_cards').select('id', { count: 'exact', head: true }).eq('recipient_id', userId),
+    supabase.from('feedbacks').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('reaction', 'surprised'),
+    supabase.from('profiles').select('streak_count').eq('id', userId).single(),
+  ]);
 
   return {
-    totalCards: totalCards ?? 0,
-    surprisedCount: surprisedCount ?? 0,
-    streakCount: userData?.streak_count ?? 0,
+    totalCards: cardsResult.count ?? 0,
+    surprisedCount: surprisedResult.count ?? 0,
+    streakCount: profileResult.data?.streak_count ?? 0,
     impactSurprised: 0,
   };
 }
