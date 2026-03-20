@@ -59,3 +59,31 @@ growth:
     western_indie_alt_electronic: ">= 40%"
     asian_music: "<= 20%"
     other_world_music: "remaining"
+
+# Monetization roadmap — CEO agent evaluates readiness at each phase
+monetization:
+  core_rule: "NEVER interrupt the daily card experience with ads"
+  phases:
+    phase1_free:
+      trigger: "0 - 5k users"
+      model: "No monetization. Focus on growth and retention."
+    phase2_ads_premium:
+      trigger: "5k - 20k users"
+      models:
+        - "Rewarded Ads: watch ad → bonus card (A/B test)"
+        - "Premium subscription $2.99-4.99/month (RevenueCat): 3 cards/day, reveal recommender, custom distance, taste report"
+    phase3_sponsored:
+      trigger: "20k - 50k users"
+      models:
+        - "Sponsored Cards: labels pay to place new releases, still taste-distance matched, marked 'Sponsored Discovery'"
+        - "Annual Taste Report $1.99: Wrapped-style year-end report, high shareability"
+    phase4_creator:
+      trigger: "50k+ users"
+      models:
+        - "Curator paid channels $0.99/month/subscriber, platform 30% cut"
+  readiness_checks:
+    - "DAU threshold met for the phase?"
+    - "D30 retention > 20%?"
+    - "Surprise rate still > 20%?"
+    - "No user complaints about commercialization in feedback?"
+    - "Technical prerequisites ready? (SDK, Privacy Policy, store declarations)"
