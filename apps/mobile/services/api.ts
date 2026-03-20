@@ -7,9 +7,9 @@ const MOCK_CARD: RouletteCard & { track: Track } = {
   recipientId: 'mock-user',
   recommenderId: 'mock-recommender',
   trackId: '4u7EnebtmKWzUH433cf5Qv',
-  reason: '這首歌的吉他 solo 會讓你重新愛上搖滾',
+  reason: 'The guitar solo in this will make you fall in love with rock all over again',
   tasteDistance: 0.63,
-  recommenderTasteLabel: '搖滾魂',
+  recommenderTasteLabel: 'Rock Enthusiast',
   status: 'delivered',
   deliveredAt: new Date().toISOString(),
   openedAt: null,
@@ -373,19 +373,19 @@ export async function getTasteTwins(userId: string): Promise<TasteTwinsData> {
       twins: [
         {
           anonymousId: 'a1b2c3d4',
-          tasteLabel: 'Pop \u611B\u597D\u8005',
+          tasteLabel: 'Pop Enthusiast',
           distance: 0.08,
           dominantGenres: ['pop', 'r&b', 'k-pop'],
         },
         {
           anonymousId: 'e5f6g7h8',
-          tasteLabel: '\u96FB\u5B50\u63A7',
+          tasteLabel: 'Electronic Explorer',
           distance: 0.15,
           dominantGenres: ['electronic', 'ambient', 'indie'],
         },
         {
           anonymousId: 'i9j0k1l2',
-          tasteLabel: '\u6416\u6EFE\u9B42',
+          tasteLabel: 'Rock Soul',
           distance: 0.22,
           dominantGenres: ['rock', 'indie', 'punk'],
         },
@@ -393,19 +393,19 @@ export async function getTasteTwins(userId: string): Promise<TasteTwinsData> {
       complements: [
         {
           anonymousId: 'm3n4o5p6',
-          tasteLabel: '\u7235\u58EB\u8FF7',
+          tasteLabel: 'Jazz Aficionado',
           distance: 0.58,
           dominantGenres: ['jazz', 'blues', 'soul'],
         },
         {
           anonymousId: 'q7r8s9t0',
-          tasteLabel: '\u53E4\u5178\u6A02\u8FF7',
+          tasteLabel: 'Classical Devotee',
           distance: 0.62,
           dominantGenres: ['classical', 'ambient', 'world'],
         },
         {
           anonymousId: 'u1v2w3x4',
-          tasteLabel: '\u62C9\u4E01\u7BC0\u594F',
+          tasteLabel: 'Latin Groove',
           distance: 0.67,
           dominantGenres: ['latin', 'reggae', 'world'],
         },
