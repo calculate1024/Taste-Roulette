@@ -131,20 +131,27 @@ async function main() {
       if (totalInserted >= needed) break;
 
       try {
-        const tracks = await searchTracks(query, 20);
+        const tracks = await searchTracks(query, 10);
         const newTracks = tracks.filter((t) => !existingIds.has(t.spotify_id));
+
+        if (tracks.length === 0) {
+          console.warn(`    "${query}": Spotify returned 0 results`);
+        }
+
         const batch = await tagAndPrepare(newTracks, genre);
 
         if (batch.length > 0) {
           const { error } = await supabaseAdmin.from('tracks').upsert(batch, { onConflict: 'spotify_id' });
-          if (!error) {
+          if (error) {
+            console.warn(`    "${query}": DB upsert failed: ${error.message}`);
+          } else {
             batch.forEach((t) => existingIds.add(t.spotify_id));
             totalInserted += batch.length;
             genreInserted += batch.length;
           }
         }
       } catch (err: any) {
-        // Skip failed queries silently
+        console.warn(`    "${query}": ${err.message}`);
       }
       await sleep(RATE_LIMIT_MS);
     }
@@ -228,7 +235,7 @@ async function main() {
 
         // Try to find this track on Spotify for metadata + cover art
         try {
-          const spotifyResults = await searchTracks(`${rec.artist} ${rec.title}`, 1);
+          const spotifyResults = await searchTracks(`${rec.artist} ${rec.title}`, 3);
           if (spotifyResults.length > 0 && !existingIds.has(spotifyResults[0].spotify_id)) {
             const track = spotifyResults[0];
             const batch = await tagAndPrepare([track], tag);

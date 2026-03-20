@@ -26,9 +26,9 @@ tools:
   - web_search           # Discover trending music, editorial playlists
 
 goals:
-  - "Maintain recommendation pool at >= 200 unused tracks"
-  - "Ensure pool covers at least 15 of 21 genre dimensions"
-  - "Add 5-10 high-quality tracks daily (popularity >= 50)"
+  - "Maintain recommendation pool at >= 500 unused tracks"
+  - "Ensure pool covers at least 18 of 21 genre dimensions"
+  - "Add 10-20 high-quality tracks daily"
   - "No single artist appears more than 3 times per month"
   - "Prioritize underrepresented genres when pool is imbalanced"
   - "Western indie/alt/electronic/rock must be >= 40% of pool (target market is US/EU)"
@@ -37,9 +37,41 @@ goals:
 
 # Growth phase pool targets (current_phase is defined in company.yaml)
 pool_targets:
-  month1_beta: 500    # 50 users
-  month2_launch: 800  # 200 users
-  month3_growth: 1200 # 1000 users
+  month1_beta: 850    # current baseline
+  month2_launch: 1500 # 200 users
+  month3_growth: 3000 # 1000 users
+
+# Daily heartbeat workflow — executed at 06:00 UTC+8
+daily_workflow: |
+  1. CHECK POOL STATUS:
+     - Query: SELECT count(*) FROM tracks
+     - Query: SELECT genres, count(*) FROM tracks GROUP BY unnest(genres) ORDER BY count
+     - Identify genres with < 20 tracks (underrepresented)
+     - Check pool_targets for current phase vs actual count
+
+  2. FILL UNDERREPRESENTED GENRES (priority):
+     For each genre with < 20 tracks:
+     - Run: npm run seed:expand (existing script adds ~5-10 per genre)
+     - If seed:expand fails (rate limit), note and retry next heartbeat
+
+  3. ADD FRESH TRACKS (daily quota: 10-20):
+     - Use Spotify search with varied queries (genre + decade/mood/subgenre)
+     - IMPORTANT: Use limit=10 per search (Spotify Dev Mode restriction)
+     - IMPORTANT: Wait 500ms between Spotify API calls (rate limit)
+     - Tag each track via getGenreTags() (Last.fm + MusicBrainz)
+     - Upsert to tracks table
+
+  4. POOL HEALTH REPORT:
+     - Total tracks in pool
+     - Genre distribution (flag any genre < 20 or > 25% share)
+     - Tracks added today
+     - Freshness: % of pool added in last 7 days
+     - Escale to CEO if pool < 500 or any genre has 0 tracks
+
+  5. SPOTIFY RATE LIMIT AWARENESS:
+     - Dev Mode limit: ~100 requests per rolling window
+     - If 429 error: stop Spotify calls, rely on MusicBrainz for remainder
+     - Log rate limit hits for DevOps agent awareness
 
 quality_criteria:
   track_selection:
