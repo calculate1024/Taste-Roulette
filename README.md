@@ -4,12 +4,26 @@
 
 Every day you receive one music recommendation from a stranger whose taste is *different enough* to surprise you, but *not so far* that you'd hate it. The sweet spot of discovery.
 
+## Project Status
+
+**Current Phase:** Pre-launch (Month 1 Beta)
+**Target:** 1,000 users in 3 months (Western/English-speaking market)
+**Platform:** Android-first (iOS deferred until product stabilizes)
+
+| Milestone | Target | Status |
+|-----------|--------|--------|
+| Month 1: Closed Beta | 50 users | In progress |
+| Month 2: Public Launch | 200 users | Planned |
+| Month 3: Growth | 1,000 users | Planned |
+
+**Launch Channels:** Product Hunt, Indie Hackers, Reddit (r/indieheads, r/musicsuggestions), Twitter/X
+
 ## Core Concept
 
 - **One card per day** — no infinite feed, no doom scrolling
 - **Anonymous recommendations** — users are identified by taste labels (e.g., "Jazz Lover", "Electronic Enthusiast"), not real names
 - **Surprise > Accuracy** — the algorithm maximizes serendipity, not match precision
-- **Optional give-back** — after receiving, you can recommend a track back to the pool (incentivized, not forced)
+- **Re-recommend your discoveries** — after receiving a card you love, pass it forward to another stranger (incentivized with bonus cards)
 
 ## Tech Stack
 
@@ -20,7 +34,7 @@ Every day you receive one music recommendation from a stranger whose taste is *d
 | Matching Engine | TypeScript (in API server) |
 | Database & Auth | Supabase (PostgreSQL + Auth + RLS) |
 | Music Data | Spotify Web API + Last.fm + MusicBrainz |
-| Audio Playback | Spotify deep link (Open in Spotify) |
+| Audio Playback | Spotify Embed (WebView) + deep link fallback |
 | Push Notifications | Expo Push Notifications |
 | State Management | Zustand + AsyncStorage |
 | Deployment | Vercel (API) + EAS Build (Mobile) |
@@ -118,19 +132,19 @@ taste-roulette/
 - **Spotify popularity deprecation** — adapted to Spotify API no longer returning popularity field
 
 ### Paperclip AI Operations
-9 autonomous agents manage post-MVP operations:
+9 autonomous agents manage post-MVP operations, configured for growth (1,000 users in 3 months):
 
-| Agent | Role | Schedule |
-|-------|------|----------|
-| CEO | Strategic oversight, weekly KPI review | Weekly |
-| Curator | Spotify discovery, pool diversity | Every 6h |
-| Quality | Content moderation, track validation | Every 4h |
-| Analytics | PostHog metrics, weekly reports | Daily |
-| DevOps | Sentry monitoring, deploy health | Every 30min |
-| Bug Triage | Issue classification, severity routing | Every 2h |
-| Social | Share card content, community engagement | Daily |
-| Outreach | Growth experiments, user feedback | Weekly |
-| Feedback | In-app reaction analysis, trend detection | Daily |
+| Agent | Role | Growth Focus |
+|-------|------|-------------|
+| CEO | Strategic oversight, milestone tracking | Track cumulative users, coordinate launch |
+| Curator | Spotify discovery + weekly batch import | Pool: 850 → 1500 → 3000 tracks |
+| Quality | Content moderation, track validation | Review user-submitted recommendations |
+| Analytics | PostHog metrics, cohort retention | Channel attribution, referral K-factor |
+| DevOps | Sentry monitoring, deploy health | API stability during scale |
+| Bug Triage | Issue classification, severity routing | Prioritize onboarding + card bugs |
+| Social | English-first content, Twitter/X + IG | Product Hunt, dev.to, Medium articles |
+| Outreach | Western music blogger/curator research | Curator Program recruitment (5-10 curators) |
+| Feedback | App Store reviews, in-app analysis | Not active until post-launch |
 
 ## Internationalization (i18n)
 
@@ -215,6 +229,9 @@ Badge Categories (6):
    supabase/migrations/003_spotify_auth.sql
    supabase/migrations/004_curator_program.sql
    supabase/migrations/005_recommender_taste_label.sql
+   supabase/migrations/006_account_deletion.sql
+   supabase/migrations/007_referral_program.sql
+   supabase/migrations/008_seed_flag.sql
    ```
 
 4. **Seed data**
@@ -222,6 +239,7 @@ Badge Categories (6):
    cd apps/api && npm run seed           # Seed 30 hand-picked tracks with Spotify metadata
    cd apps/api && npm run seed:expand    # Auto-expand to ~500 tracks via Spotify genre + artist search
    cd apps/api && npm run seed:users     # Seed 8 virtual users with 40+ recommendations
+   cd apps/api && npm run seed:simulate  # Generate 100 AI seed users + 7-day behavioral simulation
    ```
 
 5. **Start dev servers**
@@ -247,8 +265,12 @@ Badge Categories (6):
 | GET | `/api/roulette/today` | JWT | Today's card |
 | POST | `/api/roulette/:cardId/open` | JWT | Mark card opened |
 | POST | `/api/roulette/:cardId/feedback` | JWT | Submit feedback |
-| GET | `/api/recommend/search` | JWT | Search Spotify tracks |
+| GET | `/api/recommend/search` | JWT | Hybrid search: local DB → Spotify fallback |
+| GET | `/api/recommend/my-discoveries` | JWT | Tracks user received and reacted to (for re-recommend) |
 | POST | `/api/recommend/submit` | JWT | Submit recommendation |
+| DELETE | `/api/profile/me` | JWT | Delete account + all user data |
+| POST | `/api/invite/generate` | JWT | Generate referral invite code |
+| POST | `/api/invite/redeem` | JWT | Redeem invite code + track referral |
 | GET | `/api/roulette/yesterday-echo` | JWT | Check if recommendation got surprised feedback yesterday |
 | GET | `/api/profile/me` | JWT | User profile + stats (incl. impact) |
 | GET | `/api/profile/taste-journey` | JWT | Taste vector + journey data |
@@ -261,7 +283,7 @@ Badge Categories (6):
 ## Testing
 
 ```bash
-cd apps/api && npx jest --verbose    # 246 tests
+cd apps/api && npm test              # 246 tests (14 suites)
 ```
 
 | Test Suite | Coverage |
@@ -285,13 +307,60 @@ cd apps/api && npx jest --verbose    # 246 tests
 | Error Tracking | Sentry | Alerts on new issues via email |
 | Analytics | PostHog | Product analytics (events, funnels) |
 
-## Known Limitations
+## Key Decisions & Constraints
 
-- **Spotify Dev Mode**: OAuth limited to 25 whitelisted users (needs Extension Request for production)
-- **Spotify Preview URLs**: No longer available (using deep link to Spotify app)
+### Spotify Dev Mode (Permanent)
+
+As of May 2025, Spotify Extension Request requires: registered business, 250k+ MAU, company email, commercial viability. This side project will never qualify.
+
+**Impact & Mitigations:**
+| Feature | Affected? | Solution |
+|---------|-----------|----------|
+| Pool expansion (Curator agent) | No — Client Credentials (server-to-server) has no user limit | Curator runs daily |
+| In-app playback | No — Spotify Embed (WebView) works without API auth | Already implemented |
+| User-facing track search | Yes — 25 user limit on OAuth | Hybrid search: local DB first, Spotify fallback |
+| Recommend-back | Yes — search would fail | Redesigned as "My Discoveries" (re-recommend received tracks) |
+| Spotify OAuth login | Yes — 25 user limit | Email-only auth (Supabase) |
+
+### Android-First Strategy
+
+Frequent iteration expected during beta. Apple review takes 1-3 days per update; Android APK can be distributed instantly. iOS will be added when product stabilizes (target: Month 3).
+
+### Market: US/EU English-Speaking
+
+- All UI text: English primary, Traditional Chinese secondary
+- Recommendation pool: Western indie/alt/electronic >= 40%, Asian music <= 20%
+- Launch channels: Product Hunt, Indie Hackers, Reddit, Twitter/X (not Taiwan-centric)
+- Brand voice: curious, warm, slightly playful (English)
+
+### Budget
+
+| Item | Monthly |
+|------|---------|
+| Growth (ads, tools) | $50-100 |
+| Paperclip AI agents | $120 |
+| Supabase | Free tier |
+| Vercel | Free tier |
+| Google Play | $25 one-time |
+| Domain (Month 2) | ~$15/year |
+
+## Known Technical Limitations
+
 - **Spotify Audio Features API**: Returns 403 (using genre-based vectors instead)
 - **Spotify Popularity API**: No longer returns popularity field (removed from all filtering logic)
 - **Taste Twin scaling**: Currently loads all users into memory (needs pgvector for production)
+- **Matching engine center**: Optimized at 0.4 (not 0.5) based on simulation — lower distance produces higher surprise rate
+
+## Simulation & Validation
+
+100 AI seed users with behavioral simulation (7 days):
+- Feedback driven by taste distance (not random)
+- Engagement decay modeled (D1: 85% → D7: 60%)
+- Genre repeat penalty (consecutive same-genre cards reduce satisfaction)
+- Cold start scenario tested (10 users + curator-only)
+- Results documented in `docs/simulation-baseline.md`
+
+**Key finding:** Matching center at 0.4 (instead of 0.5) produces optimal surprise rate of 28% while keeping not_for_me below 20%.
 
 ## License
 
