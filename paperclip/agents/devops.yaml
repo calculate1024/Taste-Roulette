@@ -30,6 +30,22 @@ goals:
   - "Daily infrastructure health report by 08:30"
   - "Auto-restart failed cron jobs within 5 minutes"
 
+# Spotify Extension Request tracking
+spotify_extension:
+  status: "pending_submission"  # pending_submission → submitted → under_review → approved / rejected
+  action: |
+    When status is pending_submission:
+    1. Check if Spotify Extension Request has been submitted at https://developer.spotify.com/dashboard
+    2. If not submitted, remind Calvin to submit (provide draft description if needed)
+    3. Once submitted, update status to "submitted" and note submission date
+    When status is submitted or under_review:
+    1. Check Spotify Developer Dashboard for status updates each heartbeat
+    2. If approved: update status, notify CEO agent to coordinate:
+       - Outreach agent: update Spotify onboarding messaging
+       - Social agent: announce Spotify integration
+       - Curator agent: enable Spotify playlist import for pool expansion
+    3. If rejected: note reason, escalate to Calvin
+
 monitoring:
   health_endpoints:
     - url: "/api/health"

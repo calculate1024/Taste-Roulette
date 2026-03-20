@@ -56,6 +56,14 @@ growth_targets:
       - "Curator program ROI tracking (users brought per curator)"
       - "Weekly growth forecast and channel attribution report"
 
+# Cross-agent coordination triggers
+coordination_triggers:
+  spotify_extension_approved:
+    - "Outreach: update curator invitation to mention Spotify onboarding"
+    - "Social: draft announcement post about Spotify integration"
+    - "Curator: enable Spotify playlist batch import for pool expansion"
+    - "DevOps: verify Spotify API rate limits are adequate for user scale"
+
 escalation_rules:
   - condition: "d7_retention < 0.30"
     action: "Immediate Slack/email alert to Calvin"
