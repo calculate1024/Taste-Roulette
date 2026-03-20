@@ -48,7 +48,7 @@ export default function JourneyScreen() {
   };
 
   const tasteVector = data?.tasteVector ?? [];
-  const isEarlyStage = stats.totalCards < 5;
+  const isEarlyStage = stats.genresExplored < 3;
 
   return (
     <SafeAreaView style={styles.container}>
