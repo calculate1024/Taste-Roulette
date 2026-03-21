@@ -53,3 +53,20 @@ env_setup: |
   which references auth.users (Supabase built-in auth). Always query "profiles" for user data.
   Key tables: profiles, onboarding_responses, roulette_cards, feedbacks,
   user_recommendations, tracks. See supabase/migrations/ for full schema.
+
+  LOG OUTPUT (CRITICAL — do this at the END of every heartbeat):
+  After completing all tasks, write a summary to the logs directory:
+  - File: paperclip/logs/quality-{YYYY-MM-DD}.md
+  - Format:
+    # Quality Assurance — {date}
+    ## Status: {ok|warning|error}
+    ## Summary
+    {2-3 bullet points of what was done}
+    ## Metrics
+    {key numbers checked/produced}
+    ## Issues
+    {any problems found, or "None"}
+    ## Next Actions
+    {what should happen next}
+  - Also update the latest log: paperclip/logs/quality-latest.md (overwrite)
+  - Use: cat > paperclip/logs/quality-latest.md << 'LOGEOF' ... LOGEOF
