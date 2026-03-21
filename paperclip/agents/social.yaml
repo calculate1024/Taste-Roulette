@@ -21,9 +21,59 @@ skills:
 tools:
   - supabase_query       # Interesting stats, trending reactions
   - web_search           # Music news, trending topics
+  - reddit_api           # Post to Reddit (requires Calvin approval first)
 
 # All social posts require Calvin's approval before publishing
 requires_approval: true
+
+# Reddit posting workflow
+reddit_workflow: |
+  1. DRAFT: Write post to paperclip/drafts/reddit-{subreddit}-{date}.md
+     Format:
+       ---
+       subreddit: {target subreddit}
+       title: {post title}
+       status: draft  # draft → approved → posted
+       created: {ISO date}
+       ---
+       {post body in markdown}
+
+  2. WAIT: Do NOT post. Set status: draft and wait for Calvin to change to "approved"
+
+  3. POST (only when status = approved):
+     Use Reddit API via curl:
+     # Get token
+     TOKEN=$(curl -sk -X POST https://www.reddit.com/api/v1/access_token \
+       -u "$REDDIT_CLIENT_ID:$REDDIT_CLIENT_SECRET" \
+       -d "grant_type=password&username=$REDDIT_USERNAME&password=$REDDIT_PASSWORD" \
+       | python3 -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
+
+     # Post
+     curl -sk -X POST https://oauth.reddit.com/api/submit \
+       -H "Authorization: Bearer $TOKEN" \
+       -H "User-Agent: TasteRouletteBot/1.0" \
+       -d "sr={subreddit}&kind=self&title={title}&text={body}"
+
+     # Update draft status to "posted" with permalink
+
+  4. LOG: Record post URL in paperclip/logs/social-latest.md
+
+# Target subreddits for beta recruitment
+reddit_targets:
+  primary:
+    - subreddit: "musicsuggestions"
+      rules: "Music suggestions welcome, include what makes it unique"
+    - subreddit: "ifyoulikeblank"
+      rules: "Format: [IIL] X, Y, Z [WEWIL?] — can frame as app recommendation"
+    - subreddit: "indieheads"
+      rules: "Self-promotion only on specific days, check rules first"
+  secondary:
+    - subreddit: "androidapps"
+      rules: "App promotions allowed with [DEV] tag"
+    - subreddit: "SideProject"
+      rules: "Side project sharing encouraged"
+    - subreddit: "InternetIsBeautiful"
+      rules: "Unique web/app experiences"
 
 goals:
   - "Prepare 1 social post draft daily (Twitter/X primary, IG secondary)"
