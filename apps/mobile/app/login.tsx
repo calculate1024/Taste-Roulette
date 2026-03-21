@@ -71,7 +71,7 @@ export default function LoginScreen() {
         router.replace('/');
       }
     } catch (err: any) {
-      Alert.alert('Error', err.message);
+      Alert.alert(t('common.error'), err.message);
     } finally {
       setLoading(false);
     }

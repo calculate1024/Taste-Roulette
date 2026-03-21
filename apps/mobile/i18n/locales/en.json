@@ -56,9 +56,9 @@
   },
   "onboarding": {
     "letsGetToKnowYou": "Let's get to know you",
-    "connectSpotifySubtitle": "Connect Spotify to use your own music for taste profiling, or continue without it.",
+    "connectSpotifySubtitle": "We can use your Spotify history for better taste profiling. This is completely optional.",
     "connectSpotifyDescription": "After connecting Spotify, we'll use your listening history to understand your taste",
-    "connectSpotifyStart": "Connect Spotify to Get Started",
+    "connectSpotifyStart": "Import Listening History (Optional)",
     "continueWithoutSpotify": "Continue without Spotify",
     "haveYouHeardThese": "Have you heard these?",
     "recognized": "Recognized: {{count}} songs",
@@ -77,7 +77,7 @@
     "okay": "Okay",
     "loveIt": "Love it",
     "swipeInstructions": "← swipe left: not for me\n↑ swipe up: okay\n→ swipe right: love it",
-    "couldNotLoadTracks": "Could not load {{source}} tracks. Using default selection.",
+    "couldNotLoadTracks": "Could not load your tracks. Using our curated selection instead.",
     "loadingTracks": "Loading tracks...",
     "couldNotLoadTracksError": "Could not load tracks.",
     "continueAnyway": "Continue anyway",
@@ -188,7 +188,7 @@
     "distanceExplanation": "0% = same taste, 100% = complete opposite"
   },
   "shareCard": {
-    "distanceMessage": "Someone recommended a song {{percent}}% away from my taste",
+    "distanceMessage": "A song {{percent}}% different from my taste",
     "tagline": "Step outside your taste comfort zone",
     "shareToSocial": "Share",
     "close": "Close"
