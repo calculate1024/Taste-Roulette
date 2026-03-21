@@ -86,6 +86,26 @@ env_setup: |
   Key tables: profiles, onboarding_responses, roulette_cards, feedbacks,
   user_recommendations, tracks. See supabase/migrations/ for full schema.
 
+  DEPLOYMENT NOTE: The production API runs on VERCEL (taste-roulette.vercel.app), NOT localhost.
+  Do NOT check localhost:3000 for API health — it is only for local development.
+  To verify production API: curl -sk https://taste-roulette.vercel.app/api/health
+  If localhost:3000 is down, that is NORMAL and NOT an outage.
+
+  SPOTIFY EXTENSION STATUS: PERMANENTLY BLOCKED.
+  As of May 2025, Spotify requires 250k MAU + registered business for Extension Request.
+  This side project will never qualify. Do NOT escalate or request Calvin to submit.
+  Mitigations already in place:
+  - User-facing search: hybrid local DB → Spotify fallback (already implemented)
+  - Pool expansion: Spotify Client Credentials (server-to-server, no user limit)
+  - Playback: Spotify Embed (WebView, no auth needed)
+  - Auth: email-only (no Spotify OAuth)
+
+  SEED USER FILTERING: 108 of 110 profiles are AI seed users (is_seed=true).
+  When reporting DAU, retention, or user counts, ALWAYS separate:
+  - Real users: WHERE is_seed = false AND email NOT LIKE '%@taste-roulette.local%'
+  - Seed users: WHERE is_seed = true
+  Report both, but headline metrics should reflect REAL users only.
+
   SECURITY POLICY (MANDATORY — read and follow):
   Read and strictly follow: paperclip/security-policy.md
   Key rules:

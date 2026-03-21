@@ -80,6 +80,13 @@ env_setup: |
   Key tables: profiles, onboarding_responses, roulette_cards, feedbacks,
   user_recommendations, tracks. See supabase/migrations/ for full schema.
 
+  DEPLOYMENT NOTE: Production API runs on VERCEL (taste-roulette.vercel.app), NOT localhost.
+  Health check: curl -sk https://taste-roulette.vercel.app/api/health
+  localhost:3000 down is NORMAL — it is only for local development.
+
+  SPOTIFY EXTENSION: PERMANENTLY BLOCKED (requires 250k MAU + registered business).
+  Do NOT flag as pending or request Calvin to submit. Already mitigated in code.
+
   SECURITY POLICY (MANDATORY — read and follow):
   Read and strictly follow: paperclip/security-policy.md
   Key rules:
