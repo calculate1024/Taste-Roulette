@@ -49,17 +49,20 @@ router.get('/:cardId', async (req: Request<{ cardId: string }>, res: Response) =
 <head>
   <meta charset="utf-8" />
   <meta property="og:title" content="${title} - ${artist}" />
-  <meta property="og:description" content="品味距離 ${tastePercent}% 的推薦" />
+  <meta property="og:description" content="A recommendation ${tastePercent}% away from my taste" />
   <meta property="og:image" content="${coverUrl}" />
-  <meta property="og:url" content="https://taste-roulette.app/share/${escapeHtml(cardId)}" />
+  <meta property="og:url" content="https://taste-roulette.vercel.app/api/share/${escapeHtml(cardId)}" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${title} - ${artist}" />
-  <meta name="twitter:description" content="品味距離 ${tastePercent}% 的推薦" />
+  <meta name="twitter:description" content="A recommendation ${tastePercent}% away from my taste" />
   <meta name="twitter:image" content="${coverUrl}" />
-  <meta http-equiv="refresh" content="0;url=taste-roulette://card/${escapeHtml(cardId)}" />
+  <meta http-equiv="refresh" content="2;url=taste-roulette://card/${escapeHtml(cardId)}" />
 </head>
-<body>
-  <p>Redirecting to Taste Roulette...</p>
+<body style="background:#0F0F1A;color:#fff;font-family:system-ui;text-align:center;padding:40px;">
+  <h2>${title} - ${artist}</h2>
+  <p>A recommendation ${tastePercent}% away from someone's taste</p>
+  <p style="margin-top:20px;"><a href="https://taste-roulette.vercel.app" style="color:#6C5CE7;">Download Taste Roulette</a></p>
+  <p style="color:#666;font-size:12px;">Redirecting to app...</p>
 </body>
 </html>`);
 });

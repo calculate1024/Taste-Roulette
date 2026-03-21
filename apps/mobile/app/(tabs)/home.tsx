@@ -23,6 +23,7 @@ import BlurBackground from '../../components/BlurBackground';
 import SkeletonCard from '../../components/SkeletonCard';
 import { colors, spacing, radius, typo, button, layout, shadow } from '../../constants/theme';
 import { useAnalytics, Events } from '../../hooks/useAnalytics';
+import { getReferralStats } from '../../services/api';
 import type { FeedbackReaction } from '../../../../packages/shared/types';
 
 export default function HomeScreen() {
@@ -38,6 +39,7 @@ export default function HomeScreen() {
   const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [showShareCard, setShowShareCard] = useState(false);
   const [echo, setEcho] = useState<YesterdayEcho | null>(null);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
   const { track: trackEvent } = useAnalytics();
 
   const userId = session?.user?.id;
@@ -75,6 +77,7 @@ export default function HomeScreen() {
   useEffect(() => {
     fetchCard();
     getYesterdayEcho().then(setEcho).catch(() => {});
+    getReferralStats().then((r) => { if (r?.code) setReferralCode(r.code); }).catch(() => {});
   }, [fetchCard]);
 
   const handleRefresh = useCallback(async () => {
@@ -218,6 +221,7 @@ export default function HomeScreen() {
             coverUrl: todayCard.track.coverUrl ?? '',
           }}
           tasteDistance={todayCard.tasteDistance ?? 0.5}
+          referralCode={referralCode ?? undefined}
           onShare={handleShare}
           onClose={() => setShowShareCard(false)}
         />
