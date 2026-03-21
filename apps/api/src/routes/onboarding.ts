@@ -6,22 +6,86 @@ import { trackEvent } from '../utils/analytics';
 
 const router = Router();
 
-// GET /api/onboarding/tracks — get onboarding tracks from DB
+// Curated onboarding tracks — high-recognition songs covering all genre dimensions.
+// Selected for: global recognition, genre diversity, clear genre signal.
+// Target: Western/English-speaking market should recognize 70%+.
+// IDs verified against actual Supabase tracks table
+const CURATED_ONBOARDING_IDS = [
+  // Pop/R&B
+  '0VjIjW4GlUZAMYd2vXMi3b', // Blinding Lights — The Weeknd
+  '7qiZfU4dY1lWllzX7mPBI3', // Shape of You — Ed Sheeran
+  // Rock
+  '4CeeEOM32jQcH3eN9Q2dGj', // Smells Like Teen Spirit — Nirvana
+  '5CQ30WqJwcep0pYcV4AMNc', // Stairway to Heaven — Led Zeppelin
+  // Hip-Hop
+  '5Z01UMMf7V1o0MzF86s6WJ', // Lose Yourself — Eminem
+  '3iVcZ5G6tvkXZkZKlMpIUs', // Alright — Kendrick Lamar
+  // Electronic
+  '2Foc5Q5nqNiosCNqttzHof', // Get Lucky — Daft Punk
+  '2374M0fQpWi3dLnB54qaLX', // Africa — Toto
+  // Jazz/Classical
+  '1YQWosTIljIvxAgHWTp7KP', // Take Five — Dave Brubeck
+  '6Er8Fz6fuZNi5cvwQjv1ya', // Clair de Lune — Debussy
+  // Latin/Reggae
+  '6rPO02ozF3bM7NnOV4h6s2', // Despacito — Luis Fonsi
+  '6JRLFiX9NJSoRRKxowlBYr', // Is This Love — Bob Marley
+  // Folk/Country
+  '3KkXRkHbMCARz0aVfEt68P', // Sunflower — Post Malone
+  '1YYhDizHx7PnDhAhko6cDS', // Take Me Home, Country Roads — John Denver
+  // Indie/Alternative
+  '003vvx7Niy0yvhvHt4a68B', // Mr. Brightside — The Killers
+  '1qDrWA6lyx8cLECdZE7TV7', // Somebody That I Used To Know — Gotye
+  // K-Pop
+  '5QDLhrAOJJdNAmCTJ8xMyW', // Dynamite — BTS
+  '2Fxmhks0bxGSBdJ92vM42m', // bad guy — Billie Eilish
+  // World
+  '63Tl9k1sH8tznn3bqoMuyF', // Waka Waka — Shakira
+  '2YpeDb67231RjR0MgVLzsG', // Old Town Road — Lil Nas X
+];
+
+// GET /api/onboarding/tracks — curated high-recognition tracks for onboarding
 router.get('/tracks', async (_req: Request, res: Response) => {
+  // First try curated list
+  const { data: curated, error: curatedError } = await supabaseAdmin
+    .from('tracks')
+    .select('spotify_id, title, artist, album, cover_url, spotify_url, genres')
+    .in('spotify_id', CURATED_ONBOARDING_IDS);
+
+  if (!curatedError && curated && curated.length >= 15) {
+    // Shuffle and return 20 (or however many we have)
+    const shuffled = curated.sort(() => Math.random() - 0.5).slice(0, 20);
+    res.json({ tracks: shuffled });
+    return;
+  }
+
+  // Fallback: if curated tracks not in DB, use genre-balanced random selection
   const { data, error } = await supabaseAdmin
     .from('tracks')
     .select('spotify_id, title, artist, album, cover_url, spotify_url, genres')
-    .limit(30); // Fetch extra to allow shuffling
+    .limit(200);
 
   if (error) {
     res.status(500).json({ error: 'Failed to fetch onboarding tracks' });
     return;
   }
 
-  // Randomize and return a subset
-  const shuffled = (data || []).sort(() => Math.random() - 0.5).slice(0, 15);
+  // Pick 1-2 tracks per genre for diversity
+  const genreGroups = new Map<string, typeof data>();
+  for (const track of data || []) {
+    const genre = (track.genres as string[])?.[0] || 'unknown';
+    if (!genreGroups.has(genre)) genreGroups.set(genre, []);
+    genreGroups.get(genre)!.push(track);
+  }
 
-  res.json({ tracks: shuffled });
+  const selected: typeof data = [];
+  for (const [, tracks] of genreGroups) {
+    const shuffled = tracks.sort(() => Math.random() - 0.5);
+    selected.push(...shuffled.slice(0, 2));
+  }
+
+  // Shuffle and limit to 20
+  const result = selected.sort(() => Math.random() - 0.5).slice(0, 20);
+  res.json({ tracks: result });
 });
 
 // GET /api/onboarding/personal-tracks — get user's Spotify top tracks for onboarding
