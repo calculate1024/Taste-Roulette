@@ -51,7 +51,7 @@
     "inviteAFriend": "Invite a Friend",
     "yourInviteCode": "Your invite code",
     "shareInvite": "Share",
-    "inviteShareMessage": "Join me on Taste Roulette — an anti-algorithm music app! Use my invite code: {{code}}. Download: https://taste-roulette.vercel.app",
+    "inviteShareMessage": "Join me on Taste Roulette — an anti-algorithm music app! Use my invite code: {{code}}. Download: {{link}}",
     "inviteGenerateFailed": "Failed to generate invite code. Please try again."
   },
   "onboarding": {

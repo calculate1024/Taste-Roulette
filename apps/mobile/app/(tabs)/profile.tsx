@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
 import { useAppStore } from '../../store/appStore';
 import { supabase, getAuthHeaders } from '../../services/supabase';
-import { getProfile, generateInviteCode, type ProfileStats } from '../../services/api';
+import { getProfile, generateInviteCode, getReferralStats, type ProfileStats } from '../../services/api';
 import CountingNumber from '../../components/CountingNumber';
 import { useAnalytics, Events } from '../../hooks/useAnalytics';
 import { colors, spacing, radius, typo, layout, shadow } from '../../constants/theme';
@@ -50,6 +50,10 @@ export default function ProfileScreen() {
     getProfile(userId)
       .then(setStats)
       .finally(() => setLoading(false));
+    // Load existing referral code
+    getReferralStats().then((result) => {
+      if (result?.code) setInviteCode(result.code);
+    });
   }, [userId]);
 
   const fetchSpotifyStatus = async () => {
@@ -158,7 +162,7 @@ export default function ProfileScreen() {
     if (!inviteCode) return;
     try {
       await Share.share({
-        message: t('profile.inviteShareMessage', { code: inviteCode }),
+        message: t('profile.inviteShareMessage', { code: inviteCode, link: `https://taste-roulette.vercel.app/invite/${inviteCode}` }),
       });
     } catch (err) {
       console.error('Share failed:', err);
