@@ -40,6 +40,9 @@ export const posthog = POSTHOG_API_KEY
   ? new PostHog(POSTHOG_API_KEY, { host: process.env.POSTHOG_HOST || 'https://us.i.posthog.com' })
   : null;
 
+const DEPLOYMENT_ENV = process.env.VERCEL_ENV || process.env.NODE_ENV || 'development';
+const isPreview = DEPLOYMENT_ENV === 'preview';
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -48,7 +51,7 @@ app.use(express.json());
 
 // Health check
 app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ status: 'ok', environment: DEPLOYMENT_ENV, timestamp: new Date().toISOString() });
 });
 
 // Landing page + privacy policy (public, no auth)
@@ -102,11 +105,18 @@ app.get('/api/cron/daily', async (req, res) => {
   }
 
   try {
+    // Skip real operations in preview deployments
+    if (isPreview) {
+      res.json({ ok: true, skipped: true, reason: 'preview environment', timestamp: new Date().toISOString() });
+      return;
+    }
+
     const matchingSummary = await runDailyMatching();
     const notificationsSent = await sendDailyNotifications();
 
     res.json({
       ok: true,
+      environment: DEPLOYMENT_ENV,
       matching: matchingSummary,
       notifications_sent: notificationsSent,
       timestamp: new Date().toISOString(),
