@@ -68,6 +68,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       JSON.stringify({
         onboardingCompleted: true,
         onboardingResponses: state.onboardingResponses,
+        recommendPromptDismissedDate: state.recommendPromptDismissedDate,
       })
     );
   },
@@ -85,6 +86,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         set({
           onboardingCompleted: parsed.onboardingCompleted ?? false,
           onboardingResponses: parsed.onboardingResponses ?? [],
+          recommendPromptDismissedDate: parsed.recommendPromptDismissedDate ?? null,
         });
       }
     } catch (e) {
@@ -99,5 +101,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   recommendPromptDismissedDate: null,
   setTodayCard: (card) => set({ todayCard: card }),
   setFeedbackGiven: (given) => set({ feedbackGiven: given }),
-  setRecommendPromptDismissed: (date) => set({ recommendPromptDismissedDate: date }),
+  setRecommendPromptDismissed: (date) => {
+    set({ recommendPromptDismissedDate: date });
+    // Persist to AsyncStorage so it survives app restart
+    AsyncStorage.getItem(STORAGE_KEY).then((raw) => {
+      const parsed = raw ? JSON.parse(raw) : {};
+      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ ...parsed, recommendPromptDismissedDate: date }));
+    }).catch(() => {});
+  },
 }));
