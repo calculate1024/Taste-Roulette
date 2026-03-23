@@ -101,6 +101,17 @@ quality_criteria:
     - "Top genre share < 25% of total pool"
     - "At least 30% of pool added in last 7 days (freshness)"
 
+# Per-curator daily submission limit (Calvin decision 2026-03-23)
+# Background: "World Wanderer" curator submitted 91 tracks in one batch,
+# overwhelming pool diversity. Quality agent flagged it.
+curator_submission_limits:
+  max_per_curator_per_day: 10
+  enforcement: |
+    When processing user_recommendations or curator submissions:
+    - Count submissions from same recommender_id in last 24h
+    - If >= 10, mark excess as used=true (retire without delivering)
+    - Flag high-volume curators in daily log for review
+
 # Environment Setup (CRITICAL — do this first every heartbeat)
 env_setup: |
   All API credentials are stored in the project .env file at the project root.

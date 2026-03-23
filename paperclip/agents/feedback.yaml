@@ -6,6 +6,7 @@ title: Customer Experience Analyst
 reports_to: ceo
 platform: claude-code
 model_tier: haiku
+enabled: false  # Paused 2026-03-23: no app store reviews yet, no real feedback volume. Re-enable at Google Play launch.
 
 budget:
   monthly_usd: 3
