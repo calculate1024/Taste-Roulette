@@ -31,8 +31,10 @@ export default function HomeScreen() {
   const session = useAppStore((s) => s.session);
   const todayCard = useAppStore((s) => s.todayCard);
   const feedbackGiven = useAppStore((s) => s.feedbackGiven);
+  const recommendPromptDismissedDate = useAppStore((s) => s.recommendPromptDismissedDate);
   const setTodayCard = useAppStore((s) => s.setTodayCard);
   const setFeedbackGiven = useAppStore((s) => s.setFeedbackGiven);
+  const setRecommendPromptDismissed = useAppStore((s) => s.setRecommendPromptDismissed);
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -43,6 +45,10 @@ export default function HomeScreen() {
   const { track: trackEvent } = useAnalytics();
 
   const userId = session?.user?.id;
+
+  // Today's date in UTC+8 (YYYY-MM-DD) — used to gate the recommend-back prompt
+  const todayDateStr = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const recommendPromptDismissedToday = recommendPromptDismissedDate === todayDateStr;
 
   const fetchCard = useCallback(async () => {
     if (!userId) return;
@@ -167,7 +173,7 @@ export default function HomeScreen() {
           />
 
           {/* Post-feedback: recommend-back prompt */}
-          {feedbackGiven && (
+          {feedbackGiven && !recommendPromptDismissedToday && (
             <View style={styles.recommendPrompt}>
               <Text style={styles.recommendTitle}>{t('home.yourTurn')}</Text>
               <Text style={styles.recommendSubtitle}>
@@ -194,7 +200,13 @@ export default function HomeScreen() {
               >
                 <Text style={styles.recommendButtonText}>{t('home.goRecommend')}</Text>
               </Pressable>
-              <Pressable style={styles.skipButton} onPress={() => trackEvent(Events.RECOMMEND_BACK_SKIPPED)}>
+              <Pressable
+                style={styles.skipButton}
+                onPress={() => {
+                  trackEvent(Events.RECOMMEND_BACK_SKIPPED);
+                  setRecommendPromptDismissed(todayDateStr);
+                }}
+              >
                 <Text style={styles.skipText}>{t('home.maybeLater')}</Text>
               </Pressable>
             </View>

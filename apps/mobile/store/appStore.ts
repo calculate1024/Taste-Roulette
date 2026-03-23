@@ -32,8 +32,10 @@ interface AppState {
   // Daily roulette
   todayCard: (RouletteCard & { track?: Track }) | null;
   feedbackGiven: boolean;
+  recommendPromptDismissedDate: string | null;
   setTodayCard: (card: (RouletteCard & { track?: Track }) | null) => void;
   setFeedbackGiven: (given: boolean) => void;
+  setRecommendPromptDismissed: (date: string | null) => void;
 }
 
 const STORAGE_KEY = 'taste-roulette-state';
@@ -94,6 +96,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   // Daily roulette
   todayCard: null,
   feedbackGiven: false,
+  recommendPromptDismissedDate: null,
   setTodayCard: (card) => set({ todayCard: card }),
   setFeedbackGiven: (given) => set({ feedbackGiven: given }),
+  setRecommendPromptDismissed: (date) => set({ recommendPromptDismissedDate: date }),
 }));

@@ -20,12 +20,44 @@ import { GENRES, VECTOR_DIM, genreToVector } from '../utils/genres';
 const TOTAL_USERS = 100;
 const ONBOARDING_TRACK_COUNT = 15;
 const SIMULATION_DAYS = 7;
-const RECOMMEND_BACK_RATE = 0.30;
-const CARD_OPEN_RATE = 0.85;
 const SEED_PASSWORD = 'seed-simulation-2026';
 
-// Feedback distribution (matches KPI targets)
-const FEEDBACK_DIST = { surprised: 0.25, okay: 0.50, not_for_me: 0.25 };
+// ─── Behavioral model constants ──────────────────────────────────────────
+// These are NOT target KPIs — they define how simulated humans react.
+// The *outputs* (actual surprise rate, retention) should emerge from the
+// interaction between these behavioral rules and the matching algorithm.
+
+// Feedback probability = f(taste_distance)
+// Each row: [surprised, okay, not_for_me]
+const FEEDBACK_BY_DISTANCE: Record<string, [number, number, number]> = {
+  'too_close':  [0.10, 0.70, 0.20],  // dist < 0.2 — boring, no novelty
+  'near':       [0.30, 0.50, 0.20],  // dist 0.2-0.35 — slightly familiar
+  'sweet_low':  [0.40, 0.40, 0.20],  // dist 0.35-0.5 — good surprise zone
+  'sweet_high': [0.35, 0.30, 0.35],  // dist 0.5-0.65 — exciting but risky
+  'far':        [0.15, 0.25, 0.60],  // dist 0.65-0.8 — too unfamiliar
+  'too_far':    [0.05, 0.15, 0.80],  // dist > 0.8 — alienating
+};
+
+function getDistanceBucket(dist: number): string {
+  if (dist < 0.2)  return 'too_close';
+  if (dist < 0.35) return 'near';
+  if (dist < 0.5)  return 'sweet_low';
+  if (dist < 0.65) return 'sweet_high';
+  if (dist < 0.8)  return 'far';
+  return 'too_far';
+}
+
+// Open rate model: base decays over days, modified by past experience
+const BASE_OPEN_RATE_DAY1 = 0.92;
+const DAILY_DECAY = 0.03;          // -3% per day natural decay
+const SURPRISED_BOOST = 0.08;      // last reaction was surprised → +8%
+const NOT_FOR_ME_PENALTY = 0.12;   // last reaction was not_for_me → -12%
+const CONSECUTIVE_BAD_CHURN = 0.30; // 2+ consecutive not_for_me → 30% chance to skip
+
+// Recommend-back model: correlated with satisfaction
+const RECOMMEND_RATE_SURPRISED = 0.50;
+const RECOMMEND_RATE_OKAY = 0.20;
+const RECOMMEND_RATE_NOT_FOR_ME = 0.05;
 
 // ─── Persona generation ──────────────────────────────────────────────────
 
@@ -92,12 +124,37 @@ const FEEDBACK_COMMENTS: Record<string, string[]> = {
   ],
 };
 
-/** Pick a weighted random reaction */
-function weightedReaction(): 'surprised' | 'okay' | 'not_for_me' {
+/** Pick reaction based on taste distance — the core behavioral model */
+function distanceDrivenReaction(tasteDistance: number): 'surprised' | 'okay' | 'not_for_me' {
+  const bucket = getDistanceBucket(tasteDistance);
+  const [pSurprised, pOkay] = FEEDBACK_BY_DISTANCE[bucket];
   const r = Math.random();
-  if (r < FEEDBACK_DIST.surprised) return 'surprised';
-  if (r < FEEDBACK_DIST.surprised + FEEDBACK_DIST.okay) return 'okay';
+  if (r < pSurprised) return 'surprised';
+  if (r < pSurprised + pOkay) return 'okay';
   return 'not_for_me';
+}
+
+/** Compute open probability for a user on a given day */
+function computeOpenRate(day: number, lastReaction: string | null, consecutiveBad: number): number {
+  let rate = BASE_OPEN_RATE_DAY1 - (day * DAILY_DECAY);
+
+  // Experience-based modification
+  if (lastReaction === 'surprised') rate += SURPRISED_BOOST;
+  if (lastReaction === 'not_for_me') rate -= NOT_FOR_ME_PENALTY;
+
+  // Churn risk: 2+ consecutive bad → chance to skip entirely
+  if (consecutiveBad >= 2 && Math.random() < CONSECUTIVE_BAD_CHURN) {
+    return 0; // user churned for this day
+  }
+
+  return Math.max(0.10, Math.min(0.98, rate)); // clamp between 10%-98%
+}
+
+/** Decide if user recommends back based on their reaction */
+function shouldRecommendBack(reaction: string): boolean {
+  if (reaction === 'surprised') return Math.random() < RECOMMEND_RATE_SURPRISED;
+  if (reaction === 'okay') return Math.random() < RECOMMEND_RATE_OKAY;
+  return Math.random() < RECOMMEND_RATE_NOT_FOR_ME;
 }
 
 /** Pick onboarding reaction based on genre match */
@@ -315,8 +372,9 @@ async function main() {
   console.log('--- Phase 2: Simulating recommendations ---\n');
 
   let totalRecs = 0;
+  const INITIAL_RECOMMEND_RATE = 0.25; // 25% of users submit a rec during onboarding
   for (let i = 0; i < userIds.length; i++) {
-    if (Math.random() > RECOMMEND_BACK_RATE) continue;
+    if (Math.random() > INITIAL_RECOMMEND_RATE) continue;
 
     const userId = userIds[i];
     const userVec = userVectors[i];
@@ -351,13 +409,30 @@ async function main() {
   }
   console.log(`Inserted ${totalRecs} user recommendations\n`);
 
-  // 5. Simulate 7 days of card delivery + interaction
-  console.log('--- Phase 3: Simulating 7 days of usage ---\n');
+  // 5. Simulate 7 days of card delivery + interaction (behavioral model)
+  console.log('--- Phase 3: Simulating 7 days of usage (behavioral model) ---\n');
+
+  // Per-user state tracking
+  const userState: Record<string, {
+    lastReaction: string | null;
+    consecutiveBad: number;
+    streak: number;
+    totalSurprised: number;
+    totalNotForMe: number;
+  }> = {};
+  for (const uid of userIds) {
+    userState[uid] = { lastReaction: null, consecutiveBad: 0, streak: 0, totalSurprised: 0, totalNotForMe: 0 };
+  }
 
   let totalCards = 0;
   let totalOpened = 0;
   let totalFeedback = 0;
+  let totalRecommendsFromFeedback = 0;
   const reactionCounts = { surprised: 0, okay: 0, not_for_me: 0 };
+  const distanceBucketCounts: Record<string, { total: number; surprised: number; okay: number; not_for_me: number }> = {};
+  for (const bucket of Object.keys(FEEDBACK_BY_DISTANCE)) {
+    distanceBucketCounts[bucket] = { total: 0, surprised: 0, okay: 0, not_for_me: 0 };
+  }
 
   for (let day = 0; day < SIMULATION_DAYS; day++) {
     const dayDate = new Date();
@@ -368,13 +443,15 @@ async function main() {
     let dayCards = 0;
     let dayOpened = 0;
     let dayFeedback = 0;
+    let dayChurned = 0;
 
-    // Pair users for this day (simple random pairing from recommendation pool or curator fallback)
     const shuffledUsers = [...userIds].sort(() => Math.random() - 0.5);
 
     for (let i = 0; i < shuffledUsers.length; i++) {
       const recipientId = shuffledUsers[i];
-      const recipientVec = userVectors[userIds.indexOf(recipientId)];
+      const recipientIdx = userIds.indexOf(recipientId);
+      const recipientVec = userVectors[recipientIdx];
+      const state = userState[recipientId];
 
       // Find a recommender with moderate taste distance
       let recommenderId: string | null = null;
@@ -402,7 +479,6 @@ async function main() {
           tasteDist = cosineDistance(recipientVec, userVectors[recIdx]);
         }
 
-        // Mark as used
         await supabaseAdmin
           .from('user_recommendations')
           .update({ used: true })
@@ -429,9 +505,8 @@ async function main() {
 
       if (!trackId) continue;
 
-      // Insert roulette card
       const cardCreatedAt = new Date(dayDate);
-      cardCreatedAt.setHours(8, 0, 0, 0); // 8am delivery
+      cardCreatedAt.setHours(8, 0, 0, 0);
 
       const { data: card, error: cardError } = await supabaseAdmin
         .from('roulette_cards')
@@ -453,10 +528,11 @@ async function main() {
       dayCards++;
       totalCards++;
 
-      // Simulate open (~85%)
-      if (Math.random() < CARD_OPEN_RATE) {
+      // ── Behavioral open decision ──
+      const openRate = computeOpenRate(day, state.lastReaction, state.consecutiveBad);
+      if (Math.random() < openRate) {
         const openedAt = new Date(cardCreatedAt);
-        openedAt.setHours(8 + Math.floor(Math.random() * 14)); // open between 8am-10pm
+        openedAt.setHours(8 + Math.floor(Math.random() * 14));
 
         await supabaseAdmin
           .from('roulette_cards')
@@ -465,11 +541,17 @@ async function main() {
 
         dayOpened++;
         totalOpened++;
+        state.streak++;
 
-        // Simulate feedback (~90% of openers give feedback)
+        // ── Behavioral feedback (driven by taste distance) ──
         if (Math.random() < 0.90) {
-          const reaction = weightedReaction();
+          const reaction = distanceDrivenReaction(tasteDist);
           reactionCounts[reaction]++;
+
+          // Track distance bucket stats
+          const bucket = getDistanceBucket(tasteDist);
+          distanceBucketCounts[bucket].total++;
+          distanceBucketCounts[bucket][reaction]++;
 
           const comment = Math.random() < 0.3 ? pick(FEEDBACK_COMMENTS[reaction]) : null;
 
@@ -488,30 +570,93 @@ async function main() {
 
           dayFeedback++;
           totalFeedback++;
+
+          // ── Update user state ──
+          state.lastReaction = reaction;
+          if (reaction === 'not_for_me') {
+            state.consecutiveBad++;
+            state.totalNotForMe++;
+          } else {
+            state.consecutiveBad = 0;
+            if (reaction === 'surprised') state.totalSurprised++;
+          }
+
+          // ── Behavioral recommend-back (correlated with satisfaction) ──
+          if (shouldRecommendBack(reaction)) {
+            const recCandidates = allTracks
+              .map((t) => ({ track: t, dist: cosineDistance(recipientVec, genreToVector(t.genres || [])) }))
+              .filter((c) => c.dist > 0.2 && c.dist < 0.8)
+              .sort(() => Math.random() - 0.5);
+
+            const chosen = recCandidates[0];
+            if (chosen) {
+              const genre = chosen.track.genres?.[0] || 'music';
+              await supabaseAdmin.from('user_recommendations').insert({
+                user_id: recipientId,
+                track_id: chosen.track.spotify_id,
+                reason: pick(REASON_TEMPLATES).replace('{genre}', genre),
+                used: false,
+                is_curator_pick: false,
+              });
+              totalRecommendsFromFeedback++;
+            }
+          }
         }
 
-        // Update streak
+        // Update streak in DB
         await supabaseAdmin
           .from('profiles')
-          .update({ streak_count: day + 1 })
+          .update({ streak_count: state.streak })
+          .eq('id', recipientId);
+      } else {
+        // User didn't open — reset streak
+        state.streak = 0;
+        dayChurned++;
+        await supabaseAdmin
+          .from('profiles')
+          .update({ streak_count: 0 })
           .eq('id', recipientId);
       }
     }
 
-    console.log(`${dayCards} cards, ${dayOpened} opened, ${dayFeedback} feedback`);
+    console.log(`${dayCards} cards, ${dayOpened} opened, ${dayFeedback} feedback, ${dayChurned} skipped`);
   }
 
-  // 6. Summary
+  // 6. Summary with behavioral insights
   console.log('\n=== Simulation Complete ===\n');
   console.log(`Users created:       ${userIds.length}`);
   console.log(`Onboarding records:  ${userIds.length * ONBOARDING_TRACK_COUNT}`);
-  console.log(`Recommendations:     ${totalRecs}`);
+  console.log(`Initial recs:        ${totalRecs}`);
+  console.log(`Recs from feedback:  ${totalRecommendsFromFeedback} (behavioral recommend-back)`);
   console.log(`Roulette cards:      ${totalCards}`);
   console.log(`Cards opened:        ${totalOpened} (${((totalOpened / totalCards) * 100).toFixed(0)}%)`);
   console.log(`Feedback given:      ${totalFeedback}`);
   console.log(`  surprised:         ${reactionCounts.surprised} (${((reactionCounts.surprised / totalFeedback) * 100).toFixed(0)}%)`);
   console.log(`  okay:              ${reactionCounts.okay} (${((reactionCounts.okay / totalFeedback) * 100).toFixed(0)}%)`);
   console.log(`  not_for_me:        ${reactionCounts.not_for_me} (${((reactionCounts.not_for_me / totalFeedback) * 100).toFixed(0)}%)`);
+
+  // Distance bucket analysis — this is the key design validation
+  console.log('\n--- Design Validation: Reaction by Taste Distance ---\n');
+  console.log('Distance Bucket    | Total | Surprised | Okay  | Not For Me');
+  console.log('-------------------|-------|-----------|-------|----------');
+  for (const [bucket, counts] of Object.entries(distanceBucketCounts)) {
+    if (counts.total === 0) continue;
+    const pct = (n: number) => `${((n / counts.total) * 100).toFixed(0)}%`.padStart(4);
+    console.log(
+      `${bucket.padEnd(18)} | ${String(counts.total).padStart(5)} | ${pct(counts.surprised).padStart(9)} | ${pct(counts.okay).padStart(5)} | ${pct(counts.not_for_me).padStart(9)}`
+    );
+  }
+
+  // User engagement summary
+  const activeUsers = Object.values(userState).filter((s) => s.streak > 0).length;
+  const churnedUsers = Object.values(userState).filter((s) => s.streak === 0 && s.totalNotForMe >= 2).length;
+  const happyUsers = Object.values(userState).filter((s) => s.totalSurprised >= 2).length;
+
+  console.log('\n--- User Engagement (Day 7 snapshot) ---\n');
+  console.log(`Active (streak > 0): ${activeUsers} / ${userIds.length}`);
+  console.log(`Churned (streak=0, 2+ bad): ${churnedUsers}`);
+  console.log(`Happy (2+ surprises): ${happyUsers}`);
+  console.log(`D7 retention rate:   ${((activeUsers / userIds.length) * 100).toFixed(0)}%`);
   console.log();
 }
 

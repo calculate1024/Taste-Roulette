@@ -32,3 +32,5 @@ Thumbs.db
 # Archives
 *.zip
 .claude/settings.local.json
+apps/mobile/build-*.apk
+apps/mobile/assets/icon-v4-preview.png
