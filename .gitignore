@@ -31,3 +31,4 @@ Thumbs.db
 
 # Archives
 *.zip
+.claude/settings.local.json
