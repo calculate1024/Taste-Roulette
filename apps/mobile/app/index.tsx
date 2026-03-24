@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { router } from 'expo-router';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAppStore } from '../store/appStore';
+import { colors } from '../constants/theme';
 
 export default function Index() {
   const session = useAppStore((s) => s.session);
@@ -23,7 +24,7 @@ export default function Index() {
   if (!isAuthReady) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#6C5CE7" />
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
@@ -36,6 +37,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0F0F1A',
+    backgroundColor: colors.bg,
   },
 });

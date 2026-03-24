@@ -81,7 +81,8 @@
     "loadingTracks": "正在載入曲目...",
     "couldNotLoadTracksError": "無法載入曲目。",
     "continueAnyway": "繼續",
-    "spotifyAuthFailed": "無法連結 Spotify。你可以稍後再試，或直接跳過繼續。"
+    "spotifyAuthFailed": "無法連結 Spotify。你可以稍後再試，或直接跳過繼續。",
+    "startOnboarding": "開始探索 →"
   },
   "genrePick": {
     "title": "\u4F60\u5E73\u5E38\u807D\u4EC0\u9EBC\uFF1F",
@@ -249,6 +250,8 @@
     "forgotPassword": "忘記密碼？",
     "enterEmailFirst": "請先輸入你的電子信箱。",
     "resetPasswordTitle": "密碼重設",
-    "resetPasswordSent": "重設連結已寄出，請查收信箱。"
+    "resetPasswordSent": "重設連結已寄出，請查收信箱。",
+    "invalidEmail": "請輸入有效的電子信箱。",
+    "passwordTooShort": "密碼至少需要 6 個字元。"
   }
 }

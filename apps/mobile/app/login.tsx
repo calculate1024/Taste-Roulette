@@ -48,6 +48,14 @@ export default function LoginScreen() {
       Alert.alert(t('common.error'), t('login.fillBothFields'));
       return;
     }
+    if (!email.includes('@') || !email.includes('.')) {
+      Alert.alert(t('common.error'), t('login.invalidEmail'));
+      return;
+    }
+    if (isSignUp && password.length < 6) {
+      Alert.alert(t('common.error'), t('login.passwordTooShort'));
+      return;
+    }
 
     setLoading(true);
     try {

@@ -81,7 +81,8 @@
     "loadingTracks": "Loading tracks...",
     "couldNotLoadTracksError": "Could not load tracks.",
     "continueAnyway": "Continue anyway",
-    "spotifyAuthFailed": "Could not connect to Spotify. You can try again later or continue without it."
+    "spotifyAuthFailed": "Could not connect to Spotify. You can try again later or continue without it.",
+    "startOnboarding": "Get Started →"
   },
   "genrePick": {
     "title": "What do you listen to?",
@@ -249,6 +250,8 @@
     "forgotPassword": "Forgot password?",
     "enterEmailFirst": "Please enter your email address first.",
     "resetPasswordTitle": "Password Reset",
-    "resetPasswordSent": "Check your email for reset link."
+    "resetPasswordSent": "Check your email for reset link.",
+    "invalidEmail": "Please enter a valid email address.",
+    "passwordTooShort": "Password must be at least 6 characters."
   }
 }

@@ -101,26 +101,26 @@ export default function OnboardingGatewayScreen() {
           {t('onboarding.connectSpotifyDescription')}
         </Text>
 
-        {/* Spotify connect button */}
+        {/* Primary: Skip Spotify and start */}
+        <Pressable style={styles.primaryButton} onPress={handleSkipSpotify}>
+          <Text style={styles.primaryButtonText}>
+            {t('onboarding.startOnboarding')}
+          </Text>
+        </Pressable>
+
+        {/* Secondary: Spotify connect (optional, de-emphasized) */}
         <Pressable
-          style={[styles.spotifyButton, loading && styles.buttonDisabled]}
+          style={[styles.spotifyLink, loading && styles.buttonDisabled]}
           onPress={handleConnectSpotify}
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color={colors.textPrimary} size="small" />
+            <ActivityIndicator color={colors.textSecondary} size="small" />
           ) : (
-            <Text style={styles.spotifyButtonText}>
+            <Text style={styles.spotifyLinkText}>
               {t('onboarding.connectSpotifyStart')}
             </Text>
           )}
-        </Pressable>
-
-        {/* Skip link */}
-        <Pressable style={styles.skipButton} onPress={handleSkipSpotify}>
-          <Text style={styles.skipButtonText}>
-            {t('onboarding.continueWithoutSpotify')}
-          </Text>
         </Pressable>
       </Animated.View>
     </SafeAreaView>
@@ -172,8 +172,8 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 40,
   },
-  spotifyButton: {
-    backgroundColor: colors.spotify,
+  primaryButton: {
+    backgroundColor: colors.accent,
     paddingVertical: spacing.lg,
     paddingHorizontal: spacing.xxl,
     borderRadius: 28,
@@ -181,18 +181,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.lg,
   },
+  primaryButtonText: {
+    ...typo.subheading,
+    fontWeight: '700',
+  },
   buttonDisabled: {
     opacity: 0.6,
   },
-  spotifyButtonText: {
-    ...typo.subheading,
-  },
-  skipButton: {
+  spotifyLink: {
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,
   },
-  skipButtonText: {
-    fontSize: 15,
+  spotifyLinkText: {
+    fontSize: 13,
     color: colors.textSecondary,
   },
 });
