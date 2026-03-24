@@ -80,8 +80,9 @@ taste-roulette/
 
 ### Phase 0: Foundation
 - Email authentication (Supabase Auth)
-- Onboarding swipe questionnaire (8-10 tracks, early exit on clear patterns)
+- **Redesigned onboarding** — 3-step flow: Genre Pick (3-5 genres) → Swipe (10 genre-filtered tracks) → Taste Profile Reveal ("Your Taste DNA")
 - Genre-based taste vector computation (21 dimensions, incl. c-pop)
+- Conservative first card (distance 0.20-0.45) to build trust before pushing boundaries
 - Push notification infrastructure
 
 ### Phase 1: Core Loop
@@ -258,7 +259,7 @@ Badge Categories (6):
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/api/onboarding/tracks` | JWT | Onboarding track list (generic pool) |
+| GET | `/api/onboarding/tracks` | JWT | Onboarding tracks (supports `?genres=` filter for genre-aware mode) |
 | GET | `/api/onboarding/personal-tracks` | JWT | Personalized tracks from Spotify history |
 | POST | `/api/onboarding/responses` | JWT | Submit swipe responses |
 | POST | `/api/onboarding/complete` | JWT | Complete onboarding |

@@ -42,6 +42,22 @@ interface AppState {
 
 const STORAGE_KEY = 'taste-roulette-state';
 
+// Centralized persist — always writes full snapshot from current store state.
+// Avoids read-modify-write race conditions between concurrent setters.
+function persistState(overrides: Record<string, any> = {}) {
+  const s = useAppStore.getState();
+  AsyncStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      onboardingCompleted: s.onboardingCompleted,
+      onboardingResponses: s.onboardingResponses,
+      selectedGenres: s.selectedGenres,
+      recommendPromptDismissedDate: s.recommendPromptDismissedDate,
+      ...overrides,
+    })
+  ).catch(() => {});
+}
+
 export const useAppStore = create<AppState>((set, get) => ({
   session: null,
   isAuthReady: false,
@@ -64,25 +80,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   setSpotifyOnboarding: (v) => set({ spotifyOnboarding: v }),
   setSelectedGenres: (genres) => {
     set({ selectedGenres: genres });
-    // Persist selectedGenres alongside other persisted fields
-    AsyncStorage.getItem(STORAGE_KEY).then((raw) => {
-      const parsed = raw ? JSON.parse(raw) : {};
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ ...parsed, selectedGenres: genres }));
-    }).catch(() => {});
+    persistState({ selectedGenres: genres });
   },
 
   completeOnboarding: () => {
     set({ onboardingCompleted: true });
-    const state = get();
-    AsyncStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        onboardingCompleted: true,
-        onboardingResponses: state.onboardingResponses,
-        selectedGenres: state.selectedGenres,
-        recommendPromptDismissedDate: state.recommendPromptDismissedDate,
-      })
-    );
+    persistState({ onboardingCompleted: true });
   },
 
   resetOnboarding: () => {
@@ -116,10 +119,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   setFeedbackGiven: (given) => set({ feedbackGiven: given }),
   setRecommendPromptDismissed: (date) => {
     set({ recommendPromptDismissedDate: date });
-    // Persist to AsyncStorage so it survives app restart
-    AsyncStorage.getItem(STORAGE_KEY).then((raw) => {
-      const parsed = raw ? JSON.parse(raw) : {};
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ ...parsed, recommendPromptDismissedDate: date }));
-    }).catch(() => {});
+    persistState({ recommendPromptDismissedDate: date });
   },
 }));
