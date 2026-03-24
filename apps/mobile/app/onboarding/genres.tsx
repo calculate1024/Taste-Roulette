@@ -127,18 +127,16 @@ export default function GenrePickScreen() {
           )}
         </View>
 
-        {/* Next button — hidden when over max */}
-        {!isMaxed || canProceed ? (
-          <Pressable
-            style={[styles.nextButton, !canProceed && styles.nextButtonDisabled]}
-            onPress={handleNext}
-            disabled={!canProceed}
-          >
-            <Text style={[styles.nextButtonText, !canProceed && styles.nextButtonTextDisabled]}>
-              {t('genrePick.next')} {'\u2192'}
-            </Text>
-          </Pressable>
-        ) : null}
+        {/* Next button */}
+        <Pressable
+          style={[styles.nextButton, !canProceed && styles.nextButtonDisabled]}
+          onPress={handleNext}
+          disabled={!canProceed}
+        >
+          <Text style={[styles.nextButtonText, !canProceed && styles.nextButtonTextDisabled]}>
+            {t('genrePick.next')} {'\u2192'}
+          </Text>
+        </Pressable>
       </Animated.View>
     </SafeAreaView>
   );

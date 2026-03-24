@@ -14,15 +14,7 @@ import { colors, spacing, radius, typo, layout, button, shadow } from '../../con
 
 const TOTAL_GENRES = 21;
 
-const TASTE_LABELS_EN: Record<string, string> = {
-  'pop': 'Pop Enthusiast', 'rock': 'Rock Explorer', 'hip-hop': 'Hip-Hop Head',
-  'r&b': 'R&B Connoisseur', 'jazz': 'Jazz Curious', 'classical': 'Classical Soul',
-  'electronic': 'Electronic Voyager', 'latin': 'Latin Lover', 'country': 'Country Roads',
-  'folk': 'Folk Storyteller', 'metal': 'Metal Warrior', 'punk': 'Punk Spirit',
-  'indie': 'Indie Dreamer', 'soul': 'Soul Searcher', 'blues': 'Blues Traveler',
-  'reggae': 'Reggae Vibes', 'world': 'World Wanderer', 'ambient': 'Ambient Drifter',
-  'k-pop': 'K-Pop Stan', 'j-pop': 'J-Pop Explorer', 'c-pop': 'C-Pop Fan',
-};
+// Labels come from API via route params — no duplicate mapping needed
 
 const GENRE_EMOJIS: Record<string, string> = {
   'pop': '\uD83C\uDFA4', 'rock': '\uD83C\uDFB8', 'hip-hop': '\uD83C\uDFA4', 'r&b': '\uD83C\uDFB5',
@@ -36,12 +28,23 @@ export default function ProfileRevealScreen() {
   const { t } = useTranslation();
   const completeOnboarding = useAppStore((s) => s.completeOnboarding);
 
-  const { primary, secondary, tertiary, coverage } = useLocalSearchParams<{
-    primary: string;
-    secondary: string;
-    tertiary: string;
+  const params = useLocalSearchParams<{
+    primary_genre: string;
+    primary_label: string;
+    secondary_genre: string;
+    secondary_label: string;
+    tertiary_genre: string;
+    tertiary_label: string;
     coverage: string;
   }>();
+
+  const primary = params.primary_genre || '';
+  const primaryLabel = params.primary_label || '';
+  const secondary = params.secondary_genre || '';
+  const secondaryLabel = params.secondary_label || '';
+  const tertiary = params.tertiary_genre || '';
+  const tertiaryLabel = params.tertiary_label || '';
+  const coverage = params.coverage;
 
   const coverageNum = parseInt(coverage || '3', 10);
   const remaining = TOTAL_GENRES - coverageNum;
@@ -57,7 +60,7 @@ export default function ProfileRevealScreen() {
     const duration = 500;
     const delay = 500;
 
-    Animated.sequence([
+    const anim = Animated.sequence([
       Animated.timing(titleOpacity, {
         toValue: 1,
         duration,
@@ -87,7 +90,9 @@ export default function ProfileRevealScreen() {
         duration: 400,
         useNativeDriver: true,
       }),
-    ]).start();
+    ]);
+    anim.start();
+    return () => anim.stop();
   }, []);
 
   const handleCTA = () => {
@@ -95,7 +100,7 @@ export default function ProfileRevealScreen() {
     router.replace('/(tabs)');
   };
 
-  const getLabel = (genre: string) => TASTE_LABELS_EN[genre] || genre;
+  const getLabel = (genre: string, label: string) => label || genre;
   const getEmoji = (genre: string) => GENRE_EMOJIS[genre] || '\uD83C\uDFB5';
 
   return (
@@ -113,7 +118,7 @@ export default function ProfileRevealScreen() {
             <Text style={styles.labelCategory}>{t('profileReveal.primary')}</Text>
             <View style={styles.labelCard}>
               <Text style={styles.labelEmoji}>{getEmoji(primary || '')}</Text>
-              <Text style={styles.labelPrimary}>{getLabel(primary || '')}</Text>
+              <Text style={styles.labelPrimary}>{getLabel(primary, primaryLabel)}</Text>
             </View>
           </Animated.View>
 
@@ -122,7 +127,7 @@ export default function ProfileRevealScreen() {
             <Text style={styles.labelCategory}>{t('profileReveal.secondary')}</Text>
             <View style={styles.labelCard}>
               <Text style={styles.labelEmoji}>{getEmoji(secondary || '')}</Text>
-              <Text style={styles.labelSecondary}>{getLabel(secondary || '')}</Text>
+              <Text style={styles.labelSecondary}>{getLabel(secondary, secondaryLabel)}</Text>
             </View>
           </Animated.View>
 
@@ -131,7 +136,7 @@ export default function ProfileRevealScreen() {
             <Text style={styles.labelCategory}>{t('profileReveal.tertiary')}</Text>
             <View style={styles.labelCard}>
               <Text style={styles.labelEmoji}>{getEmoji(tertiary || '')}</Text>
-              <Text style={styles.labelTertiary}>{getLabel(tertiary || '')}</Text>
+              <Text style={styles.labelTertiary}>{getLabel(tertiary, tertiaryLabel)}</Text>
             </View>
           </Animated.View>
         </View>

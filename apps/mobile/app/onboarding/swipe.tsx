@@ -46,6 +46,18 @@ interface TrackItem {
   spotifyUrl: string;
 }
 
+function mapApiTrack(t: any): TrackItem {
+  return {
+    id: t.spotify_id,
+    title: t.title,
+    artist: t.artist,
+    album: t.album || '',
+    coverUrl: t.cover_url || '',
+    genres: t.genres || [],
+    spotifyUrl: t.spotify_url || '',
+  };
+}
+
 export default function OnboardingSwipeScreen() {
   const { t } = useTranslation();
   const { source } = useLocalSearchParams<{ source?: string }>();
@@ -87,15 +99,7 @@ export default function OnboardingSwipeScreen() {
             throw new Error('Failed to fetch personal tracks');
           }
           const data = await res.json();
-          const mapped: TrackItem[] = (data.tracks || []).map((t: any) => ({
-            id: t.spotify_id,
-            title: t.title,
-            artist: t.artist,
-            album: t.album || '',
-            coverUrl: t.cover_url || '',
-            genres: t.genres || [],
-            spotifyUrl: t.spotify_url || '',
-          }));
+          const mapped = (data.tracks || []).map(mapApiTrack);
           if (mapped.length === 0) {
             throw new Error('No tracks found');
           }
@@ -108,15 +112,7 @@ export default function OnboardingSwipeScreen() {
             const res = await fetch(`${API_URL}/api/onboarding/tracks`, { headers });
             if (res.ok) {
               const data = await res.json();
-              const allTracks: TrackItem[] = (data.tracks || []).map((t: any) => ({
-                id: t.spotify_id,
-                title: t.title,
-                artist: t.artist,
-                album: t.album || '',
-                coverUrl: t.cover_url || '',
-                genres: t.genres || [],
-                spotifyUrl: t.spotify_url || '',
-              }));
+              const allTracks: TrackItem[] = (data.tracks || []).map(mapApiTrack);
               // Filter to only recognized tracks
               const recognized = allTracks.filter((t) => recognizedTracks.includes(t.id));
               if (recognized.length > 0) {
@@ -143,15 +139,7 @@ export default function OnboardingSwipeScreen() {
           const res = await fetch(`${API_URL}/api/onboarding/tracks?genres=${encodeURIComponent(genresParam)}`, { headers });
           if (res.ok) {
             const data = await res.json();
-            const mapped: TrackItem[] = (data.tracks || []).map((t: any) => ({
-              id: t.spotify_id,
-              title: t.title,
-              artist: t.artist,
-              album: t.album || '',
-              coverUrl: t.cover_url || '',
-              genres: t.genres || [],
-              spotifyUrl: t.spotify_url || '',
-            }));
+            const mapped = (data.tracks || []).map(mapApiTrack);
             if (mapped.length > 0) {
               setTracks(mapped);
             } else {
