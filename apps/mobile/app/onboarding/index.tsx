@@ -79,7 +79,7 @@ export default function OnboardingGatewayScreen() {
 
   const handleSkipSpotify = () => {
     setSpotifyOnboarding(false);
-    router.push('/onboarding/recognize');
+    router.push('/onboarding/genres');
   };
 
   return (

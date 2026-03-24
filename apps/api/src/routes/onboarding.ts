@@ -3,6 +3,8 @@ import { supabaseAdmin } from '../services/supabase';
 import { computeTasteVector, curatorFallback } from '../services/matching';
 import { refreshAccessToken, getUserTopTracks, ensureTrackCached } from '../services/spotify';
 import { trackEvent } from '../utils/analytics';
+import { GENRES, TASTE_LABELS, TASTE_LABELS_EN } from '../utils/genres';
+import { GENRE_CORRELATIONS } from '../utils/genre-correlation';
 
 const router = Router();
 
@@ -44,7 +46,95 @@ const CURATED_ONBOARDING_IDS = [
 ];
 
 // GET /api/onboarding/tracks — curated high-recognition tracks for onboarding
-router.get('/tracks', async (_req: Request, res: Response) => {
+// When ?genres=rock,indie,jazz is provided, returns 10 genre-aware tracks (7 matching + 3 adjacent).
+// When no genres param, returns original 20 curated tracks (backward compatible).
+router.get('/tracks', async (req: Request, res: Response) => {
+  const genresParam = req.query.genres as string | undefined;
+
+  // --- Genre-aware mode (new onboarding redesign) ---
+  if (genresParam) {
+    const requestedGenres = genresParam.split(',').map((g) => g.trim().toLowerCase()).filter(Boolean);
+    if (requestedGenres.length === 0) {
+      res.status(400).json({ error: 'genres parameter must contain at least one genre' });
+      return;
+    }
+
+    const trackFields = 'spotify_id, title, artist, album, cover_url, spotify_url, genres';
+    const usedIds = new Set<string>();
+
+    // Step 1: From curated list, find tracks whose genres overlap with requested genres
+    const { data: curatedTracks } = await supabaseAdmin
+      .from('tracks')
+      .select(trackFields)
+      .in('spotify_id', CURATED_ONBOARDING_IDS);
+
+    const curatedMatches = (curatedTracks || []).filter((t) => {
+      const trackGenres = (t.genres as string[] || []).map((g: string) => g.toLowerCase());
+      return trackGenres.some((g: string) => requestedGenres.includes(g));
+    });
+
+    // Shuffle and take up to 7
+    const shuffledCurated = curatedMatches.sort(() => Math.random() - 0.5).slice(0, 7);
+    for (const t of shuffledCurated) usedIds.add(t.spotify_id);
+
+    // Step 2: If < 7 curated matches, supplement from tracks table
+    let genreMatched = [...shuffledCurated];
+    if (genreMatched.length < 7) {
+      const needed = 7 - genreMatched.length;
+      // Query tracks that have overlapping genres, excluding already selected
+      const { data: supplementTracks } = await supabaseAdmin
+        .from('tracks')
+        .select(trackFields)
+        .not('spotify_id', 'in', `(${[...usedIds].join(',') || 'none'})`)
+        .limit(200);
+
+      const supplements = (supplementTracks || [])
+        .filter((t) => {
+          const trackGenres = (t.genres as string[] || []).map((g: string) => g.toLowerCase());
+          return trackGenres.some((g: string) => requestedGenres.includes(g));
+        })
+        .sort(() => Math.random() - 0.5)
+        .slice(0, needed);
+
+      for (const t of supplements) usedIds.add(t.spotify_id);
+      genreMatched = [...genreMatched, ...supplements];
+    }
+
+    // Step 3: Find 3 "adjacent genre" tracks using GENRE_CORRELATIONS
+    const adjacentGenres = new Set<string>();
+    for (const genre of requestedGenres) {
+      const correlated = GENRE_CORRELATIONS[genre] || [];
+      for (const c of correlated) {
+        if (!requestedGenres.includes(c.genre)) {
+          adjacentGenres.add(c.genre);
+        }
+      }
+    }
+
+    let adjacentTracks: typeof genreMatched = [];
+    if (adjacentGenres.size > 0) {
+      const { data: adjCandidates } = await supabaseAdmin
+        .from('tracks')
+        .select(trackFields)
+        .not('spotify_id', 'in', `(${[...usedIds].join(',') || 'none'})`)
+        .limit(200);
+
+      adjacentTracks = (adjCandidates || [])
+        .filter((t) => {
+          const trackGenres = (t.genres as string[] || []).map((g: string) => g.toLowerCase());
+          return trackGenres.some((g: string) => adjacentGenres.has(g));
+        })
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 3);
+    }
+
+    // Step 4: Combine and shuffle final 10
+    const finalTracks = [...genreMatched, ...adjacentTracks].sort(() => Math.random() - 0.5);
+    res.json({ tracks: finalTracks });
+    return;
+  }
+
+  // --- Original mode (no genres param, backward compatible) ---
   // First try curated list
   const { data: curated, error: curatedError } = await supabaseAdmin
     .from('tracks')
@@ -215,9 +305,30 @@ router.post('/complete', async (req: Request, res: Response) => {
     return;
   }
 
-  // Immediately issue the user's first card via taste-aware curator fallback
+  // Build taste profile from the computed vector
+  const indexedScores = tasteVector
+    .map((score: number, i: number) => ({ genre: GENRES[i], score, index: i }))
+    .filter((item) => item.genre) // guard against out-of-bounds
+    .sort((a, b) => b.score - a.score);
+
+  const top3 = indexedScores.slice(0, 3);
+  const coverage = indexedScores.filter((item) => item.score > 0.1).length;
+
+  const rankLabels = ['primary', 'secondary', 'tertiary'] as const;
+  const tasteProfile: Record<string, any> = { coverage };
+  for (let i = 0; i < top3.length; i++) {
+    const g = top3[i].genre;
+    tasteProfile[rankLabels[i]] = {
+      genre: g,
+      label_en: TASTE_LABELS_EN[g] || g,
+      label_zh: TASTE_LABELS[g] || g,
+      score: +(top3[i].score.toFixed(2)),
+    };
+  }
+
+  // Immediately issue the user's first card via taste-aware curator fallback (conservative distance)
   let firstCard = null;
-  const fallback = await curatorFallback(userId);
+  const fallback = await curatorFallback(userId, true);
   if (fallback) {
     const { data: card, error: cardError } = await supabaseAdmin
       .from('roulette_cards')
@@ -243,7 +354,12 @@ router.post('/complete', async (req: Request, res: Response) => {
     first_card_issued: !!firstCard,
   });
 
-  res.json({ ok: true, taste_vector_dims: tasteVector.length, first_card_id: firstCard });
+  res.json({
+    ok: true,
+    taste_vector_dims: tasteVector.length,
+    first_card_id: firstCard,
+    taste_profile: tasteProfile,
+  });
 });
 
 export default router;

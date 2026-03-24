@@ -83,6 +83,22 @@
     "continueAnyway": "繼續",
     "spotifyAuthFailed": "無法連結 Spotify。你可以稍後再試，或直接跳過繼續。"
   },
+  "genrePick": {
+    "title": "\u4F60\u5E73\u5E38\u807D\u4EC0\u9EBC\uFF1F",
+    "subtitle": "\u9078\u64C7 3 \u5230 5 \u500B\u985E\u578B",
+    "next": "\u4E0B\u4E00\u6B65",
+    "minRequired": "\u81F3\u5C11\u9078\u64C7 {{min}} \u500B\u985E\u578B",
+    "maxReached": "\u5DF2\u9054\u6700\u591A {{max}} \u500B\u985E\u578B"
+  },
+  "profileReveal": {
+    "title": "\u4F60\u7684\u54C1\u5473 DNA",
+    "primary": "\u4E3B\u8981",
+    "secondary": "\u6B21\u8981",
+    "tertiary": "\u4E5F\u559C\u6B61",
+    "coverage": "\u4F60\u7684\u8212\u9069\u5708\u6DB5\u84CB\u4E86 21 \u500B\u985E\u578B\u4E2D\u7684 {{count}} \u500B\u3002",
+    "explore": "Taste Roulette \u5C07\u5E36\u4F60\u63A2\u7D22\u5269\u4E0B\u7684 {{remaining}} \u500B\u3002",
+    "seeFirstCard": "\u770B\u770B\u6211\u7684\u7B2C\u4E00\u5F35\u5361\u7247"
+  },
   "recommend": {
     "recommendASong": "推薦一首歌",
     "youJustHeard": "你剛聽了「{{title}}」— 推薦一首同樣精彩的歌",

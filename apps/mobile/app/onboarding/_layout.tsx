@@ -4,8 +4,10 @@ export default function OnboardingLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
+      <Stack.Screen name="genres" />
       <Stack.Screen name="recognize" />
       <Stack.Screen name="swipe" />
+      <Stack.Screen name="profile-reveal" />
     </Stack>
   );
 }

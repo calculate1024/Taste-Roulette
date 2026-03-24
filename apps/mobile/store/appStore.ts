@@ -22,9 +22,11 @@ interface AppState {
   onboardingResponses: OnboardingResponse[];
   recognizedTracks: string[];
   spotifyOnboarding: boolean;
+  selectedGenres: string[];
   addResponse: (trackId: string, reaction: Reaction) => void;
   setRecognizedTracks: (ids: string[]) => void;
   setSpotifyOnboarding: (v: boolean) => void;
+  setSelectedGenres: (genres: string[]) => void;
   completeOnboarding: () => void;
   resetOnboarding: () => void;
   loadPersistedState: () => Promise<void>;
@@ -50,6 +52,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   onboardingResponses: [],
   recognizedTracks: [],
   spotifyOnboarding: false,
+  selectedGenres: [],
 
   addResponse: (trackId, reaction) => {
     set((state) => ({
@@ -59,6 +62,14 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   setRecognizedTracks: (ids) => set({ recognizedTracks: ids }),
   setSpotifyOnboarding: (v) => set({ spotifyOnboarding: v }),
+  setSelectedGenres: (genres) => {
+    set({ selectedGenres: genres });
+    // Persist selectedGenres alongside other persisted fields
+    AsyncStorage.getItem(STORAGE_KEY).then((raw) => {
+      const parsed = raw ? JSON.parse(raw) : {};
+      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ ...parsed, selectedGenres: genres }));
+    }).catch(() => {});
+  },
 
   completeOnboarding: () => {
     set({ onboardingCompleted: true });
@@ -68,13 +79,14 @@ export const useAppStore = create<AppState>((set, get) => ({
       JSON.stringify({
         onboardingCompleted: true,
         onboardingResponses: state.onboardingResponses,
+        selectedGenres: state.selectedGenres,
         recommendPromptDismissedDate: state.recommendPromptDismissedDate,
       })
     );
   },
 
   resetOnboarding: () => {
-    set({ onboardingCompleted: false, onboardingResponses: [], recognizedTracks: [], spotifyOnboarding: false });
+    set({ onboardingCompleted: false, onboardingResponses: [], recognizedTracks: [], spotifyOnboarding: false, selectedGenres: [] });
     AsyncStorage.removeItem(STORAGE_KEY);
   },
 
@@ -86,6 +98,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         set({
           onboardingCompleted: parsed.onboardingCompleted ?? false,
           onboardingResponses: parsed.onboardingResponses ?? [],
+          selectedGenres: parsed.selectedGenres ?? [],
           recommendPromptDismissedDate: parsed.recommendPromptDismissedDate ?? null,
         });
       }

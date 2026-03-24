@@ -83,6 +83,22 @@
     "continueAnyway": "Continue anyway",
     "spotifyAuthFailed": "Could not connect to Spotify. You can try again later or continue without it."
   },
+  "genrePick": {
+    "title": "What do you listen to?",
+    "subtitle": "Pick 3 to 5 genres",
+    "next": "Next",
+    "minRequired": "Pick at least {{min}} genres",
+    "maxReached": "Maximum {{max}} genres selected"
+  },
+  "profileReveal": {
+    "title": "Your Taste DNA",
+    "primary": "Primary",
+    "secondary": "Secondary",
+    "tertiary": "Also into",
+    "coverage": "Your comfort zone covers {{count}} of 21 genres.",
+    "explore": "Taste Roulette will take you to the other {{remaining}}.",
+    "seeFirstCard": "See my first card"
+  },
   "recommend": {
     "recommendASong": "Recommend a Song",
     "youJustHeard": "You just heard \"{{title}}\" — recommend an equally amazing song",

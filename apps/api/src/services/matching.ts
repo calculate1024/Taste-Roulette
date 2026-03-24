@@ -79,8 +79,13 @@ export interface CuratorFallbackResult {
  * preferring tracks near 0.5 for maximum surprise. Falls back to random if no vector.
  */
 export async function curatorFallback(
-  userId: string
+  userId: string,
+  isFirstCard: boolean = false
 ): Promise<CuratorFallbackResult | null> {
+  // First card uses tighter sweet spot for a more accessible initial experience
+  const spotMin = isFirstCard ? 0.20 : SWEET_SPOT_MIN;
+  const spotMax = isFirstCard ? 0.45 : SWEET_SPOT_MAX;
+  const spotCenter = isFirstCard ? 0.30 : SWEET_SPOT_CENTER;
   // 1. Get user's taste vector
   const { data: profile } = await supabaseAdmin
     .from('profiles')
@@ -126,11 +131,11 @@ export async function curatorFallback(
       scored.push({ spotify_id: track.spotify_id, genres: trackGenres, dist });
     }
 
-    // Prefer sweet spot (0.3-0.7), closest to SWEET_SPOT_CENTER (0.4)
-    const sweetSpot = scored.filter((t) => t.dist >= SWEET_SPOT_MIN && t.dist <= SWEET_SPOT_MAX);
+    // Prefer sweet spot, closest to center
+    const sweetSpot = scored.filter((t) => t.dist >= spotMin && t.dist <= spotMax);
 
     if (sweetSpot.length > 0) {
-      sweetSpot.sort((a, b) => Math.abs(a.dist - SWEET_SPOT_CENTER) - Math.abs(b.dist - SWEET_SPOT_CENTER));
+      sweetSpot.sort((a, b) => Math.abs(a.dist - spotCenter) - Math.abs(b.dist - spotCenter));
       // Add slight randomness: pick from top 3 instead of always #1
       const topN = sweetSpot.slice(0, Math.min(3, sweetSpot.length));
       const pick = topN[Math.floor(Math.random() * topN.length)];
@@ -145,8 +150,8 @@ export async function curatorFallback(
     // No sweet spot match: pick the one closest to sweet spot range
     if (scored.length > 0) {
       scored.sort((a, b) => {
-        const aDist = a.dist < SWEET_SPOT_MIN ? SWEET_SPOT_MIN - a.dist : a.dist - SWEET_SPOT_MAX;
-        const bDist = b.dist < SWEET_SPOT_MIN ? SWEET_SPOT_MIN - b.dist : b.dist - SWEET_SPOT_MAX;
+        const aDist = a.dist < spotMin ? spotMin - a.dist : a.dist - spotMax;
+        const bDist = b.dist < spotMin ? spotMin - b.dist : b.dist - spotMax;
         return aDist - bDist;
       });
       const pick = scored[0];

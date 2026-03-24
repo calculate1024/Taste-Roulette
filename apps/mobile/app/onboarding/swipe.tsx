@@ -135,6 +135,31 @@ export default function OnboardingSwipeScreen() {
             // No recognized tracks — fallback to all mock tracks
             setTracks(ONBOARDING_TRACKS);
           }
+        } else if (source === 'genres') {
+          // Fetch tracks filtered by user's selected genres
+          const selectedGenres = useAppStore.getState().selectedGenres;
+          const headers = await getAuthHeaders();
+          const genresParam = selectedGenres.join(',');
+          const res = await fetch(`${API_URL}/api/onboarding/tracks?genres=${encodeURIComponent(genresParam)}`, { headers });
+          if (res.ok) {
+            const data = await res.json();
+            const mapped: TrackItem[] = (data.tracks || []).map((t: any) => ({
+              id: t.spotify_id,
+              title: t.title,
+              artist: t.artist,
+              album: t.album || '',
+              coverUrl: t.cover_url || '',
+              genres: t.genres || [],
+              spotifyUrl: t.spotify_url || '',
+            }));
+            if (mapped.length > 0) {
+              setTracks(mapped);
+            } else {
+              setTracks(ONBOARDING_TRACKS);
+            }
+          } else {
+            setTracks(ONBOARDING_TRACKS);
+          }
         } else {
           // Default fallback — use hardcoded tracks
           setTracks(ONBOARDING_TRACKS);
@@ -197,13 +222,34 @@ export default function OnboardingSwipeScreen() {
 
       if (!response.ok) throw new Error('Failed to complete onboarding');
 
-      // 3. Update local state
+      const result = await response.json();
+
+      // 3. Track event
       trackEvent(Events.ONBOARDING_COMPLETED, {
         source: source || 'default',
         totalResponses: useAppStore.getState().onboardingResponses.length,
       });
-      completeOnboarding();
-      router.replace('/(tabs)/home');
+
+      // 4. Navigate to taste profile reveal (completeOnboarding called there)
+      if (result.taste_profile) {
+        const { primary, secondary, tertiary, coverage } = result.taste_profile;
+        router.replace({
+          pathname: '/onboarding/profile-reveal',
+          params: {
+            primary_genre: primary?.genre || '',
+            primary_label: primary?.label_en || '',
+            secondary_genre: secondary?.genre || '',
+            secondary_label: secondary?.label_en || '',
+            tertiary_genre: tertiary?.genre || '',
+            tertiary_label: tertiary?.label_en || '',
+            coverage: String(coverage || 0),
+          },
+        });
+      } else {
+        // Fallback: no profile data, go straight to home
+        completeOnboarding();
+        router.replace('/(tabs)/home');
+      }
     } catch (error) {
       Alert.alert(t('common.error'), t('common.failedOnboarding'));
       console.error(error);

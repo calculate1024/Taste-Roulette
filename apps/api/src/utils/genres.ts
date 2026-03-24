@@ -104,7 +104,7 @@ export function computeWeightedVector(
   return weightedSum.map((v: number) => v / weightTotal);
 }
 
-// Taste label mapping for dominant genres
+// Taste label mapping for dominant genres (Chinese)
 export const TASTE_LABELS: Record<string, string> = {
   'pop': 'Pop 愛好者',
   'rock': '搖滾魂',
@@ -127,6 +127,31 @@ export const TASTE_LABELS: Record<string, string> = {
   'k-pop': 'K-Pop 粉',
   'j-pop': 'J-Pop 迷',
   'c-pop': '華語流行迷',
+};
+
+// Taste label mapping for dominant genres (English)
+export const TASTE_LABELS_EN: Record<string, string> = {
+  'pop': 'Pop Enthusiast',
+  'rock': 'Rock Explorer',
+  'hip-hop': 'Hip-Hop Head',
+  'r&b': 'R&B Connoisseur',
+  'jazz': 'Jazz Curious',
+  'classical': 'Classical Soul',
+  'electronic': 'Electronic Voyager',
+  'latin': 'Latin Lover',
+  'country': 'Country Roads',
+  'folk': 'Folk Storyteller',
+  'metal': 'Metal Warrior',
+  'punk': 'Punk Spirit',
+  'indie': 'Indie Dreamer',
+  'soul': 'Soul Searcher',
+  'blues': 'Blues Traveler',
+  'reggae': 'Reggae Vibes',
+  'world': 'World Wanderer',
+  'ambient': 'Ambient Drifter',
+  'k-pop': 'K-Pop Stan',
+  'j-pop': 'J-Pop Explorer',
+  'c-pop': 'C-Pop Fan',
 };
 
 /** Get top N dominant genres from a taste vector. */

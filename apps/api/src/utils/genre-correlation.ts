@@ -65,6 +65,25 @@ const GENRE_PAIRS: [string, string, number][] = [
   ['j-pop', 'c-pop', 0.4],
 ];
 
+// Genre correlation lookup: maps each genre to its correlated genres sorted by strength (descending).
+// Used by onboarding to find "adjacent" genres for discovery tracks.
+function buildGenreCorrelations(): Record<string, { genre: string; strength: number }[]> {
+  const map: Record<string, { genre: string; strength: number }[]> = {};
+  for (const [a, b, strength] of GENRE_PAIRS) {
+    if (!map[a]) map[a] = [];
+    if (!map[b]) map[b] = [];
+    map[a].push({ genre: b, strength });
+    map[b].push({ genre: a, strength });
+  }
+  // Sort each list by strength descending
+  for (const key of Object.keys(map)) {
+    map[key].sort((x, y) => y.strength - x.strength);
+  }
+  return map;
+}
+
+export const GENRE_CORRELATIONS = buildGenreCorrelations();
+
 // Build the full correlation matrix (21x21)
 function buildCorrelationMatrix(): number[][] {
   const matrix: number[][] = Array.from({ length: VECTOR_DIM }, () =>
