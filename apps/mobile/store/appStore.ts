@@ -55,7 +55,7 @@ function persistState(overrides: Record<string, any> = {}) {
       recommendPromptDismissedDate: s.recommendPromptDismissedDate,
       ...overrides,
     })
-  ).catch(() => {});
+  ).catch((e) => console.warn('persistState failed:', e));
 }
 
 export const useAppStore = create<AppState>((set, get) => ({

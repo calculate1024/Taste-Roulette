@@ -156,11 +156,32 @@ export async function getTodayCard(
 }
 
 /**
- * Mark a card as opened.
+ * Mark a card as opened via backend API (triggers streak update).
+ * Falls back to direct Supabase update if API call fails.
  */
 export async function openCard(cardId: string): Promise<void> {
   if (!isSupabaseConfigured()) return;
 
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  try {
+    const res = await fetch(`${apiUrl}/api/roulette/${cardId}/open`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    if (await handleSessionExpiration(res)) return;
+    if (res.ok) return;
+  } catch {
+    // Fall through to direct Supabase fallback
+  }
+
+  // Fallback: direct Supabase update (no streak, but card still opens)
   await supabase
     .from('roulette_cards')
     .update({ status: 'opened', opened_at: new Date().toISOString() })
