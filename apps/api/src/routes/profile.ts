@@ -52,6 +52,32 @@ router.get('/me', async (req: Request, res: Response) => {
     .eq('roulette_cards.recommender_id', userId);
   const impactSurprised = impactCount ?? 0;
 
+  // Max taste distance (for badge: furthest reach)
+  const { data: maxDistRow } = await supabaseAdmin
+    .from('roulette_cards')
+    .select('taste_distance')
+    .eq('recipient_id', userId)
+    .not('taste_distance', 'is', null)
+    .order('taste_distance', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  // Distinct genres explored (for badge: genre explorer)
+  const { data: receivedTracks } = await supabaseAdmin
+    .from('roulette_cards')
+    .select('tracks:track_id(genres)')
+    .eq('recipient_id', userId);
+
+  const genreSet = new Set<string>();
+  if (receivedTracks) {
+    for (const row of receivedTracks) {
+      const track = row.tracks as unknown as { genres: string[] } | null;
+      if (track?.genres) {
+        for (const g of track.genres) genreSet.add(g);
+      }
+    }
+  }
+
   res.json({
     profile: {
       display_name: profile.display_name,
@@ -61,6 +87,8 @@ router.get('/me', async (req: Request, res: Response) => {
         total_surprises: totalSurprises ?? 0,
         total_recommendations: totalRecommendations ?? 0,
         impact_surprised: impactSurprised,
+        genres_explored: genreSet.size,
+        max_taste_distance: maxDistRow?.taste_distance ?? 0,
       },
     },
   });

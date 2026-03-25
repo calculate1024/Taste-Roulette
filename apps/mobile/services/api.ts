@@ -104,16 +104,34 @@ export async function getTodayCard(
     return { ...MOCK_CARD, recipientId: userId };
   }
 
-  const { data: cardData, error: cardError } = await supabase
+  // Priority: show pending/delivered cards first (including bonus cards),
+  // then fall back to the most recent opened/feedback_given card
+  let cardData: any = null;
+
+  const { data: pendingCard } = await supabase
     .from('roulette_cards')
     .select('*')
     .eq('recipient_id', userId)
-    .in('status', ['pending', 'delivered', 'opened', 'feedback_given'])
+    .in('status', ['pending', 'delivered'])
     .order('created_at', { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
-  if (cardError || !cardData) return null;
+  if (pendingCard) {
+    cardData = pendingCard;
+  } else {
+    const { data: recentCard } = await supabase
+      .from('roulette_cards')
+      .select('*')
+      .eq('recipient_id', userId)
+      .in('status', ['opened', 'feedback_given'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    cardData = recentCard;
+  }
+
+  if (!cardData) return null;
 
   // Fetch track metadata separately (no FK relationship for join)
   let track: Track | undefined;
@@ -631,6 +649,9 @@ export interface ProfileStats {
   surprisedCount: number;
   streakCount: number;
   impactSurprised: number;
+  genresExplored: number;
+  totalRecommendations: number;
+  maxTasteDistance: number;
 }
 
 /**
@@ -639,7 +660,7 @@ export interface ProfileStats {
  */
 export async function getProfile(userId: string): Promise<ProfileStats> {
   if (!isSupabaseConfigured()) {
-    return { totalCards: 7, surprisedCount: 3, streakCount: 5, impactSurprised: 2 };
+    return { totalCards: 7, surprisedCount: 3, streakCount: 5, impactSurprised: 2, genresExplored: 4, totalRecommendations: 2, maxTasteDistance: 0.65 };
   }
 
   const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
@@ -659,6 +680,9 @@ export async function getProfile(userId: string): Promise<ProfileStats> {
         surprisedCount: s.total_surprises ?? 0,
         streakCount: json.profile?.streak_count ?? 0,
         impactSurprised: s.impact_surprised ?? 0,
+        genresExplored: s.genres_explored ?? 0,
+        totalRecommendations: s.total_recommendations ?? 0,
+        maxTasteDistance: s.max_taste_distance ?? 0,
       };
     }
   } catch {
@@ -677,5 +701,8 @@ export async function getProfile(userId: string): Promise<ProfileStats> {
     surprisedCount: surprisedResult.count ?? 0,
     streakCount: profileResult.data?.streak_count ?? 0,
     impactSurprised: 0,
+    genresExplored: 0,
+    totalRecommendations: 0,
+    maxTasteDistance: 0,
   };
 }

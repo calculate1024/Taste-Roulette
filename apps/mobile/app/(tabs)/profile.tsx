@@ -16,6 +16,7 @@ import { useAppStore } from '../../store/appStore';
 import { supabase, getAuthHeaders } from '../../services/supabase';
 import { getProfile, generateInviteCode, getReferralStats, type ProfileStats } from '../../services/api';
 import CountingNumber from '../../components/CountingNumber';
+import BadgeGrid from '../../components/BadgeGrid';
 import { useAnalytics, Events } from '../../hooks/useAnalytics';
 import { colors, spacing, radius, typo, layout, shadow } from '../../constants/theme';
 
@@ -200,6 +201,18 @@ export default function ProfileScreen() {
               </Animated.View>
             ))}
           </View>
+        )}
+
+        {/* Badge grid */}
+        {stats && (
+          <BadgeGrid stats={{
+            totalCards: stats.totalCards,
+            surprisedCount: stats.surprisedCount,
+            streakCount: stats.streakCount,
+            genresExplored: stats.genresExplored,
+            totalRecommendations: stats.totalRecommendations,
+            maxTasteDistance: stats.maxTasteDistance,
+          }} />
         )}
 
         {/* Impact section — only show if user has made recommendations */}
