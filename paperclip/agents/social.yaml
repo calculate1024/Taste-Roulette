@@ -152,12 +152,72 @@ content_themes:
 brand_voice:
   tone: "Curious, warm, slightly playful"
   language: "English (primary), Traditional Chinese (secondary)"
-  avoid: "Hard selling, algorithm jargon, personal data"
+  avoid: "Hard selling, algorithm jargon, personal data, hype language (revolutionary, game-changing), excessive exclamation marks"
+  content_ratio: "70% valuable content/engagement, 30% product promotion"
   hashtags:
     - "#TasteRoulette"
     - "#AntiAlgorithm"
     - "#MusicDiscovery"
     - "#ExpandYourTaste"
+    - "#BuildInPublic"
+
+# Twitter account: https://x.com/tasteroulette
+twitter:
+  handle: "@tasteroulette"
+  api_available: false  # X API Basic = $100/month, not worth it
+  tracking: "Use web search to check engagement; rely on PostHog UTM for download attribution"
+
+  # Accounts to follow and engage with (prioritized)
+  follow_targets:
+    tier1_music_discovery:
+      - "@songexploder"         # Music deconstruction podcast
+      - "@pigaborneone"         # Every Noise at Once creator
+      - "@obscurify"            # Similar music taste app
+      - "@spotifycharts"        # Music trends
+      - "@stereogum"            # Indie music media
+      - "@pitchfork"            # Music criticism
+      - "@NPRMusic"             # Public radio music
+    tier2_indie_dev:
+      - "@IndieHackers"         # Side project community
+      - "@levelsio"             # Build in public leader
+      - "@marc_louvion"         # Solo maker, often RTs indie products
+      - "@danshipper"           # AI + product writer
+      - "@buildspace"           # Maker community
+    tier3_music_kols:
+      - "Search: 'music recommendation' to find active music recommenders"
+      - "Search: 'discover new music' to find taste explorers"
+
+  # Daily engagement routine (10 min/day, Calvin does manually)
+  daily_engagement:
+    - "Reply to 3 relevant tweets (search 'music recommendation' or 'discover new music')"
+    - "Quote-retweet 1 interesting music topic with your perspective"
+    - "Follow 5 new accounts (music lovers, indie devs, playlist curators)"
+    - "NEVER hard-sell the app in replies — be genuinely helpful first"
+
+  # Reply templates (use as inspiration, not copy-paste)
+  reply_examples:
+    someone_says_spotify_repetitive: |
+      Same. That's why I started building the opposite — one song a day
+      from someone whose taste is genuinely different. Still figuring it
+      out but the surprise factor is real.
+    someone_asks_how_to_discover: |
+      Honestly? I let strangers pick for me now. Built a little app for it.
+      The key insight was that the best discoveries come from people who
+      DON'T share your taste.
+
+  # Growth milestones
+  milestones:
+    week1: { followers: 50, method: "daily engagement + #BuildInPublic" }
+    month1: { followers: 200, method: "dev diary + real user stories" }
+    month2: { followers: 500, method: "Product Hunt launch traffic" }
+    month3: { followers: 1000, method: "curator spotlight + UGC" }
+
+  # Things to avoid
+  avoid:
+    - "Follow-unfollow farming"
+    - "App link in every tweet"
+    - "Automated posting (Twitter deprioritizes)"
+    - "Long threads (free tier limitation)"
 
 # Environment Setup (CRITICAL — do this first every heartbeat)
 env_setup: |
