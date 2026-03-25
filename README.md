@@ -133,19 +133,36 @@ taste-roulette/
 - **Spotify popularity deprecation** — adapted to Spotify API no longer returning popularity field
 
 ### Paperclip AI Operations
-9 autonomous agents manage post-MVP operations, configured for growth (1,000 users in 3 months):
 
-| Agent | Role | Growth Focus |
-|-------|------|-------------|
-| CEO | Strategic oversight, milestone tracking | Track cumulative users, coordinate launch |
-| Curator | Spotify discovery + weekly batch import | Pool: 850 → 1500 → 3000 tracks |
-| Quality | Content moderation, track validation | Review user-submitted recommendations |
-| Analytics | PostHog metrics, cohort retention | Channel attribution, referral K-factor |
-| DevOps | Sentry monitoring, deploy health | API stability during scale |
-| Bug Triage | Issue classification, severity routing | Prioritize onboarding + card bugs |
-| Social | English-first content, Twitter/X + IG | Product Hunt, dev.to, Medium articles |
-| Outreach | Western music blogger/curator research | Curator Program recruitment (5-10 curators) |
-| Feedback | App Store reviews, in-app analysis | Not active until post-launch |
+9 autonomous agents manage post-MVP operations. Paperclip is managed in a **separate dedicated session** — this repo produces configuration recommendations that the Paperclip session consumes.
+
+**Architecture:**
+```
+Taste Roulette repo                    Paperclip session
+├── paperclip/company.yaml      →      Dashboard (localhost:3101)
+├── paperclip/agents/*.yaml     →      Agent configuration
+├── paperclip/logs/*-latest.md  ←      Agent execution outputs
+├── paperclip/inbox/*.md        →      Cross-agent instructions
+└── paperclip/drafts/*.md       ←      Social content drafts
+```
+
+**Agent roster:**
+
+| Agent | Role | Status |
+|-------|------|--------|
+| CEO | Strategic oversight, milestone tracking | Active |
+| Curator | Spotify discovery + pool management | Active |
+| Quality | Content moderation, track validation | Active |
+| Analytics | PostHog metrics, cohort retention | Active |
+| DevOps | Sentry monitoring, deploy health | Active |
+| Bug Triage | Issue classification, severity routing | Active |
+| Social | Twitter/X, Bluesky, Discord auto-posting | Active |
+| Outreach | Curator recruitment research | Paused (re-enable at 50+ users) |
+| Feedback | App Store reviews, in-app analysis | Paused (re-enable at Google Play launch) |
+
+**Execution:** GitHub Actions cron (daily) + Paperclip Dashboard (localhost:3101) for manual control.
+
+**Config change workflow:** Code changes in this repo update `paperclip/*.yaml` → Paperclip session reads updated configs on next heartbeat.
 
 ## Internationalization (i18n)
 
