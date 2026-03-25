@@ -1,0 +1,120 @@
+name: Paperclip Daily Agents
+
+on:
+  schedule:
+    # UTC 23:00 = 07:00 UTC+8 (Taiwan) = 18:00-19:00 US Eastern/Central
+    - cron: '0 23 * * *'
+  workflow_dispatch:  # Allow manual trigger from GitHub Actions UI
+
+concurrency:
+  group: paperclip-agents
+  cancel-in-progress: false
+
+jobs:
+  run-agents:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Write .env for agents
+        run: |
+          cat > .env << 'ENVEOF'
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
+          SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}
+          SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}
+          SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG=${{ secrets.SENTRY_ORG }}
+          POSTHOG_API_KEY=${{ secrets.POSTHOG_API_KEY }}
+          LASTFM_API_KEY=${{ secrets.LASTFM_API_KEY }}
+          BLUESKY_HANDLE=${{ secrets.BLUESKY_HANDLE }}
+          BLUESKY_APP_PASSWORD=${{ secrets.BLUESKY_APP_PASSWORD }}
+          DISCORD_WEBHOOK_DAILY=${{ secrets.DISCORD_WEBHOOK_DAILY }}
+          DISCORD_WEBHOOK_COMMUNITY=${{ secrets.DISCORD_WEBHOOK_COMMUNITY }}
+          ENVEOF
+          # Remove leading whitespace from heredoc
+          sed -i 's/^          //' .env
+
+      - name: Run CEO Agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude -p . \
+            --allowedTools "Bash,Read,Write,Edit,Glob,Grep" \
+            -m "You are the CEO agent for Taste Roulette. Read your config at paperclip/agents/ceo.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Write your log to paperclip/logs/ceo-$(date +%Y-%m-%d).md and update paperclip/logs/ceo-latest.md." \
+            --max-tokens 30000 || true
+
+      - name: Run DevOps Agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude -p . \
+            --allowedTools "Bash,Read,Write,Edit,Glob,Grep" \
+            -m "You are the devops agent for Taste Roulette. Read your config at paperclip/agents/devops.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Write your log to paperclip/logs/devops-$(date +%Y-%m-%d).md and update paperclip/logs/devops-latest.md." \
+            --max-tokens 20000 || true
+
+      - name: Run Curator Agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude -p . \
+            --allowedTools "Bash,Read,Write,Edit,Glob,Grep" \
+            -m "You are the curator agent for Taste Roulette. Read your config at paperclip/agents/curator.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Write your log to paperclip/logs/curator-$(date +%Y-%m-%d).md and update paperclip/logs/curator-latest.md." \
+            --max-tokens 20000 || true
+
+      - name: Run Quality Agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude -p . \
+            --allowedTools "Bash,Read,Write,Edit,Glob,Grep" \
+            -m "You are the quality agent for Taste Roulette. Read your config at paperclip/agents/quality.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Write your log to paperclip/logs/quality-$(date +%Y-%m-%d).md and update paperclip/logs/quality-latest.md." \
+            --max-tokens 20000 || true
+
+      - name: Run Analytics Agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude -p . \
+            --allowedTools "Bash,Read,Write,Edit,Glob,Grep" \
+            -m "You are the analytics agent for Taste Roulette. Read your config at paperclip/agents/analytics.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Write your log to paperclip/logs/analytics-$(date +%Y-%m-%d).md and update paperclip/logs/analytics-latest.md." \
+            --max-tokens 20000 || true
+
+      - name: Run Bug Triage Agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude -p . \
+            --allowedTools "Bash,Read,Write,Edit,Glob,Grep" \
+            -m "You are the bug-triage agent for Taste Roulette. Read your config at paperclip/agents/bug-triage.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Write your log to paperclip/logs/bug-triage-$(date +%Y-%m-%d).md and update paperclip/logs/bug-triage-latest.md." \
+            --max-tokens 20000 || true
+
+      - name: Run Social Agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude -p . \
+            --allowedTools "Bash,Read,Write,Edit,Glob,Grep" \
+            -m "You are the social agent for Taste Roulette. Read your config at paperclip/agents/social.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Post to Discord via webhooks as specified. Write your log to paperclip/logs/social-$(date +%Y-%m-%d).md and update paperclip/logs/social-latest.md." \
+            --max-tokens 20000 || true
+
+      - name: Commit agent logs
+        run: |
+          git config user.name "Paperclip Bot"
+          git config user.email "paperclip@taste-roulette.local"
+          git add paperclip/logs/*.md paperclip/inbox/*.md 2>/dev/null || true
+          git diff --cached --quiet || git commit -m "chore: paperclip daily agent logs $(date +%Y-%m-%d)"
+          git push || true
