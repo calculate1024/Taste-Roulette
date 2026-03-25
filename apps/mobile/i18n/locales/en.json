@@ -169,7 +169,9 @@
     "prettyClose": "Pretty close to your taste",
     "shareToSocial": "Share",
     "done": "Done",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "saveForLater": "Save for Later",
+    "saved": "Saved"
   },
   "badges": {
     "firstSurprise": "First Surprise",

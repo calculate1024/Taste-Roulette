@@ -256,4 +256,75 @@ router.get('/yesterday-echo', async (req: Request, res: Response) => {
   });
 });
 
+// POST /api/roulette/:cardId/bookmark — save card for later
+router.post('/:cardId/bookmark', async (req: Request, res: Response) => {
+  const { cardId } = req.params;
+  const userId = req.userId!;
+
+  const { error } = await supabaseAdmin
+    .from('bookmarks')
+    .upsert({ user_id: userId, card_id: cardId }, { onConflict: 'user_id,card_id' });
+
+  if (error) {
+    res.status(500).json({ error: 'Failed to bookmark card' });
+    return;
+  }
+
+  trackEvent(userId, 'card_bookmarked', { card_id: cardId });
+  res.json({ ok: true, bookmarked: true });
+});
+
+// DELETE /api/roulette/:cardId/bookmark — remove bookmark
+router.delete('/:cardId/bookmark', async (req: Request, res: Response) => {
+  const { cardId } = req.params;
+  const userId = req.userId!;
+
+  await supabaseAdmin
+    .from('bookmarks')
+    .delete()
+    .eq('user_id', userId)
+    .eq('card_id', cardId);
+
+  res.json({ ok: true, bookmarked: false });
+});
+
+// GET /api/roulette/bookmarks — list user's saved cards
+router.get('/bookmarks', async (req: Request, res: Response) => {
+  const userId = req.userId!;
+  const limit = Math.min(Number(req.query.limit) || 20, 50);
+  const offset = Number(req.query.offset) || 0;
+
+  const { data, error } = await supabaseAdmin
+    .from('bookmarks')
+    .select(`
+      id, created_at,
+      roulette_cards!inner(
+        id, reason, taste_distance, recommender_taste_label,
+        tracks:track_id(spotify_id, title, artist, album, cover_url, spotify_url, genres)
+      )
+    `)
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) {
+    res.status(500).json({ error: 'Failed to fetch bookmarks' });
+    return;
+  }
+
+  const bookmarks = (data || []).map((b: any) => ({
+    bookmark_id: b.id,
+    bookmarked_at: b.created_at,
+    card: {
+      id: b.roulette_cards.id,
+      track: b.roulette_cards.tracks,
+      reason: b.roulette_cards.reason,
+      taste_distance: b.roulette_cards.taste_distance,
+      recommender_taste_label: b.roulette_cards.recommender_taste_label,
+    },
+  }));
+
+  res.json({ bookmarks, total: bookmarks.length });
+});
+
 export default router;

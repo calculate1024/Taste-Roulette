@@ -24,6 +24,8 @@ interface FeedbackSheetProps {
   onSubmit: (reaction: FeedbackReaction, comment?: string) => Promise<FeedbackInsight | null | void>;
   onClose: () => void;
   onSharePress?: () => void;
+  onBookmarkPress?: () => void;
+  isBookmarked?: boolean;
 }
 
 const REACTIONS: { key: FeedbackReaction; emoji: string; labelKey: string; descKey: string; color: string }[] = [
@@ -39,6 +41,8 @@ export default function FeedbackSheet({
   onSubmit,
   onClose,
   onSharePress,
+  onBookmarkPress,
+  isBookmarked = false,
 }: FeedbackSheetProps) {
   const { t } = useTranslation();
   const [selectedReaction, setSelectedReaction] = useState<FeedbackReaction | null>(null);
@@ -194,6 +198,18 @@ export default function FeedbackSheet({
                     ? t('feedback.aLittleOff')
                     : t('feedback.prettyClose')}
               </Text>
+
+              {/* Bookmark button */}
+              {onBookmarkPress && (
+                <Pressable
+                  style={[styles.bookmarkButton, isBookmarked && styles.bookmarkButtonActive]}
+                  onPress={onBookmarkPress}
+                >
+                  <Text style={styles.bookmarkButtonText}>
+                    {isBookmarked ? t('feedback.saved') : t('feedback.saveForLater')}
+                  </Text>
+                </Pressable>
+              )}
 
               {/* Share button */}
               {onSharePress && (
@@ -476,6 +492,22 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     marginBottom: spacing.xl,
   },
+
+  bookmarkButton: {
+    backgroundColor: colors.bgElevated,
+    borderRadius: radius.md,
+    paddingVertical: 14,
+    paddingHorizontal: spacing.xxxl,
+    alignItems: 'center' as const,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.md,
+  },
+  bookmarkButtonActive: {
+    backgroundColor: colors.accentDim,
+    borderColor: colors.accent,
+  },
+  bookmarkButtonText: { color: colors.accent, fontSize: 16, fontWeight: '700' as const },
 
   shareButton: {
     backgroundColor: colors.accentDim,
