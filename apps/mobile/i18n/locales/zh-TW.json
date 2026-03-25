@@ -169,7 +169,9 @@
     "prettyClose": "跟你的品味蠻接近的",
     "shareToSocial": "分享到社群",
     "done": "完成",
-    "cancel": "取消"
+    "cancel": "取消",
+    "saveForLater": "稍後再聽",
+    "saved": "已收藏"
   },
   "badges": {
     "firstSurprise": "第一個驚喜",

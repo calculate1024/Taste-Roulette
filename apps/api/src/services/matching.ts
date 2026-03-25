@@ -225,6 +225,22 @@ export async function runDailyMatching(): Promise<MatchingSummary> {
 
   const availableRecs = poolRecs || [];
 
+  // Pool alert: warn if running low
+  if (availableRecs.length < 50) {
+    console.warn(`POOL ALERT: Only ${availableRecs.length} unused recommendations remaining!`);
+    // Write alert to paperclip inbox for CEO agent
+    try {
+      const fs = await import('fs');
+      const path = await import('path');
+      const alertPath = path.resolve(__dirname, '../../../../paperclip/inbox/ceo.md');
+      const alertContent = `## Pool Alert (auto-generated)\n\n**Pool critically low: ${availableRecs.length} unused recommendations.**\nThreshold: 50. Action needed: Curator fill or raise recommend-back incentive.\nTimestamp: ${new Date().toISOString()}\n`;
+      fs.writeFileSync(alertPath, alertContent);
+    } catch {
+      // Non-critical: just log if file write fails (e.g. on Vercel)
+      console.warn('Could not write pool alert to paperclip inbox');
+    }
+  }
+
   // Build a lookup of recommender taste vectors and curator weights
   const userVectorMap: Record<string, number[]> = {};
   const curatorWeightMap: Record<string, number> = {};

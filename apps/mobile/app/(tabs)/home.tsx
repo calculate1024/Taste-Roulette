@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { useAppStore } from '../../store/appStore';
-import { getTodayCard, openCard, submitFeedback, getYesterdayEcho } from '../../services/api';
+import { getTodayCard, openCard, submitFeedback, getYesterdayEcho, bookmarkCard, removeBookmark } from '../../services/api';
 import type { YesterdayEcho } from '../../services/api';
 import RouletteCard from '../../components/RouletteCard';
 import FeedbackSheet from '../../components/FeedbackSheet';
@@ -42,6 +42,7 @@ export default function HomeScreen() {
   const [showShareCard, setShowShareCard] = useState(false);
   const [echo, setEcho] = useState<YesterdayEcho | null>(null);
   const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [isBookmarked, setIsBookmarked] = useState(false);
   const { track: trackEvent } = useAnalytics();
 
   const userId = session?.user?.id;
@@ -111,6 +112,22 @@ export default function HomeScreen() {
   const handleFeedbackClose = useCallback(() => {
     setFeedbackVisible(false);
   }, []);
+
+  const handleBookmarkPress = useCallback(async () => {
+    if (!todayCard) return;
+    try {
+      if (isBookmarked) {
+        await removeBookmark(todayCard.id);
+        setIsBookmarked(false);
+      } else {
+        await bookmarkCard(todayCard.id);
+        setIsBookmarked(true);
+      }
+      trackEvent(Events.CARD_BOOKMARKED, { cardId: todayCard.id, bookmarked: !isBookmarked });
+    } catch {
+      // Silently fail
+    }
+  }, [todayCard, isBookmarked]);
 
   const handleSharePress = useCallback(() => {
     trackEvent(Events.CARD_SHARE_PRESSED, { cardId: todayCard?.id });
@@ -222,6 +239,8 @@ export default function HomeScreen() {
         onSubmit={handleFeedbackSubmit}
         onClose={handleFeedbackClose}
         onSharePress={handleSharePress}
+        onBookmarkPress={handleBookmarkPress}
+        isBookmarked={isBookmarked}
       />
 
       {/* Share card modal */}

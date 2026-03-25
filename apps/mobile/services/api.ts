@@ -327,6 +327,44 @@ export async function getMyDiscoveries(): Promise<Track[]> {
 }
 
 /**
+ * Bookmark a card for later listening.
+ */
+export async function bookmarkCard(cardId: string): Promise<boolean> {
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  if (!token) return false;
+
+  try {
+    const res = await fetch(`${apiUrl}/api/roulette/${cardId}/bookmark`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    });
+    if (await handleSessionExpiration(res)) return false;
+    return res.ok;
+  } catch { return false; }
+}
+
+/**
+ * Remove a bookmark.
+ */
+export async function removeBookmark(cardId: string): Promise<boolean> {
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  if (!token) return false;
+
+  try {
+    const res = await fetch(`${apiUrl}/api/roulette/${cardId}/bookmark`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (await handleSessionExpiration(res)) return false;
+    return res.ok;
+  } catch { return false; }
+}
+
+/**
  * Submit a recommendation from the user via API (triggers bonus card incentive).
  */
 export async function submitRecommendation(

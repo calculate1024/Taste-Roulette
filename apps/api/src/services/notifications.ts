@@ -87,6 +87,47 @@ export async function sendDailyNotifications(): Promise<number> {
   return successCount;
 }
 
+/** Send onboarding reminder to users who signed up 24h+ ago but didn't complete. */
+export async function sendOnboardingReminders(): Promise<number> {
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+  const { data: users, error } = await supabaseAdmin
+    .from('profiles')
+    .select('id, push_token')
+    .eq('onboarding_completed', false)
+    .eq('onboarding_reminder_sent', false)
+    .lt('created_at', twentyFourHoursAgo)
+    .not('push_token', 'is', null);
+
+  if (error || !users || users.length === 0) return 0;
+
+  const messages: ExpoPushMessage[] = users
+    .filter((u: any) => u.push_token)
+    .map((u: any) => ({
+      to: u.push_token,
+      title: '🎲 Your first surprise is waiting!',
+      body: 'Complete your taste profile and get your first recommendation.',
+      data: { type: 'onboarding_reminder' },
+      sound: 'default' as const,
+      channelId: 'onboarding',
+    }));
+
+  if (messages.length === 0) return 0;
+
+  const tickets = await sendPushNotifications(messages);
+  const successCount = tickets.filter((t) => t.status === 'ok').length;
+
+  // Mark reminders as sent
+  const userIds = users.map((u: any) => u.id);
+  await supabaseAdmin
+    .from('profiles')
+    .update({ onboarding_reminder_sent: true })
+    .in('id', userIds);
+
+  console.log(`Onboarding reminders: ${successCount}/${messages.length} sent`);
+  return successCount;
+}
+
 /** Send echo notification to recommender when their song gets a 'surprised' reaction. */
 export async function sendReactionEcho(
   recommenderId: string,

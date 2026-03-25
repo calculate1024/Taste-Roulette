@@ -22,6 +22,7 @@ export const Events = {
   CARD_FEEDBACK_SUBMITTED: 'card_feedback_submitted',
   CARD_SHARE_PRESSED: 'card_share_pressed',
   CARD_SHARED: 'card_shared',
+  CARD_BOOKMARKED: 'card_bookmarked',
 
   // Recommend back
   RECOMMEND_BACK_PRESSED: 'recommend_back_pressed',

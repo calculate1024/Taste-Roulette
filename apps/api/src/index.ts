@@ -12,7 +12,7 @@ import recommendRouter from './routes/recommend';
 import profileRouter from './routes/profile';
 import matchingRouter from './routes/matching';
 import { runDailyMatching } from './services/matching';
-import { sendDailyNotifications } from './services/notifications';
+import { sendDailyNotifications, sendOnboardingReminders } from './services/notifications';
 import spotifyAuthRouter from './routes/spotify-auth';
 import curatorRouter from './routes/curator';
 import shareRouter from './routes/share';
@@ -113,12 +113,14 @@ app.get('/api/cron/daily', async (req, res) => {
 
     const matchingSummary = await runDailyMatching();
     const notificationsSent = await sendDailyNotifications();
+    const onboardingReminders = await sendOnboardingReminders();
 
     res.json({
       ok: true,
       environment: DEPLOYMENT_ENV,
       matching: matchingSummary,
       notifications_sent: notificationsSent,
+      onboarding_reminders: onboardingReminders,
       timestamp: new Date().toISOString(),
     });
   } catch (err: any) {
