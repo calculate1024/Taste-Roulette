@@ -6,17 +6,17 @@ Every day you receive one music recommendation from a stranger whose taste is *d
 
 ## Project Status
 
-**Current Phase:** Pre-launch (Month 1 Beta)
+**Current Phase:** Closed Beta (Android — launched 2026-03-25)
 **Target:** 1,000 users in 3 months (Western/English-speaking market)
 **Platform:** Android-first (iOS deferred until product stabilizes)
 
 | Milestone | Target | Status |
 |-----------|--------|--------|
-| Month 1: Closed Beta | 50 users | In progress |
+| Month 1: Closed Beta | 50 users | **Live** — [Google Play Internal Test](https://play.google.com/apps/internaltest/4701300350669048520) |
 | Month 2: Public Launch | 200 users | Planned |
 | Month 3: Growth | 1,000 users | Planned |
 
-**Launch Channels:** Product Hunt, Indie Hackers, Reddit (r/indieheads, r/musicsuggestions), Twitter/X
+**Active Channels:** Twitter/X [@tasteroulette](https://x.com/tasteroulette) · [Bluesky](https://bsky.app/profile/musictasteroulette.bsky.social) · Discord · Reddit
 
 ## Core Concept
 
@@ -114,6 +114,9 @@ taste-roulette/
 - **Yesterday's Echo** — animated toast on home screen when your recommendation was appreciated yesterday
 - **First Discovery Badge** — genre category badge unlocks on first "surprised" reaction per category (6 categories)
 - **Contextual Recommendation Prompt** — dynamic subtitle and placeholder based on just-heard track
+- **Bookmark / Save for Later** — save cards after feedback for later listening (dedicated bookmarks API + UI)
+- **Onboarding Reminder** — push notification 24h after signup if onboarding not completed
+- **Pool Auto-Alert** — matching engine alerts CEO agent when pool drops below 50 tracks
 
 ### Phase 4: Cold Start & Onboarding
 - **Taste-aware curator fallback** — system recommendations now use cosine distance sweet spot instead of random picks
@@ -158,9 +161,9 @@ Taste Roulette repo                    Paperclip session
 | Bug Triage | Issue classification, severity routing | Active |
 | Social | Twitter/X, Bluesky, Discord auto-posting | Active |
 | Outreach | Curator recruitment research | Paused (re-enable at 50+ users) |
-| Feedback | App Store reviews, in-app analysis | Paused (re-enable at Google Play launch) |
+| Feedback | App Store reviews, in-app analysis | Active |
 
-**Execution:** GitHub Actions cron (daily) + Paperclip Dashboard (localhost:3101) for manual control.
+**Execution:** GitHub Actions cron (daily UTC 23:00) with per-agent cost tracking (`--output-format json` → `cost-tracker.json`).
 
 **Config change workflow:** Code changes in this repo update `paperclip/*.yaml` → Paperclip session reads updated configs on next heartbeat.
 
@@ -247,9 +250,10 @@ Badge Categories (6):
    supabase/migrations/003_spotify_auth.sql
    supabase/migrations/004_curator_program.sql
    supabase/migrations/005_recommender_taste_label.sql
-   supabase/migrations/006_account_deletion.sql
+   supabase/migrations/006_cpop_dimension.sql
    supabase/migrations/007_referral_program.sql
    supabase/migrations/008_seed_flag.sql
+   supabase/migrations/009_bookmarks_and_reminders.sql
    ```
 
 4. **Seed data**
@@ -290,7 +294,10 @@ Badge Categories (6):
 | POST | `/api/invite/generate` | JWT | Generate referral invite code |
 | POST | `/api/invite/redeem` | JWT | Redeem invite code + track referral |
 | GET | `/api/roulette/yesterday-echo` | JWT | Check if recommendation got surprised feedback yesterday |
-| GET | `/api/profile/me` | JWT | User profile + stats (incl. impact) |
+| POST | `/api/roulette/:cardId/bookmark` | JWT | Save card for later |
+| DELETE | `/api/roulette/:cardId/bookmark` | JWT | Remove bookmark |
+| GET | `/api/roulette/bookmarks` | JWT | List saved cards (paginated) |
+| GET | `/api/profile/me` | JWT | User profile + stats + badge data |
 | GET | `/api/profile/taste-journey` | JWT | Taste vector + journey data |
 | GET | `/api/twins` | JWT | Taste twins + complements |
 | POST | `/api/curator/redeem` | JWT | Redeem curator invite |
