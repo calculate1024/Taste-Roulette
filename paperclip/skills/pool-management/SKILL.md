@@ -43,11 +43,17 @@ Target: >= 30% fresh (added in last 7 days).
 
 ### Consumption Rate
 ```sql
-SELECT COUNT(*) as cards_today
+-- IMPORTANT: Vercel cron runs at UTC 13:00. Agents run at UTC 23:00.
+-- Always check YESTERDAY's card delivery, not today's.
+-- "0 cards today" before UTC 13:00 is NORMAL, not a cron failure.
+SELECT COUNT(*) as cards_yesterday
 FROM roulette_cards
-WHERE created_at > now() - interval '24 hours';
+WHERE created_at >= (CURRENT_DATE - interval '1 day')
+  AND created_at < CURRENT_DATE;
 ```
 Compare with pool size to estimate days until depletion.
+To confirm cron health, check if yesterday had ~110 cards. Do NOT report
+"cron failure" based on today's count before UTC 13:00.
 
 ## Procedures
 

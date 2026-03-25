@@ -12,7 +12,10 @@ budget:
   alert_threshold_pct: 80
 
 schedule:
-  heartbeat: "0 10 * * *"   # Daily 10:00 UTC+8: review yesterday's submissions
+  heartbeat: "0 10 * * *"   # Daily 10:00 UTC+8 (via GH Actions at UTC 23:00)
+  # NOTE: Vercel daily cron runs at UTC 13:00 (= UTC+8 21:00).
+  # This agent runs BEFORE cron, so "0 cards today" is EXPECTED.
+  # Always check YESTERDAY's delivery count to assess cron health.
 
 skills:
   - content-moderation
