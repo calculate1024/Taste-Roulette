@@ -51,73 +51,134 @@ jobs:
           EOF
           sed -i 's/^          //' .env
 
+      - name: Initialize cost tracker
+        run: echo '{}' > /tmp/agent-costs.json
+
       - name: Run CEO Agent
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          echo "You are the CEO agent for Taste Roulette. Read your config at paperclip/agents/ceo.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Write your log to paperclip/logs/ceo-$(date +%Y-%m-%d).md and update paperclip/logs/ceo-latest.md." | \
+          OUTPUT=$(echo "You are the CEO agent for Taste Roulette. Read your config at paperclip/agents/ceo.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Write your log to paperclip/logs/ceo-$(date +%Y-%m-%d).md and update paperclip/logs/ceo-latest.md." | \
           claude -p . \
             --allowedTools "Bash,Read,Write,Edit,Glob,Grep" \
-            --max-tokens 30000 || true
+            --output-format json 2>/dev/null || echo '{"total_cost_usd":0}')
+          COST=$(echo "$OUTPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('total_cost_usd',0))" 2>/dev/null || echo 0)
+          python3 -c "import json; d=json.load(open('/tmp/agent-costs.json')); d['ceo']=float('$COST'); json.dump(d,open('/tmp/agent-costs.json','w'))"
 
       - name: Run DevOps Agent
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          echo "You are the devops agent for Taste Roulette. Read your config at paperclip/agents/devops.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Write your log to paperclip/logs/devops-$(date +%Y-%m-%d).md and update paperclip/logs/devops-latest.md." | \
+          OUTPUT=$(echo "You are the devops agent for Taste Roulette. Read your config at paperclip/agents/devops.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Write your log to paperclip/logs/devops-$(date +%Y-%m-%d).md and update paperclip/logs/devops-latest.md." | \
           claude -p . \
             --allowedTools "Bash,Read,Write,Edit,Glob,Grep" \
-            --max-tokens 20000 || true
+            --output-format json 2>/dev/null || echo '{"total_cost_usd":0}')
+          COST=$(echo "$OUTPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('total_cost_usd',0))" 2>/dev/null || echo 0)
+          python3 -c "import json; d=json.load(open('/tmp/agent-costs.json')); d['devops']=float('$COST'); json.dump(d,open('/tmp/agent-costs.json','w'))"
 
       - name: Run Curator Agent
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          echo "You are the curator agent for Taste Roulette. Read your config at paperclip/agents/curator.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Write your log to paperclip/logs/curator-$(date +%Y-%m-%d).md and update paperclip/logs/curator-latest.md." | \
+          OUTPUT=$(echo "You are the curator agent for Taste Roulette. Read your config at paperclip/agents/curator.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Write your log to paperclip/logs/curator-$(date +%Y-%m-%d).md and update paperclip/logs/curator-latest.md." | \
           claude -p . \
             --allowedTools "Bash,Read,Write,Edit,Glob,Grep" \
-            --max-tokens 20000 || true
+            --output-format json 2>/dev/null || echo '{"total_cost_usd":0}')
+          COST=$(echo "$OUTPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('total_cost_usd',0))" 2>/dev/null || echo 0)
+          python3 -c "import json; d=json.load(open('/tmp/agent-costs.json')); d['curator']=float('$COST'); json.dump(d,open('/tmp/agent-costs.json','w'))"
 
       - name: Run Quality Agent
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          echo "You are the quality agent for Taste Roulette. Read your config at paperclip/agents/quality.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Write your log to paperclip/logs/quality-$(date +%Y-%m-%d).md and update paperclip/logs/quality-latest.md." | \
+          OUTPUT=$(echo "You are the quality agent for Taste Roulette. Read your config at paperclip/agents/quality.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Write your log to paperclip/logs/quality-$(date +%Y-%m-%d).md and update paperclip/logs/quality-latest.md." | \
           claude -p . \
             --allowedTools "Bash,Read,Write,Edit,Glob,Grep" \
-            --max-tokens 20000 || true
+            --output-format json 2>/dev/null || echo '{"total_cost_usd":0}')
+          COST=$(echo "$OUTPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('total_cost_usd',0))" 2>/dev/null || echo 0)
+          python3 -c "import json; d=json.load(open('/tmp/agent-costs.json')); d['quality']=float('$COST'); json.dump(d,open('/tmp/agent-costs.json','w'))"
 
       - name: Run Analytics Agent
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          echo "You are the analytics agent for Taste Roulette. Read your config at paperclip/agents/analytics.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Write your log to paperclip/logs/analytics-$(date +%Y-%m-%d).md and update paperclip/logs/analytics-latest.md." | \
+          OUTPUT=$(echo "You are the analytics agent for Taste Roulette. Read your config at paperclip/agents/analytics.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Write your log to paperclip/logs/analytics-$(date +%Y-%m-%d).md and update paperclip/logs/analytics-latest.md." | \
           claude -p . \
             --allowedTools "Bash,Read,Write,Edit,Glob,Grep" \
-            --max-tokens 20000 || true
+            --output-format json 2>/dev/null || echo '{"total_cost_usd":0}')
+          COST=$(echo "$OUTPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('total_cost_usd',0))" 2>/dev/null || echo 0)
+          python3 -c "import json; d=json.load(open('/tmp/agent-costs.json')); d['analytics']=float('$COST'); json.dump(d,open('/tmp/agent-costs.json','w'))"
 
       - name: Run Bug Triage Agent
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          echo "You are the bug-triage agent for Taste Roulette. Read your config at paperclip/agents/bug-triage.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Write your log to paperclip/logs/bug-triage-$(date +%Y-%m-%d).md and update paperclip/logs/bug-triage-latest.md." | \
+          OUTPUT=$(echo "You are the bug-triage agent for Taste Roulette. Read your config at paperclip/agents/bug-triage.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Write your log to paperclip/logs/bug-triage-$(date +%Y-%m-%d).md and update paperclip/logs/bug-triage-latest.md." | \
           claude -p . \
             --allowedTools "Bash,Read,Write,Edit,Glob,Grep" \
-            --max-tokens 20000 || true
+            --output-format json 2>/dev/null || echo '{"total_cost_usd":0}')
+          COST=$(echo "$OUTPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('total_cost_usd',0))" 2>/dev/null || echo 0)
+          python3 -c "import json; d=json.load(open('/tmp/agent-costs.json')); d['bug-triage']=float('$COST'); json.dump(d,open('/tmp/agent-costs.json','w'))"
 
       - name: Run Social Agent
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          echo "You are the social agent for Taste Roulette. Read your config at paperclip/agents/social.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Post to Discord via webhooks. Write your log to paperclip/logs/social-$(date +%Y-%m-%d).md and update paperclip/logs/social-latest.md." | \
+          OUTPUT=$(echo "You are the social agent for Taste Roulette. Read your config at paperclip/agents/social.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Post to Discord via webhooks. Write your log to paperclip/logs/social-$(date +%Y-%m-%d).md and update paperclip/logs/social-latest.md." | \
           claude -p . \
             --allowedTools "Bash,Read,Write,Edit,Glob,Grep" \
-            --max-tokens 20000 || true
+            --output-format json 2>/dev/null || echo '{"total_cost_usd":0}')
+          COST=$(echo "$OUTPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('total_cost_usd',0))" 2>/dev/null || echo 0)
+          python3 -c "import json; d=json.load(open('/tmp/agent-costs.json')); d['social']=float('$COST'); json.dump(d,open('/tmp/agent-costs.json','w'))"
+
+      - name: Write daily cost report
+        run: |
+          DATE=$(date +%Y-%m-%d)
+          python3 << 'PYEOF'
+          import json
+          from datetime import datetime
+
+          costs = json.load(open('/tmp/agent-costs.json'))
+          total = sum(costs.values())
+          date = datetime.utcnow().strftime('%Y-%m-%d')
+
+          # Write daily cost log
+          lines = [f"# Paperclip Cost Report — {date}\n"]
+          lines.append(f"| Agent | Cost (USD) |")
+          lines.append(f"|-------|-----------|")
+          for agent, cost in sorted(costs.items()):
+              lines.append(f"| {agent} | ${cost:.4f} |")
+          lines.append(f"| **Total** | **${total:.4f}** |")
+          lines.append(f"\nMonthly budget: $120.00")
+          lines.append(f"Daily run cost: ${total:.4f}")
+          lines.append(f"Projected monthly (30d): ${total * 30:.2f}")
+
+          with open(f"paperclip/logs/cost-{date}.md", "w") as f:
+              f.write("\n".join(lines))
+
+          # Append to cumulative cost tracker
+          tracker_path = "paperclip/logs/cost-tracker.json"
+          try:
+              tracker = json.load(open(tracker_path))
+          except (FileNotFoundError, json.JSONDecodeError):
+              tracker = {"daily": [], "monthly_budget": 120}
+
+          tracker["daily"].append({"date": date, "costs": costs, "total": total})
+          # Keep last 90 days
+          tracker["daily"] = tracker["daily"][-90:]
+          tracker["month_total"] = sum(d["total"] for d in tracker["daily"]
+                                       if d["date"][:7] == date[:7])
+
+          with open(tracker_path, "w") as f:
+              json.dump(tracker, f, indent=2)
+
+          print(f"Daily cost: ${total:.4f} | Month-to-date: ${tracker['month_total']:.4f}")
+          PYEOF
 
       - name: Commit agent logs
         run: |
           git config user.name "Paperclip Bot"
           git config user.email "paperclip@taste-roulette.local"
-          git add paperclip/logs/*.md paperclip/inbox/*.md 2>/dev/null || true
+          git add paperclip/logs/*.md paperclip/logs/cost-tracker.json paperclip/inbox/*.md 2>/dev/null || true
           git diff --cached --quiet || git commit -m "chore: paperclip daily agent logs $(date +%Y-%m-%d)"
           git push || true
