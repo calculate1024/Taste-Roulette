@@ -17,11 +17,15 @@ import { matchToSpotify, loadExistingIds } from './spotify-matcher';
 import { ensureCuratorProfile, insertRecommendations } from './curator-inserter';
 import { resetReasonBatch } from './reason-rewriter';
 import { earmilkParser } from './parsers/earmilk';
+import { stereofoxParser } from './parsers/stereofox';
+import { metalsucksParser } from './parsers/metalsucks';
 import type { SourceParser, HarvestResult, MatchedTrack } from './types';
 
 // Registry of available parsers
 const PARSERS: Record<string, SourceParser> = {
   earmilk: earmilkParser,
+  stereofox: stereofoxParser,
+  'metal-sucks': metalsucksParser,
 };
 
 // CLI argument parsing
