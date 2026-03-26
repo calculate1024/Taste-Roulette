@@ -104,21 +104,20 @@ export async function getTodayCard(
     return { ...MOCK_CARD, recipientId: userId };
   }
 
-  // Priority: show pending/delivered cards first (including bonus cards),
-  // then fall back to the most recent opened/feedback_given card
+  // Priority: show the newest pending/delivered card first (catches bonus cards),
+  // then fall back to the most recent opened/feedback_given card from today
   let cardData: any = null;
 
-  const { data: pendingCard } = await supabase
+  const { data: pendingCards } = await supabase
     .from('roulette_cards')
     .select('*')
     .eq('recipient_id', userId)
     .in('status', ['pending', 'delivered'])
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .order('created_at', { ascending: false });
 
-  if (pendingCard) {
-    cardData = pendingCard;
+  if (pendingCards && pendingCards.length > 0) {
+    // Show the newest pending card (bonus cards are created after daily cards)
+    cardData = pendingCards[0];
   } else {
     const { data: recentCard } = await supabase
       .from('roulette_cards')

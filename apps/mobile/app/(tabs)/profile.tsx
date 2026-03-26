@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   Share,
+  ScrollView,
 } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,7 +17,6 @@ import { useAppStore } from '../../store/appStore';
 import { supabase, getAuthHeaders } from '../../services/supabase';
 import { getProfile, generateInviteCode, getReferralStats, type ProfileStats } from '../../services/api';
 import CountingNumber from '../../components/CountingNumber';
-import BadgeGrid from '../../components/BadgeGrid';
 import { useAnalytics, Events } from '../../hooks/useAnalytics';
 import { colors, spacing, radius, typo, layout, shadow } from '../../constants/theme';
 
@@ -178,6 +178,7 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
       <Animated.View entering={FadeIn.duration(400)} style={styles.content}>
         <Text style={styles.title}>{t('profile.profile')}</Text>
         <Text style={styles.subtitle}>{t('profile.tasteJourneyStartsHere')}</Text>
@@ -201,18 +202,6 @@ export default function ProfileScreen() {
               </Animated.View>
             ))}
           </View>
-        )}
-
-        {/* Badge grid */}
-        {stats && (
-          <BadgeGrid stats={{
-            totalCards: stats.totalCards,
-            surprisedCount: stats.surprisedCount,
-            streakCount: stats.streakCount,
-            genresExplored: stats.genresExplored,
-            totalRecommendations: stats.totalRecommendations,
-            maxTasteDistance: stats.maxTasteDistance,
-          }} />
         )}
 
         {/* Impact section — only show if user has made recommendations */}
@@ -308,6 +297,7 @@ export default function ProfileScreen() {
           <Text style={styles.deleteAccountText}>{t('profile.deleteAccount')}</Text>
         </Pressable>
       </Animated.View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -315,6 +305,10 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     ...layout.screen,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: spacing.xxxl,
   },
   content: {
     flex: 1,

@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { useAppStore } from '../../store/appStore';
 import { getTodayCard, openCard, submitFeedback, getYesterdayEcho, bookmarkCard, removeBookmark } from '../../services/api';
@@ -86,6 +86,13 @@ export default function HomeScreen() {
     getYesterdayEcho().then(setEcho).catch(() => {});
     getReferralStats().then((r) => { if (r?.code) setReferralCode(r.code); }).catch(() => {});
   }, [fetchCard]);
+
+  // Refresh card when returning to home tab (e.g. after submitting a recommendation)
+  useFocusEffect(
+    useCallback(() => {
+      if (!loading) fetchCard();
+    }, [fetchCard, loading])
+  );
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
