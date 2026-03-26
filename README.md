@@ -39,7 +39,7 @@ Every day you receive one music recommendation from a stranger whose taste is *d
 | State Management | Zustand + AsyncStorage |
 | Deployment | Vercel (API) + EAS Build (Mobile) |
 | Monitoring | Sentry (error tracking) + PostHog (analytics) |
-| AI Ops | Paperclip (9-agent orchestration for post-MVP operations) |
+| AI Ops | [Paperclip](https://github.com/paperclipai/paperclip) (9-agent orchestration) |
 
 ## Project Structure
 
@@ -66,10 +66,14 @@ taste-roulette/
 │           └── models.py
 ├── packages/
 │   └── shared/              # Shared TypeScript types
-├── paperclip/               # AI agent orchestration (Paperclip)
+├── paperclip/               # AI agent orchestration (→ paperclip/README.md)
+│   ├── README.md            # Full Paperclip documentation
 │   ├── company.yaml         # Company config & KPI targets
 │   ├── agents/              # 9 agent definitions (CEO → specialists)
-│   └── skills/              # Agent skill procedures & SQL queries
+│   ├── skills/              # Agent skill procedures & SQL queries
+│   ├── logs/                # Agent execution logs + cost tracker
+│   ├── inbox/               # Calvin → Agent instructions
+│   └── drafts/              # Social content awaiting approval
 ├── supabase/
 │   └── migrations/          # Database schema
 └── .claude/
@@ -118,6 +122,14 @@ taste-roulette/
 - **Onboarding Reminder** — push notification 24h after signup if onboarding not completed
 - **Pool Auto-Alert** — matching engine alerts CEO agent when pool drops below 50 tracks
 
+### Recent Fixes (2026-03-26)
+- **Push notifications fixed** — Supabase FK join query corrected + missing Android notification channels added
+- **Profile page scrollable** — login/delete buttons now reachable on all screen sizes
+- **Badge deduplication** — badges shown only on Journey tab (removed from Profile)
+- **Bonus card visibility** — home screen auto-refreshes when returning from recommend flow
+- **Error feedback** — users now see alerts on card load and bookmark failures (no more silent fails)
+- **Performance indexes** — added DB indexes for recommender echo, feedback stats, and pending card queries
+
 ### Phase 4: Cold Start & Onboarding
 - **Taste-aware curator fallback** — system recommendations now use cosine distance sweet spot instead of random picks
 - **Warm curator reasons** — each seed track has a hand-written, human-sounding recommendation reason
@@ -137,42 +149,27 @@ taste-roulette/
 
 ### Paperclip AI Operations
 
-9 autonomous agents manage post-MVP operations. Paperclip is managed in a **separate dedicated session** — this repo produces configuration recommendations that the Paperclip session consumes.
+9 autonomous agents manage post-MVP operations via [Paperclip](https://github.com/paperclipai/paperclip). Executed by GitHub Actions on two schedules (morning batch + social batch) — runs even when your computer is off.
 
-**Architecture:**
-```
-Taste Roulette repo                    Paperclip session
-├── paperclip/company.yaml      →      Dashboard (localhost:3101)
-├── paperclip/agents/*.yaml     →      Agent configuration
-├── paperclip/logs/*-latest.md  ←      Agent execution outputs
-├── paperclip/inbox/*.md        →      Cross-agent instructions
-└── paperclip/drafts/*.md       ←      Social content drafts
-```
+**→ Full documentation: [`paperclip/README.md`](paperclip/README.md)**
 
-**Agent roster:**
-
-| Agent | Role | Status |
-|-------|------|--------|
-| CEO | Strategic oversight, milestone tracking | Active |
-| Curator | Spotify discovery + pool management | Active |
-| Quality | Content moderation, track validation | Active |
-| Analytics | PostHog metrics, cohort retention | Active |
-| DevOps | Sentry monitoring, deploy health | Active |
-| Bug Triage | Issue classification, severity routing | Active |
-| Social | Twitter/X, Bluesky, Discord auto-posting | Active |
-| Outreach | Curator recruitment research | Paused (re-enable at 50+ users) |
-| Feedback | App Store reviews, in-app analysis | Active |
-
-**Execution:** GitHub Actions cron (daily UTC 23:00) with per-agent cost tracking (`--output-format json` → `cost-tracker.json`).
-
-**Config change workflow:** Code changes in this repo update `paperclip/*.yaml` → Paperclip session reads updated configs on next heartbeat.
+| Agent | Role | Schedule (UTC+8) |
+|-------|------|-------------------|
+| CEO | Strategic oversight | 07:00 |
+| Curator | Pool management | 06:00 |
+| Analytics | KPI snapshots | 09:00 |
+| DevOps | Health monitoring | 08:00 |
+| Social | Discord/Bluesky/Twitter | 18:00 |
+| Quality | Content moderation | 10:00 |
+| Bug Triage | Sentry triage | 11:00 |
 
 ## Internationalization (i18n)
 
 - **Library**: expo-localization + i18next + react-i18next
 - **Auto-detection**: device language detected via `expo-localization`
 - **Supported locales**: English (en, default) + Traditional Chinese (zh-TW)
-- **Translation files**: `apps/mobile/i18n/en.json`, `apps/mobile/i18n/zh-TW.json`
+- **Translation files**: `apps/mobile/i18n/locales/en.json`, `apps/mobile/i18n/locales/zh-TW.json`
+- **Coverage**: 100% key parity between en and zh-TW (259 keys)
 
 ## Taste Distance Algorithm
 
@@ -223,23 +220,10 @@ Badge Categories (6):
 
 2. **Environment variables**
 
-   Create `.env` in project root:
-   ```env
-   SUPABASE_URL=your_supabase_url
-   SUPABASE_ANON_KEY=your_anon_key
-   SUPABASE_SERVICE_KEY=your_service_key
-   SPOTIFY_CLIENT_ID=your_spotify_client_id
-   SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
-   SPOTIFY_REDIRECT_URI=https://your-app.vercel.app/api/spotify/callback
-   CRON_API_KEY=your_random_api_key
+   ```bash
+   cp .env.example .env
    ```
-
-   Create `apps/mobile/.env`:
-   ```env
-   EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
-   EXPO_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-   EXPO_PUBLIC_API_URL=http://localhost:3000
-   ```
+   Fill in your Supabase, Spotify, and monitoring credentials. See `.env.example` for all required variables.
 
 3. **Database setup**
 
@@ -254,6 +238,7 @@ Badge Categories (6):
    supabase/migrations/007_referral_program.sql
    supabase/migrations/008_seed_flag.sql
    supabase/migrations/009_bookmarks_and_reminders.sql
+   supabase/migrations/010_performance_indexes.sql
    ```
 
 4. **Seed data**
