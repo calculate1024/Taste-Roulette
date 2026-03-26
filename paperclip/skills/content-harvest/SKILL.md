@@ -79,14 +79,61 @@ WHERE p.display_name LIKE '%Editors%'
 GROUP BY p.display_name;
 ```
 
+## Candidate Sources (parser not yet built — for future expansion)
+
+Researched 2026-03-26. Curator agent should reference this list when genre gaps persist.
+
+### Priority Tier (high feasibility, fills critical gaps)
+
+| Source | URL | Genres | Feasibility | Notes |
+|--------|-----|--------|-------------|-------|
+| **Bandcamp Daily** | daily.bandcamp.com | jazz, world, folk, classical | High | Best multi-genre source. Clean HTML. No Spotify embeds (Bandcamp players) — needs Spotify search step |
+| **Loudwire** | loudwire.com | metal, hard rock, punk | High | Ranked song lists with Spotify playlists. Clean format. Replaces low-yield MetalSucks |
+| **For The Love Of Bands** | fortheloveofbands.com | folk, reggae, country, blues, indie | High | WordPress + Spotify embeds. Covers 4+ weak genres |
+| **NPR Music** | npr.org/music | classical, jazz, world, latin | High | Broadest coverage. "Songs We Love" + Spotify playlists |
+| **Consequence** | consequence.net | metal, indie, alternative | High | Structured "Artist — 'Track'" format. Apple Music links (use Spotify search) |
+
+### Secondary Tier (medium feasibility or narrower scope)
+
+| Source | URL | Genres | Feasibility | Notes |
+|--------|-----|--------|-------------|-------|
+| Indie Shuffle | indieshuffle.com | indie, electronic, neo-soul | High | Single-track focus, consistent structure |
+| This Song Is Sick | thissongissick.com | electronic, hip-hop | High | Track-focused format |
+| Louder/Metal Hammer | loudersound.com | metal | Medium | JS-heavy rendering, may need headless browser |
+| Jazzwise | jazzwise.com | jazz | Medium | Album-focused, need track extraction from albums |
+| JazzTimes | jazztimes.com | jazz | Medium | Possible partial paywall |
+| Afropop Worldwide | afropop.org | world, reggae, latin | Medium | More editorial/podcast, less track lists |
+| Twangville | twangville.com | country, folk, blues | Medium | Covers weak genres, structure unverified |
+
+### Not Recommended
+
+| Source | Reason |
+|--------|--------|
+| Songlines (songlines.co.uk) | Paywalled review database |
+| Under the Radar (undertheradarmag.com) | Returns 403 on automated requests |
+
+### Genre → Source Mapping (for gap-driven decisions)
+
+| Weak Genre | Best Source to Request |
+|-----------|----------------------|
+| metal (19) | Loudwire, Consequence |
+| world (15) | Bandcamp Daily, NPR Music |
+| country (17) | For The Love Of Bands |
+| reggae (18) | For The Love Of Bands |
+| latin (19) | NPR Music, Afropop |
+| jazz (24) | Bandcamp Daily, NPR Music |
+| classical (28) | NPR Music, Bandcamp Daily |
+| folk (48) | Bandcamp Daily, For The Love Of Bands |
+
 ## Finding New Sources (Curator Agent Responsibility)
 
-When existing sources are exhausted or genre gaps persist:
+When existing sources AND candidates above are exhausted or genre gaps persist:
 
 1. Search for music blogs/publications covering the weak genre
 2. Verify: public content, no login required, robots.txt allows crawling
 3. Test: can artist + track be extracted from article titles?
 4. Report to Calvin via log: "Suggest new source: {url}, covers {genres}, feasibility: {high/medium/low}"
 5. Calvin or dev session will build the parser
+6. Check this candidate list first before searching — avoid re-reporting known candidates
 
 Do NOT attempt to build parsers autonomously — report source candidates only.
