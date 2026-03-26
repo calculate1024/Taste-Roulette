@@ -1,0 +1,15 @@
+{
+  "name": "paperclip-dashboard",
+  "version": "0.2.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "dev": "npx vercel dev"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
