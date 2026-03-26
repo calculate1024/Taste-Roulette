@@ -36,12 +36,23 @@ async function registerForPushNotifications(): Promise<string | null> {
     return null;
   }
 
-  // Android needs a notification channel
+  // Android needs notification channels for each notification type
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('daily-roulette', {
       name: 'Daily Roulette',
+      description: 'Your daily music surprise',
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 250, 250, 250],
+    });
+    await Notifications.setNotificationChannelAsync('onboarding', {
+      name: 'Onboarding Reminders',
+      description: 'Reminders to complete your taste profile',
+      importance: Notifications.AndroidImportance.DEFAULT,
+    });
+    await Notifications.setNotificationChannelAsync('reaction-echo', {
+      name: 'Reaction Updates',
+      description: 'When someone loves your recommendation',
+      importance: Notifications.AndroidImportance.DEFAULT,
     });
   }
 

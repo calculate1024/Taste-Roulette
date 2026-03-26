@@ -57,13 +57,17 @@ export async function sendDailyNotifications(): Promise<number> {
   // Get all users with push tokens who have a pending card created today
   const { data: pendingCards, error } = await supabaseAdmin
     .from('roulette_cards')
-    .select('id, recipient_id, profiles!roulette_cards_recipient_id_fkey(push_token)')
+    .select('id, recipient_id, profiles:recipient_id(push_token)')
     .eq('status', 'pending')
-    .gte('created_at', todayStart.toISOString())
-    .not('profiles.push_token', 'is', null);
+    .gte('created_at', todayStart.toISOString());
 
-  if (error || !pendingCards) {
-    console.error('Failed to fetch pending cards:', error?.message);
+  if (error) {
+    console.error('Failed to fetch pending cards:', error.message);
+    return 0;
+  }
+
+  if (!pendingCards || pendingCards.length === 0) {
+    console.log('No pending cards to notify today');
     return 0;
   }
 
