@@ -14,6 +14,7 @@
     "seed:simulate": "tsx src/scripts/seed-simulation.ts",
     "sim:analyze": "tsx src/scripts/simulation-analysis.ts",
     "pool:expand": "tsx src/scripts/pool-expand.ts",
+    "harvest": "tsx src/scripts/content-harvest/index.ts",
     "test": "jest"
   },
   "keywords": [],
@@ -23,6 +24,7 @@
   "dependencies": {
     "@sentry/node": "^10.43.0",
     "@supabase/supabase-js": "^2.99.2",
+    "cheerio": "^1.2.0",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
