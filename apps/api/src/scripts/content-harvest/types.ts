@@ -43,4 +43,6 @@ export interface SourceParser {
   config: SourceConfig;
   getArticleLinks(html: string): ArticleLink[];
   extractTracks(html: string, articleUrl: string): ScrapedTrack[];
+  /** Return paginated listing URL for page N (1-based). Null if no pagination. */
+  getPageUrl(page: number): string | null;
 }

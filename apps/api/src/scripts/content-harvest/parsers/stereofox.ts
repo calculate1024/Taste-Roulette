@@ -135,9 +135,15 @@ function parseTrackHeading(text: string): { artist: string; title: string } | nu
   return null;
 }
 
+function getPageUrl(page: number): string | null {
+  if (page <= 1) return null;
+  return `${config.listUrl}?page=${page}`;
+}
+
 export const stereofoxParser: SourceParser = {
   name: 'stereofox',
   config,
   getArticleLinks,
   extractTracks,
+  getPageUrl,
 };

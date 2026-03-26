@@ -140,9 +140,16 @@ function parseMetalTitle(text: string): { artist: string; title: string } | null
   return null;
 }
 
+function getPageUrl(page: number): string | null {
+  if (page <= 1) return null;
+  // Ghost CMS pagination
+  return `${config.baseUrl}/page/${page}/`;
+}
+
 export const metalsucksParser: SourceParser = {
   name: 'metal-sucks',
   config,
   getArticleLinks,
   extractTracks,
+  getPageUrl,
 };

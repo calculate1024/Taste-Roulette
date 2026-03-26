@@ -99,32 +99,73 @@ async function harvestSource(
   const { existingTrackIds, existingSourceUrls } = await loadExistingIds(curatorId);
   console.log(`[${config.name}] Existing: ${existingTrackIds.size} tracks, ${existingSourceUrls.size} source URLs`);
 
-  // Step 4: Fetch listing page
-  console.log(`[${config.name}] Fetching article listing...`);
-  let listingHtml: string;
-  try {
-    const res = await throttledFetch(config.listUrl);
-    listingHtml = await res.text();
-  } catch (err: any) {
-    console.error(`[${config.name}] Failed to fetch listing page:`, err.message);
-    result.errors.push(`Listing fetch failed: ${err.message}`);
-    return result;
+  // Step 4: Fetch listing pages (with pagination)
+  console.log(`[${config.name}] Fetching article listings...`);
+  const articleLinks: { url: string; title: string }[] = [];
+  const seenUrls = new Set<string>();
+  const maxPages = 10; // safety cap
+
+  for (let page = 1; page <= maxPages; page++) {
+    const pageUrl = page === 1 ? config.listUrl : parser.getPageUrl(page);
+    if (!pageUrl) break;
+
+    if (page > 1) console.log(`[${config.name}] Fetching page ${page}...`);
+
+    try {
+      const res = await throttledFetch(pageUrl);
+      if (!res.ok) {
+        if (verbose) console.log(`  Page ${page} returned ${res.status} — stopping pagination`);
+        break;
+      }
+      const html = await res.text();
+      const links = parser.getArticleLinks(html);
+
+      // Deduplicate across pages
+      let newCount = 0;
+      for (const link of links) {
+        if (!seenUrls.has(link.url)) {
+          seenUrls.add(link.url);
+          articleLinks.push(link);
+          newCount++;
+        }
+      }
+
+      if (newCount === 0) {
+        if (verbose) console.log(`  Page ${page} returned 0 new articles — stopping pagination`);
+        break;
+      }
+
+      // Stop if we have enough
+      if (articleLinks.length >= limit) break;
+    } catch (err: any) {
+      if (page === 1) {
+        console.error(`[${config.name}] Failed to fetch listing page:`, err.message);
+        result.errors.push(`Listing fetch failed: ${err.message}`);
+        return result;
+      }
+      // Later pages failing is OK — use what we have
+      if (verbose) console.log(`  Page ${page} failed: ${err.message} — stopping pagination`);
+      break;
+    }
   }
 
-  // Step 5: Extract article links
-  const articleLinks = parser.getArticleLinks(listingHtml).slice(0, limit);
-  console.log(`[${config.name}] Found ${articleLinks.length} articles (limit: ${limit})`);
+  // Trim to limit
+  const trimmedLinks = articleLinks.slice(0, limit);
+  console.log(`[${config.name}] Found ${trimmedLinks.length} articles across ${Math.min(Math.ceil(articleLinks.length / 10), maxPages)} page(s) (limit: ${limit})`);
 
-  if (articleLinks.length === 0) {
+  if (trimmedLinks.length === 0) {
     console.log(`[${config.name}] No articles found — parser may need updating`);
     result.errors.push('No articles found on listing page');
     return result;
   }
 
+  // Replace articleLinks reference for processing
+  const articleLinksToProcess = trimmedLinks;
+
   // Step 6: Process each article
   const allMatched: MatchedTrack[] = [];
 
-  for (const article of articleLinks) {
+  for (const article of articleLinksToProcess) {
     if (verbose) console.log(`\n  Processing: ${article.title}`);
     result.articlesScraped++;
 

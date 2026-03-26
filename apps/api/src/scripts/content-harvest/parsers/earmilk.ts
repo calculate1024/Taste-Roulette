@@ -188,9 +188,15 @@ function parseArtistTitle(text: string): { artist: string; title: string } | nul
   return null;
 }
 
+function getPageUrl(page: number): string | null {
+  if (page <= 1) return null;
+  return `${config.listUrl}page/${page}/`;
+}
+
 export const earmilkParser: SourceParser = {
   name: 'earmilk',
   config,
   getArticleLinks,
   extractTracks,
+  getPageUrl,
 };
