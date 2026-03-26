@@ -20,6 +20,7 @@ import twinsRouter from './routes/twins';
 import healthRouter from './routes/health';
 import referralRouter from './routes/referral';
 import landingRouter from './routes/landing';
+import legalRouter from './routes/legal';
 import wellKnownRouter from './routes/well-known';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
@@ -56,6 +57,9 @@ app.get('/health', (_req, res) => {
 
 // Landing page + privacy policy (public, no auth)
 app.use('/', landingRouter);
+
+// Legal pages (public, no auth — required for App Store / Google Play)
+app.use('/legal', legalRouter);
 
 // .well-known (Universal Links / App Links)
 app.use('/.well-known', wellKnownRouter);
