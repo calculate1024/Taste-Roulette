@@ -5,9 +5,13 @@ import { supabaseAdmin } from '../../services/supabase';
 import type { ScrapedTrack, MatchedTrack } from './types';
 import { generateReason } from './reason-rewriter';
 
-/** Normalize string for comparison: lowercase, strip feat/remix/remaster suffixes. */
+/** Normalize string for comparison: lowercase, decode HTML entities, strip suffixes. */
 function normalize(s: string): string {
   return s
+    .replace(/&amp;/g, '&')
+    .replace(/&apos;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&#\d+;/g, '')
     .toLowerCase()
     .replace(/\(feat\.?.*?\)/gi, '')
     .replace(/\(remix\)/gi, '')
