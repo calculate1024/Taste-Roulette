@@ -1,0 +1,21 @@
+{
+  "version": "1",
+  "company": {
+    "shortname": "taste-roulette",
+    "name": "Taste Roulette",
+    "description": "Anti-algorithm daily music recommendation app. Each day users receive one card from a stranger whose taste is different-but-not-too-far. Goal: maximize surprise, not accuracy.",
+    "timezone": "Asia/Taipei",
+    "configFile": "company.yaml"
+  },
+  "agents": [
+    { "slug": "ceo", "file": "agents/ceo.yaml" },
+    { "slug": "curator", "file": "agents/curator.yaml" },
+    { "slug": "quality", "file": "agents/quality.yaml" },
+    { "slug": "analytics", "file": "agents/analytics.yaml" },
+    { "slug": "devops", "file": "agents/devops.yaml" },
+    { "slug": "bug-triage", "file": "agents/bug-triage.yaml" },
+    { "slug": "social", "file": "agents/social.yaml" },
+    { "slug": "outreach", "file": "agents/outreach.yaml" },
+    { "slug": "feedback", "file": "agents/feedback.yaml" }
+  ]
+}

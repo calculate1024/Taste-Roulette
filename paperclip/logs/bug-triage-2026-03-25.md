@@ -1,8 +1,9 @@
-# Bug Triage Specialist — 2026-03-26
+# Bug Triage Specialist — 2026-03-25
 ## Status: ok
 ## Summary
 - No inbox file found (bug-triage.md absent)
-- Scanned taste-roulette-api and taste-roulette-mobile — both fully clean (0 unresolved issues)
+- Scanned taste-roulette-api and taste-roulette-mobile — both clean (0 unresolved issues)
+- Sentry #7340688838 (P3 test crash) no longer appears — successfully archived by DevOps
 - GH#1 (P1 AsyncStorage persistence) remains open, awaiting dev fix
 
 ## Metrics
@@ -17,4 +18,4 @@
 
 ## Next Actions
 - Dev to fix GH#1: AsyncStorage write in setRecommendPromptDismissed() + restore in loadPersistedState()
-- Next scheduled triage: 2026-03-27 at 11:00 UTC+8
+- Next scheduled triage: 2026-03-26 at 11:00 UTC+8

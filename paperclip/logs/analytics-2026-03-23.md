@@ -1,38 +1,44 @@
 # Data Analyst — 2026-03-23
 
-## Status: error
+## Status: warning
 
 ## Summary
-- Queried Supabase (profiles, roulette_cards, feedbacks, user_recommendations, auth.users) and PostHog (HogQL 7-day events) for daily KPI snapshot
-- Detected critical anomaly: 0 cards delivered today (daily cron job appears to have failed)
-- Produced full KPI report including DoD comparison and 7-day trends
+- Inbox read and actioned: (1) DAU metric switched to PostHog login_success; (2) recommend_back_skipped P1 bug acknowledged (AsyncStorage persistence missing); (3) real-user filtering via is_seed=false now in use
+- Queried Supabase + PostHog for full KPI snapshot; cron job confirmed as running today (21:59 UTC+8, 13h late, 220 cards = ~2x normal — possible double dispatch)
+- Detected 2 new real users (is_seed=false total: 3, up from 1)
+
+## Inbox
+- File: paperclip/inbox/analytics.md (2026-03-23, from Calvin)
+- Actions taken:
+  - DAU now uses PostHog login_success (not auth.last_sign_in)
+  - recommend_back_skipped bug noted as P1, escalated to Bug Triage by Calvin
+  - Cron investigation completed (see Issues)
+  - All real-user metrics filtered to is_seed=false
 
 ## Metrics
 | Metric | Value |
 |--------|-------|
-| Total profiles | 110 (1 real + 1 curator-system + 108 seed) |
-| DAU today (PostHog) | 0 |
-| DAU yesterday (PostHog) | 1 (active via session, no new login_success) |
-| Cards delivered today | 0 (CRITICAL — cron failure suspected) |
-| Cards delivered yesterday | 110 (1 opened / 0.9% open rate DB-wide) |
-| Real user card_opened yesterday (PostHog) | 2 |
-| Feedbacks today | 0 |
-| Feedbacks yesterday | 2 (surprised=1, okay=1 / 50% surprise rate) |
-| Surprise rate 7-day | 30.7% (270/879) |
-| Recommend-back rate yesterday | 25% (2 submitted / 8 prompts shown) |
-| recommend_back_skipped yesterday | 6 (anomaly) |
-| Pool unused | 1,587 (healthy, growing) |
-| Pool total | 2,454 |
-| Active streaks >=3 | 40 / 110 users |
+| Total profiles | 111 (3 real + 108 seed) |
+| DAU today (PostHog login_success) | 1 (session active on 2026-03-24 UTC) |
+| DAU yesterday (3/22) | 0 login_success (active via session) |
+| Cards delivered today (3/23) | 220 (anomaly: ~2x expected, cron ran 13h late at 21:59 UTC+8) |
+| Cards delivered yesterday (3/22) | 110 (1 opened / 0.9% DB open rate) |
+| Real user card_opened today (PostHog) | 2 |
+| Feedbacks today | 1 (surprised / 100%) |
+| Feedbacks yesterday (3/22) | 2 (surprised=1, okay=1 / 50%) |
+| Surprise rate 7-day | 30.8% (271/880) |
+| recommend_back_skipped yesterday | 6 (P1 bug confirmed) |
+| Pool unused | 1,600 (+92/day avg, healthy) |
+| Pool total | 2,505 |
+| Active streaks >=3 | 40 / 111 users |
 
 ## Issues
-- CRITICAL: 0 cards created on 2026-03-23 — daily cron job did not run or failed silently
-- recommend_back_skipped=6 with only 2 feedbacks suggests prompt is showing multiple times per session (possible bug)
-- DAU metric unreliable from auth.last_sign_in due to session persistence; PostHog login_success is more accurate
-- All behavioral data still from single real user; no statistical baseline possible
+- Cards today = 220 (2x expected 111): cron may have double-run; delivery time was 21:59 UTC+8 (13h late vs 09:00 schedule) — needs DevOps investigation
+- recommend_back_skipped=6 on 3/22: P1 bug (recommendPromptDismissedDate not persisted to AsyncStorage), escalated by Calvin
+- DAU remains 1 real user active; 3 real users total but 2 are new and have not engaged yet
 
 ## Next Actions
-- Immediately: manually trigger card delivery for today, investigate cron failure
-- Bug triage: inspect recommend_back_skipped trigger logic (6 skips / 2 feedbacks ratio abnormal)
-- Update DAU tracking to use PostHog login_success instead of auth.last_sign_in
-- Recruit beta users to establish multi-user baseline
+- DevOps: confirm whether cron ran twice today (double dispatch root cause)
+- Bug Triage: P1 fix for recommend_back_skipped — persist dismissedDate to AsyncStorage
+- Analytics: monitor new real users (3 total) for first card_opened event to track onboarding completion
+- Continue using PostHog login_success as DAU signal going forward
