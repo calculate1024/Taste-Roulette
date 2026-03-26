@@ -7,6 +7,7 @@ import {
   RefreshControl,
   ScrollView,
   Pressable,
+  Alert,
 } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -74,8 +75,12 @@ export default function HomeScreen() {
       if (card?.status === 'feedback_given') {
         setFeedbackGiven(true);
       }
-    } catch {
-      // Silently fail — empty state will show
+    } catch (err) {
+      console.error('Failed to fetch card:', err);
+      if (!loading) {
+        // Only show alert on refresh, not initial load (empty state handles that)
+        Alert.alert(t('common.error'), t('common.failedLoadCard'));
+      }
     } finally {
       setLoading(false);
     }
@@ -131,8 +136,9 @@ export default function HomeScreen() {
         setIsBookmarked(true);
       }
       trackEvent(Events.CARD_BOOKMARKED, { cardId: todayCard.id, bookmarked: !isBookmarked });
-    } catch {
-      // Silently fail
+    } catch (err) {
+      console.error('Bookmark failed:', err);
+      Alert.alert(t('common.error'), t('common.bookmarkFailed'));
     }
   }, [todayCard, isBookmarked]);
 

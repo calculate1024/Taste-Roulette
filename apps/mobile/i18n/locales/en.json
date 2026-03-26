@@ -234,7 +234,9 @@
     "failedSubmitFeedback": "Failed to submit feedback. Please try again.",
     "retry": "Retry",
     "close": "✕ Close",
-    "listen": "▶ Listen"
+    "listen": "▶ Listen",
+    "failedLoadCard": "Could not load your card. Pull down to try again.",
+    "bookmarkFailed": "Could not save bookmark. Please try again."
   },
   "login": {
     "title": "Taste Roulette",
