@@ -19,6 +19,13 @@ import { resetReasonBatch } from './reason-rewriter';
 import { earmilkParser } from './parsers/earmilk';
 import { stereofoxParser } from './parsers/stereofox';
 import { metalsucksParser } from './parsers/metalsucks';
+import { bandcampDailyParser } from './parsers/bandcamp-daily';
+import { loudwireParser } from './parsers/loudwire';
+import { ftlobParser } from './parsers/ftlob';
+import { nprMusicParser } from './parsers/npr-music';
+import { consequenceParser } from './parsers/consequence';
+import { indieshuffleParser } from './parsers/indieshuffle';
+import { tsisParser } from './parsers/tsis';
 import type { SourceParser, HarvestResult, MatchedTrack } from './types';
 
 // Registry of available parsers
@@ -26,6 +33,13 @@ const PARSERS: Record<string, SourceParser> = {
   earmilk: earmilkParser,
   stereofox: stereofoxParser,
   'metal-sucks': metalsucksParser,
+  'bandcamp-daily': bandcampDailyParser,
+  loudwire: loudwireParser,
+  ftlob: ftlobParser,
+  'npr-music': nprMusicParser,
+  consequence: consequenceParser,
+  indieshuffle: indieshuffleParser,
+  tsis: tsisParser,
 };
 
 // CLI argument parsing
