@@ -4,6 +4,8 @@ import { supabaseAdmin } from '../../services/supabase';
 import { VECTOR_DIM, genreToVector } from '../../utils/genres';
 import type { SourceConfig, MatchedTrack } from './types';
 
+const GENRE_COUNT = VECTOR_DIM;
+
 /** Build taste vector from dominant genres (same pattern as seed-users.ts). */
 function buildTasteVector(dominantGenres: string[]): number[] {
   const vec = new Array(VECTOR_DIM).fill(0);
@@ -114,4 +116,50 @@ export async function insertRecommendations(
   }
 
   return { inserted, duplicate };
+}
+
+/**
+ * Recalculate curator taste vector from actual genre distribution of their recommendations.
+ * More accurate than static dominantGenres since it reflects what was actually harvested.
+ */
+export async function recalculateCuratorVector(curatorId: string): Promise<void> {
+  const { data: recs } = await supabaseAdmin
+    .from('user_recommendations')
+    .select('track_id')
+    .eq('user_id', curatorId);
+
+  if (!recs || recs.length === 0) return;
+
+  const trackIds = [...new Set(recs.map((r) => r.track_id))];
+  const { data: tracks } = await supabaseAdmin
+    .from('tracks')
+    .select('spotify_id, genres')
+    .in('spotify_id', trackIds);
+
+  if (!tracks || tracks.length === 0) return;
+
+  // Accumulate genre weights from all tracks
+  const vec = new Array(GENRE_COUNT).fill(0);
+  let count = 0;
+
+  for (const track of tracks) {
+    if (!track.genres || track.genres.length === 0) continue;
+    const oneHot = genreToVector(track.genres);
+    for (let i = 0; i < GENRE_COUNT; i++) {
+      vec[i] += oneHot[i];
+    }
+    count++;
+  }
+
+  if (count === 0) return;
+
+  // Normalize
+  const normalized = vec.map((v) => v / count);
+
+  await supabaseAdmin
+    .from('profiles')
+    .update({ taste_vector: normalized })
+    .eq('id', curatorId);
+
+  console.log(`  Recalculated taste vector from ${count} tracks`);
 }

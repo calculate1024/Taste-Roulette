@@ -119,6 +119,9 @@ export default function RecommendScreen() {
         withTiming(1.2, { duration: 300 }),
         withTiming(1, { duration: 200 })
       );
+    } catch (err) {
+      console.error('Recommendation submit failed:', err);
+      Alert.alert(t('common.error'), t('common.failedSubmitRecommendation'));
     } finally {
       setSubmitting(false);
     }

@@ -3,6 +3,9 @@
 
 import { supabaseAdmin } from './supabase';
 import { getTodayStartUTC8 } from '../utils/date';
+import { createLogger } from '../utils/logger';
+
+const log = createLogger('notifications');
 
 interface ExpoPushMessage {
   to: string;
@@ -62,12 +65,12 @@ export async function sendDailyNotifications(): Promise<number> {
     .gte('created_at', todayStart.toISOString());
 
   if (error) {
-    console.error('Failed to fetch pending cards:', error.message);
+    log.error('Failed to fetch pending cards:', error.message);
     return 0;
   }
 
   if (!pendingCards || pendingCards.length === 0) {
-    console.log('No pending cards to notify today');
+    log.info('No pending cards to notify today');
     return 0;
   }
 
@@ -87,7 +90,7 @@ export async function sendDailyNotifications(): Promise<number> {
   const tickets = await sendPushNotifications(messages);
   const successCount = tickets.filter((t) => t.status === 'ok').length;
 
-  console.log(`Daily notifications: ${successCount}/${messages.length} sent`);
+  log.info(`Daily notifications: ${successCount}/${messages.length} sent`);
   return successCount;
 }
 
@@ -128,7 +131,7 @@ export async function sendOnboardingReminders(): Promise<number> {
     .update({ onboarding_reminder_sent: true })
     .in('id', userIds);
 
-  console.log(`Onboarding reminders: ${successCount}/${messages.length} sent`);
+  log.info(`Onboarding reminders: ${successCount}/${messages.length} sent`);
   return successCount;
 }
 

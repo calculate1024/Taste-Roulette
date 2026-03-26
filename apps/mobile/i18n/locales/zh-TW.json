@@ -236,7 +236,8 @@
     "close": "✕ 關閉",
     "listen": "▶ 試聽",
     "failedLoadCard": "無法載入卡片，下拉重試。",
-    "bookmarkFailed": "無法儲存收藏，請重試。"
+    "bookmarkFailed": "無法儲存收藏，請重試。",
+    "failedSubmitRecommendation": "推薦提交失敗，請重試。"
   },
   "login": {
     "title": "Taste Roulette",

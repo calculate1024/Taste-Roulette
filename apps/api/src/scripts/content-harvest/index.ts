@@ -14,7 +14,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../../../../.env') });
 import { isAllowedByRobots } from './robots';
 import { throttledFetch } from './rate-limiter';
 import { matchToSpotify, loadExistingIds } from './spotify-matcher';
-import { ensureCuratorProfile, insertRecommendations } from './curator-inserter';
+import { ensureCuratorProfile, insertRecommendations, recalculateCuratorVector } from './curator-inserter';
 import { resetReasonBatch } from './reason-rewriter';
 import { earmilkParser } from './parsers/earmilk';
 import { stereofoxParser } from './parsers/stereofox';
@@ -227,6 +227,11 @@ async function harvestSource(
     );
     result.tracksInserted = inserted;
     result.tracksDuplicate += duplicate;
+
+    // Recalculate curator taste vector from actual genre distribution
+    if (inserted > 0 && !dryRun) {
+      await recalculateCuratorVector(curatorId);
+    }
   }
 
   return result;

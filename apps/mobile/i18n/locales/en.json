@@ -236,7 +236,8 @@
     "close": "✕ Close",
     "listen": "▶ Listen",
     "failedLoadCard": "Could not load your card. Pull down to try again.",
-    "bookmarkFailed": "Could not save bookmark. Please try again."
+    "bookmarkFailed": "Could not save bookmark. Please try again.",
+    "failedSubmitRecommendation": "Could not submit your recommendation. Please try again."
   },
   "login": {
     "title": "Taste Roulette",

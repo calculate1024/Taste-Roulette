@@ -4,6 +4,9 @@ import { VECTOR_DIM, GENRES, GENRE_INDEX, REACTION_WEIGHTS, genreToVector, getTa
 import { cosineDistance } from '../utils/vector';
 import { applyCorrelationInference } from '../utils/genre-correlation';
 import { getCuratorReason, getCuratorTasteLabel } from '../utils/curator-reasons';
+import { createLogger } from '../utils/logger';
+
+const log = createLogger('matching');
 
 const SWEET_SPOT_MIN = 0.3;
 const SWEET_SPOT_MAX = 0.7;
@@ -227,7 +230,7 @@ export async function runDailyMatching(): Promise<MatchingSummary> {
 
   // Pool alert: warn if running low
   if (availableRecs.length < 50) {
-    console.warn(`POOL ALERT: Only ${availableRecs.length} unused recommendations remaining!`);
+    log.warn(`POOL ALERT: Only ${availableRecs.length} unused recommendations remaining!`);
     // Write alert to paperclip inbox for CEO agent
     try {
       const fs = await import('fs');
@@ -237,7 +240,7 @@ export async function runDailyMatching(): Promise<MatchingSummary> {
       fs.writeFileSync(alertPath, alertContent);
     } catch {
       // Non-critical: just log if file write fails (e.g. on Vercel)
-      console.warn('Could not write pool alert to paperclip inbox');
+      log.warn('Could not write pool alert to paperclip inbox');
     }
   }
 
