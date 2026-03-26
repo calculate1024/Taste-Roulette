@@ -1,0 +1,98 @@
+name: Paperclip Social Agent
+
+on:
+  schedule:
+    # UTC 10:00 = 18:00 UTC+8 (Taiwan) — evening content prep
+    - cron: '0 10 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: paperclip-social
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  run-social:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Write .env for agents
+        run: |
+          cat > .env << EOF
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
+          BLUESKY_HANDLE=${{ secrets.BLUESKY_HANDLE }}
+          BLUESKY_APP_PASSWORD=${{ secrets.BLUESKY_APP_PASSWORD }}
+          DISCORD_WEBHOOK_DAILY=${{ secrets.DISCORD_WEBHOOK_DAILY }}
+          DISCORD_WEBHOOK_COMMUNITY=${{ secrets.DISCORD_WEBHOOK_COMMUNITY }}
+          EOF
+          sed -i 's/^          //' .env
+
+      - name: Initialize cost tracker
+        run: echo '{}' > /tmp/agent-costs.json
+
+      - name: Run Social Agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          OUTPUT=$(echo "You are the social agent for Taste Roulette. Read your config at paperclip/agents/social.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Post to Discord via webhooks. Write your log to paperclip/logs/social-$(date +%Y-%m-%d).md and update paperclip/logs/social-latest.md." | \
+          claude -p . \
+            --allowedTools "Bash,Read,Write,Edit,Glob,Grep" \
+            --output-format json 2>/dev/null || echo '{"total_cost_usd":0}')
+          COST=$(echo "$OUTPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('total_cost_usd',0))" 2>/dev/null || echo 0)
+          python3 -c "import json; d=json.load(open('/tmp/agent-costs.json')); d['social']=float('$COST'); json.dump(d,open('/tmp/agent-costs.json','w'))"
+
+      - name: Append cost to tracker
+        run: |
+          python3 << 'PYEOF'
+          import json
+          from datetime import datetime
+
+          costs = json.load(open('/tmp/agent-costs.json'))
+          date = datetime.utcnow().strftime('%Y-%m-%d')
+
+          tracker_path = "paperclip/logs/cost-tracker.json"
+          try:
+              tracker = json.load(open(tracker_path))
+          except (FileNotFoundError, json.JSONDecodeError):
+              tracker = {"daily": [], "monthly_budget": 120}
+
+          # Find today's entry and append social cost, or create new
+          today_entry = next((d for d in tracker["daily"] if d["date"] == date), None)
+          if today_entry:
+              today_entry["costs"].update(costs)
+              today_entry["total"] = sum(today_entry["costs"].values())
+          else:
+              tracker["daily"].append({"date": date, "costs": costs, "total": sum(costs.values())})
+
+          tracker["daily"] = tracker["daily"][-90:]
+          tracker["month_total"] = sum(d["total"] for d in tracker["daily"]
+                                       if d["date"][:7] == date[:7])
+
+          with open(tracker_path, "w") as f:
+              json.dump(tracker, f, indent=2)
+
+          print(f"Social cost: ${sum(costs.values()):.4f}")
+          PYEOF
+
+      - name: Commit social logs
+        run: |
+          git config user.name "Paperclip Bot"
+          git config user.email "paperclip@taste-roulette.local"
+          git add paperclip/logs/*.md paperclip/logs/cost-tracker.json paperclip/drafts/*.md 2>/dev/null || true
+          git diff --cached --quiet || git commit -m "chore: paperclip social agent $(date +%Y-%m-%d)"
+          git push || true

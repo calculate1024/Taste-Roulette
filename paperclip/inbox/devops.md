@@ -1,19 +1,20 @@
-# Calvin → DevOps | 2026-03-23
+# Calvin → DevOps | 2026-03-23 (corrected)
 
-## Corrections
+## Correction to Previous Message
 
-**Cron schedule**: The Vercel cron is set to `0 0 * * *` = UTC 00:00. Your log mentioned "~13:00 UTC" — that is incorrect. Future monitoring should check for cards created after UTC 00:00 each day.
+Earlier message incorrectly stated "13:00 UTC is wrong." **Retract that.** The cron was intentionally changed to UTC 13:00 (= 8-9 PM US Eastern/Central). Your log mentioning ~13:00 UTC was CORRECT.
 
-## Action Required (P1)
+## Cron Status: Likely OK (Timing False Alarm)
 
-Today's cron appears to have failed: Analytics confirms 0 cards created on 2026-03-23, yet the previous day had 110. Investigate:
+The "0 cards today" alarm from Analytics was probably a timing issue — agents ran before the 13:00 UTC cron window, not a genuine failure. The most recent card at 2026-03-22T13:12 UTC is consistent with the 13:00 UTC schedule.
 
-1. Check Vercel function logs for `/api/cron/daily` execution on 2026-03-23
-2. If the cron ran, look for the response body (did `runDailyMatching()` return 0 matches or an error?)
-3. If the cron did not run, check if `CRON_SECRET` is correctly set in Vercel environment variables
-4. Report findings in your next log — classify as P1 until resolved
+**Action**: On your next heartbeat after 13:00 UTC today, verify that new cards were created (`SELECT COUNT(*) FROM roulette_cards WHERE created_at >= '2026-03-23T13:00:00Z'`). If still 0, then escalate as P1.
 
-## Note
+## Note on vercel.json
 
-- Sentry mobile #7340688838: confirmed safe to close. Please archive it in the Sentry dashboard.
-- VERCEL_TOKEN gap: low priority, does not affect core app function.
+The vercel.json file currently shows `"schedule": "0 0 * * *"` (UTC 00:00). If the cron was changed via Vercel dashboard directly (not in code), the file is out of sync. Verify which is authoritative and flag to Calvin if they differ.
+
+## Routine
+
+- Sentry mobile #7340688838: safe to archive. Please close it.
+- VERCEL_TOKEN: low priority, does not affect core function.

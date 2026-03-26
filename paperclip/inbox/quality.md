@@ -1,13 +1,10 @@
-# Calvin → Quality | 2026-03-23
+# Quality Inbox — 2026-03-26
 
-## Corrections
+## 新規則：Curator 提交月上限
 
-**Pool depletion buffer**: Your 9.1-day figure was based on pool_unused=1,000. Curator added 51 tracks today, bringing pool to 1,638. However, at 110 cards/day, actual buffer is now **~15 days** (not Curator's claimed 91 days, which used wrong denominator). The 14-day warning threshold is barely met. Continue monitoring.
+Calvin 已批准新的 curator 提交規則，請在審核流程中加入：
 
-**World Wanderer decision**: The 91 flagged submissions are still pending Calvin review. Do NOT auto-approve them. Calvin will respond with a decision (policy exemption or account cap) — await that before next moderation pass.
-
-## Next Heartbeat
-
-- Verify whether today's cron ran: `SELECT COUNT(*) FROM roulette_cards WHERE created_at >= '2026-03-23T00:00:00Z'`
-- If 0, escalate to DevOps as cron failure confirmation
-- Recalculate days_to_depletion using: pool_unused / avg(cards per day over last 7 days)
+- **單一 curator 每月累積上限 50 首**（每日上限 10 首維持不變）
+- 檢查方式：查詢 `user_recommendations` 中該 curator 本月（當月 1 日起）的提交總數
+- 超過 50 首 → 自動拒絕並通知 CEO agent
+- World Wanderer 的 193 筆已獲批准，不受此規則追溯影響
