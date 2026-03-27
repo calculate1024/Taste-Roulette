@@ -12,6 +12,8 @@ export interface MatchedTrack extends ScrapedTrack {
   spotifyId: string;
   genres: string[];
   reason: string; // generated reason (never copied from source)
+  album?: string;    // from Spotify metadata
+  coverUrl?: string; // from Spotify metadata
 }
 
 export interface HarvestResult {

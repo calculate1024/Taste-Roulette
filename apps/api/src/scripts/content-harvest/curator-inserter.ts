@@ -74,15 +74,18 @@ export async function ensureCuratorProfile(config: SourceConfig): Promise<string
   return userId;
 }
 
-/** Insert matched tracks as curator recommendations. Returns insert count. */
+/** Insert matched tracks as curator recommendations. Returns insert count.
+ *  Ensures track metadata exists in tracks table BEFORE inserting recommendation
+ *  to prevent orphaned pool entries. */
 export async function insertRecommendations(
   curatorId: string,
   tracks: MatchedTrack[],
   existingTrackIds: Set<string>,
   dryRun = false
-): Promise<{ inserted: number; duplicate: number }> {
+): Promise<{ inserted: number; duplicate: number; skippedNoMetadata: number }> {
   let inserted = 0;
   let duplicate = 0;
+  let skippedNoMetadata = 0;
 
   for (const track of tracks) {
     if (existingTrackIds.has(track.spotifyId)) {
@@ -96,6 +99,32 @@ export async function insertRecommendations(
       inserted++;
       existingTrackIds.add(track.spotifyId);
       continue;
+    }
+
+    // Guard: ensure track metadata exists before inserting recommendation
+    const { data: trackExists } = await supabaseAdmin
+      .from('tracks')
+      .select('spotify_id')
+      .eq('spotify_id', track.spotifyId)
+      .maybeSingle();
+
+    if (!trackExists) {
+      // Attempt minimal insert from harvested data
+      const { error: trackErr } = await supabaseAdmin.from('tracks').upsert({
+        spotify_id: track.spotifyId,
+        title: track.title,
+        artist: track.artist,
+        album: track.album || null,
+        cover_url: track.coverUrl || null,
+        genres: track.genres || [],
+        mood_tags: [],
+      }, { onConflict: 'spotify_id' });
+
+      if (trackErr) {
+        console.warn(`  Skipping ${track.spotifyId}: no metadata and insert failed: ${trackErr.message}`);
+        skippedNoMetadata++;
+        continue;
+      }
     }
 
     const { error } = await supabaseAdmin.from('user_recommendations').insert({
@@ -115,7 +144,7 @@ export async function insertRecommendations(
     }
   }
 
-  return { inserted, duplicate };
+  return { inserted, duplicate, skippedNoMetadata };
 }
 
 /**

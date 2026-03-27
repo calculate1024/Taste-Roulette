@@ -69,6 +69,35 @@ When top genre has > 3x tracks of bottom genre:
 2. Mark oldest overrepresented tracks as `used = true` (artificial consumption)
 3. Request Curator to fill underrepresented genres
 
+### Orphan Detection
+**IMPORTANT**: Use SQL JOIN — do NOT fetch two lists and compare in JS.
+Supabase REST API caps at 1000 rows per request, causing false positives.
+
+```sql
+-- Count orphans: recommendations without matching track metadata
+SELECT COUNT(*) as orphan_count
+FROM user_recommendations ur
+LEFT JOIN tracks t ON t.spotify_id = ur.track_id
+WHERE ur.used = false
+  AND t.spotify_id IS NULL;
+```
+
+To list orphan track_ids for remediation:
+```sql
+SELECT DISTINCT ur.track_id
+FROM user_recommendations ur
+LEFT JOIN tracks t ON t.spotify_id = ur.track_id
+WHERE ur.used = false
+  AND t.spotify_id IS NULL
+LIMIT 100;
+```
+
+Target: 0 orphans. Alert at > 10. Critical at > 50.
+Action: run `ensureTrackCached()` for each orphan, remove if Spotify 404.
+
+**NEVER** detect orphans by fetching `user_recommendations` and `tracks` separately
+and comparing in-memory — this WILL break when either table exceeds 1000 rows.
+
 ### Dedup Check
 ```sql
 SELECT track_id, COUNT(*) as dupes
