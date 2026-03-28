@@ -53,14 +53,16 @@ export const CURATOR_REASONS: Record<string, string> = {
   '6mFkJmJqdDVQ1REhVfGgd1': '極簡主義的先驅，每個留白都是刻意的美',
   // Pumped Up Kicks - Foster the People
   '0pqnGHJpmpxLKifKRmU6WP': '旋律輕快到你不會注意歌詞有多黑暗，這就是 indie 的魅力',
-  // Starboy - The Weeknd
-  '5ghIJDpPoe3CfHMGu71E6T': 'Daft Punk 的製作加上 The Weeknd 的聲線，未來感滿點',
+  // Smells Like Teen Spirit - Nirvana (actual track at this ID)
+  '5ghIJDpPoe3CfHMGu71E6T': '九零年代最具破壞力的開場 riff，聽一次就懂 grunge 是什麼',
   // Ho Hey - The Lumineers
   '2gMXnyrvIjhVBUZwvLZDMP': '三個和弦就能寫出讓你想回家的感覺，民謠的魔力',
   // Redbone - Childish Gambino
   '3DamFFqW32WihKkTVlwTYQ': '復古靈魂樂的質地配上現代的製作，像在時空隧道裡跳舞',
-  // Dynamite - BTS
-  '5XeFesFbtLpXzIVDNQP22n': '不管你對 K-Pop 有沒有偏見，這首的快樂是無法抗拒的',
+  // I Wanna Be Yours - Arctic Monkeys (actual track at this ID)
+  '5XeFesFbtLpXzIVDNQP22n': '深夜裡低沉的告白，Arctic Monkeys 最溫柔的一面',
+  // Dynamite - BTS (correct ID: 72wqLtMtkrB0qUw6jSqM0Z)
+  '72wqLtMtkrB0qUw6jSqM0Z': '不管你對 K-Pop 有沒有偏見，這首的快樂是無法抗拒的',
   // Africa - Toto
   '2374M0fQpWi3dLnB54qaLX': '八零年代最偉大的副歌之一，聽一次就永遠記住',
 };
