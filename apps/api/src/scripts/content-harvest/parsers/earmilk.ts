@@ -53,11 +53,30 @@ function getArticleLinks(html: string): ArticleLink[] {
   });
 }
 
+/** Extract a short description snippet from article body. */
+function extractExcerpt($: cheerio.CheerioAPI): string | undefined {
+  const body = $('.entry-content, .post-content, article .content, article').first();
+  const paragraphs = body.find('p').toArray();
+  for (const p of paragraphs) {
+    const text = $(p).text().trim();
+    // Skip short, ad-like, or boilerplate paragraphs
+    if (text.length < 30) continue;
+    if (/follow us|subscribe|sign up|share this/i.test(text)) continue;
+    // Return first real paragraph, trimmed to ~80 chars
+    if (text.length <= 80) return text;
+    // Cut at last space before 80 chars
+    const cut = text.slice(0, 80).replace(/\s+\S*$/, '');
+    return cut + '…';
+  }
+  return undefined;
+}
+
 /** Extract tracks from an article page. */
 function extractTracks(html: string, articleUrl: string): ScrapedTrack[] {
   const $ = cheerio.load(html);
   const tracks: ScrapedTrack[] = [];
   const seenIds = new Set<string>();
+  const excerpt = extractExcerpt($);
 
   // 1. Look for Spotify track embeds (iframe)
   $('iframe[src*="open.spotify.com/embed/track/"]').each((_, el) => {
@@ -71,6 +90,7 @@ function extractTracks(html: string, articleUrl: string): ScrapedTrack[] {
         spotifyEmbedId: match[1],
         sourceUrl: articleUrl,
         sourceGenreHint: 'electronic',
+        excerpt,
       });
     }
   });
@@ -87,6 +107,7 @@ function extractTracks(html: string, articleUrl: string): ScrapedTrack[] {
         spotifyEmbedId: match[1],
         sourceUrl: articleUrl,
         sourceGenreHint: 'electronic',
+        excerpt,
       });
     }
   });
@@ -105,6 +126,7 @@ function extractTracks(html: string, articleUrl: string): ScrapedTrack[] {
         title: parsed.title,
         sourceUrl: articleUrl,
         sourceGenreHint: 'electronic',
+        excerpt,
       });
     }
   }
@@ -122,6 +144,7 @@ function extractTracks(html: string, articleUrl: string): ScrapedTrack[] {
         title: quotedTitles[0],
         sourceUrl: articleUrl,
         sourceGenreHint: 'electronic',
+        excerpt,
       });
     }
   }

@@ -72,7 +72,7 @@ export async function matchToSpotify(
           ...scraped,
           spotifyId: track.spotify_id,
           genres,
-          reason: generateReason(genres, scraped.articleTitle, sourceName),
+          reason: generateReason(genres, scraped.articleTitle, sourceName, scraped.excerpt),
         };
       }
     }
@@ -108,7 +108,7 @@ export async function matchToSpotify(
       ...scraped,
       spotifyId: bestMatch.spotify_id,
       genres,
-      reason: generateReason(genres, scraped.articleTitle, sourceName),
+      reason: generateReason(genres, scraped.articleTitle, sourceName, scraped.excerpt),
     };
   } catch (err) {
     if (verbose) console.warn(`  ERROR matching "${scraped.artist} - ${scraped.title}":`, err);

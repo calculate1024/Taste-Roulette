@@ -1,6 +1,6 @@
 // Reason generation for harvested tracks.
-// Uses article context to create concise zh-TW reasons.
-// Falls back to casual short phrases when no context available.
+// Uses source attribution. Excerpt stored for future LLM rewriting but NOT used directly
+// (copyright concern: cannot reproduce original article text verbatim).
 
 const CASUAL_POOL = [
   '推', '試試看', '聽聽看', '我覺得不錯', '分享一下', '給你聽聽', '推薦', '你聽這首',
@@ -26,21 +26,18 @@ const SOURCE_LABELS: Record<string, string> = {
 const usedInBatch = new Set<string>();
 
 /**
- * Generate a reason based on article context.
- * Priority: article-derived > source-aware casual > generic casual
+ * Generate a reason for a harvested track.
+ * Uses source attribution ("{Source} 推薦"). Excerpt is intentionally NOT used
+ * directly to avoid copyright issues — stored for future LLM rewriting.
  */
 export function generateReason(
   _genres: string[],
-  articleTitle?: string,
+  _articleTitle?: string,
   sourceName?: string,
+  _excerpt?: string, // reserved for future LLM rewriting
 ): string {
+  // Source attribution
   const sourceLabel = sourceName ? SOURCE_LABELS[sourceName] || sourceName : null;
-
-  // If we have article context, derive a concise reason
-  if (articleTitle && sourceLabel) {
-    return `${sourceLabel} 推薦`;
-  }
-
   if (sourceLabel) {
     return `${sourceLabel} 推薦`;
   }

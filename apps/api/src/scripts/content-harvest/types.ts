@@ -7,6 +7,7 @@ export interface ScrapedTrack {
   sourceUrl: string;       // article URL (internal tracking only)
   sourceGenreHint: string; // e.g. 'electronic' — from source config
   articleTitle?: string;   // original article headline for reason generation
+  excerpt?: string;        // brief description from article body (~80 chars)
 }
 
 export interface MatchedTrack extends ScrapedTrack {
