@@ -192,13 +192,16 @@ async function harvestSource(
       if (verbose) console.log(`  Extracted ${scraped.length} track(s)`);
 
       for (const track of scraped) {
+        // Attach article title for reason generation
+        track.articleTitle = article.title;
+
         // Skip if source URL already processed
         if (existingSourceUrls.has(track.sourceUrl)) {
           result.tracksDuplicate++;
           continue;
         }
 
-        const matched = await matchToSpotify(track, verbose);
+        const matched = await matchToSpotify(track, verbose, parser.name);
         if (matched) {
           // Skip if track already in this curator's pool
           if (existingTrackIds.has(matched.spotifyId)) {

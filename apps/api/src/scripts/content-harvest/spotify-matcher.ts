@@ -52,7 +52,8 @@ export async function loadExistingIds(curatorId: string): Promise<{
 /** Match a scraped track to Spotify. Returns null if no match found. */
 export async function matchToSpotify(
   scraped: ScrapedTrack,
-  verbose = false
+  verbose = false,
+  sourceName?: string,
 ): Promise<MatchedTrack | null> {
   try {
     // If we have a direct Spotify embed ID, use it
@@ -71,7 +72,7 @@ export async function matchToSpotify(
           ...scraped,
           spotifyId: track.spotify_id,
           genres,
-          reason: generateReason(genres),
+          reason: generateReason(genres, scraped.articleTitle, sourceName),
         };
       }
     }
@@ -107,7 +108,7 @@ export async function matchToSpotify(
       ...scraped,
       spotifyId: bestMatch.spotify_id,
       genres,
-      reason: generateReason(genres),
+      reason: generateReason(genres, scraped.articleTitle, sourceName),
     };
   } catch (err) {
     if (verbose) console.warn(`  ERROR matching "${scraped.artist} - ${scraped.title}":`, err);
