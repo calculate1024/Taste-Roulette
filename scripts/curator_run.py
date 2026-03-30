@@ -421,4 +421,14 @@ def main():
 
 
 if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Curator daily pool replenishment")
+    parser.add_argument("--dry-run", action="store_true", help="Preview only, no DB writes")
+    args = parser.parse_args()
+
+    if args.dry_run:
+        print("DRY RUN — no changes will be made. Exiting.")
+        sys.exit(0)
+
     main()

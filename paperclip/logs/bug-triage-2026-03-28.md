@@ -1,4 +1,4 @@
-# Bug Triage Specialist — 2026-03-29
+# Bug Triage Specialist — 2026-03-28
 ## Status: ok
 ## Summary
 - No inbox file found (bug-triage.md absent)
@@ -17,4 +17,4 @@
 
 ## Next Actions
 - Dev to fix GH#1: AsyncStorage write in setRecommendPromptDismissed() + restore in loadPersistedState()
-- Next scheduled triage: 2026-03-30 at 11:00 UTC+8
+- Next scheduled triage: 2026-03-29 at 11:00 UTC+8

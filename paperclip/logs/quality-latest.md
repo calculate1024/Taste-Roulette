@@ -1,31 +1,35 @@
-# Quality Assurance — 2026-03-28
+# Quality Assurance — 2026-03-29
 ## Status: warning
 
 ## Inbox
 - No inbox messages.
 
-## Summary
-- Pool healthy: 1680 entries, 14.8d supply. Orphans = 0. Cron healthy (last card 2026-03-27T13:06 UTC).
-- New: 5 duplicate tracks (6 extra entries).
-- Persistent: alternative missing (4th run); imbalance 7.4x (worsening); curators over monthly cap; WW 80/day vs cap 10.
+## Summary (22:51 UTC — post-cron)
+- Cron on schedule: 2026-03-29T13:52 UTC. Profiles: 123 (+1 new user).
+- **Reggae CRITICAL: 39 entries (-11 in one day)**. Imbalance hit 8.1x — worst recorded.
+- b46309a2 (NPR Music Editors): 84 pool entries, no new submissions today. Day 6 unresolved.
+- WW over daily cap again (20 vs 10). Freshness flat at 13.5%. Curator integrity clean.
 
-## Metrics (02:27 UTC)
-- Pool: 1680 (-21) | Orphans: 0 | Days left: 14.8d (at 113.1/day avg)
-- Cards yesterday: 121 [cron OK] | Last card: 2026-03-27T13:06 UTC
-- Submissions 24h: 80 (all WW) | Feedbacks: 0 | Profiles: 122
-- Dupes: 5 tracks | Genre imbalance: 7.4x (pop 317 vs country 43) | Missing: ['alternative']
-- Security: 0
+## Metrics (22:51 UTC)
+- Pool: 1663 (-22 post-cron) | Orphans: 0 | Days left: 14.3d (116.6/day)
+- Last cron: 2026-03-29T13:52 UTC [OK] | Cards yesterday: 121 [OK]
+- Profiles: 123 (+1) | Feedbacks 24h: 1 | Freshness: 13.5% [ALERT]
+- Submissions 24h: 21 (WW 20) | b46309a2 pool: 84 (Day 6)
+- Curator integrity: 0/101 | Dupes: 0 | Injections: 0 | Security: 0
+- Genre: **reggae=39 [CRITICAL]** | alternative=0 [MISSING] | imbalance=8.1x
 
 ## Issues
-1. **alternative missing** — 4th consecutive run
-2. **Imbalance 7.4x** — worsening (was 5.9x); country declining
-3. **5 duplicate tracks** — new, cleanup needed
-4. **WW 80/24h** — 8x over daily cap
-5. **Curator monthly cap** — both at 850 effective over 50 cap; Calvin decision pending
-6. **0 feedbacks** — 3rd heartbeat with no activity
+1. **Reggae 39 — CRITICAL** (-11 today, declining ~3-4d to zero at current rate)
+2. **alternative MISSING** — 0 entries
+3. **Imbalance 8.1x** — worst recorded; thin genres (country 43, world 51, k-pop 53) next
+4. **Freshness 13.5%** — below 30% target
+5. **b46309a2 Day 6** — 84 pool entries unreviewed
+6. **WW daily cap recurring** — 20/day vs cap 10
+7. **Curator monthly cap** — Calvin Day 4 overdue
 
 ## Next Actions
-- Calvin: monthly cap retroactivity + afrobeats classification (2nd day pending)
-- CEO: enforce WW daily cap; notify Curator System of cap status
-- Curator: alternative genre fill (priority); replenish country/world
-- QA: dedup cleanup next run
+- **Curator (CRITICAL)**: Emergency reggae fill before exhaustion (~3d). Alt/country/world/k-pop also needed.
+- **Calvin (Day 6)**: b46309a2 policy — 84 entries in pool
+- **Calvin (Day 4)**: Monthly cap retroactivity + afrobeats classification
+- **CEO**: Enforce WW daily cap; notify curators of monthly cap
+- **QA**: On Calvin hold → retire 84 b46309a2 entries
