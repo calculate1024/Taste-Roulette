@@ -285,13 +285,14 @@ export async function runDailyMatching(): Promise<MatchingSummary> {
         }
       }
 
-      // Sort: curator picks first (by weight descending), then prefer distance near SWEET_SPOT_CENTER
+      // Sort: real users first, then harvest, then seed curators.
+      // Within each tier, prefer distance closest to SWEET_SPOT_CENTER (0.4).
       scored.sort((a, b) => {
-        // Curator picks come before non-curator picks
-        if (a.isCurator !== b.isCurator) return a.isCurator ? -1 : 1;
-        // Among curators, higher weight first
-        if (a.isCurator && b.isCurator && a.weight !== b.weight) return b.weight - a.weight;
-        // Then by distance to sweet spot center (0.4 — sweet_low zone has best surprise ratio)
+        // Tier: real user (0) > curator (1). Real users always beat curators.
+        const tierA = a.isCurator ? 1 : 0;
+        const tierB = b.isCurator ? 1 : 0;
+        if (tierA !== tierB) return tierA - tierB;
+        // Within same tier, prefer distance near sweet spot center
         return Math.abs(a.dist - SWEET_SPOT_CENTER) - Math.abs(b.dist - SWEET_SPOT_CENTER);
       });
 

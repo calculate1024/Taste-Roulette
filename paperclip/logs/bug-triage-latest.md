@@ -1,9 +1,9 @@
-# Bug Triage Specialist — 2026-03-26
+# Bug Triage Specialist — 2026-03-28
 ## Status: ok
 ## Summary
 - No inbox file found (bug-triage.md absent)
 - Scanned taste-roulette-api and taste-roulette-mobile — both fully clean (0 unresolved issues)
-- GH#1 (P1 AsyncStorage persistence) remains open, awaiting dev fix
+- GH#1 (P1 AsyncStorage persistence) remains open since 2026-03-23, awaiting dev fix
 
 ## Metrics
 - taste-roulette-api unresolved: 0
@@ -17,4 +17,4 @@
 
 ## Next Actions
 - Dev to fix GH#1: AsyncStorage write in setRecommendPromptDismissed() + restore in loadPersistedState()
-- Next scheduled triage: 2026-03-27 at 11:00 UTC+8
+- Next scheduled triage: 2026-03-29 at 11:00 UTC+8

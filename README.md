@@ -6,17 +6,19 @@ Every day you receive one music recommendation from a stranger whose taste is *d
 
 ## Project Status
 
-**Current Phase:** Closed Beta (Android — launched 2026-03-25)
-**Target:** 1,000 users in 3 months (Western/English-speaking market)
+**Current Phase:** Closed Beta (Android — Google Play Alpha track, review pending)
+**Beta Link:** [Join Beta on Google Play](https://play.google.com/apps/testing/com.tasteroulette.app)
+**Target:** 80 users in 4 weeks (Western/English-speaking market)
 **Platform:** Android-first (iOS deferred until product stabilizes)
 
-| Milestone | Target | Status |
-|-----------|--------|--------|
-| Month 1: Closed Beta | 50 users | **Live** — [Google Play Internal Test](https://play.google.com/apps/internaltest/4701300350669048520) |
-| Month 2: Public Launch | 200 users | Planned |
-| Month 3: Growth | 1,000 users | Planned |
+| Week | Target | Status |
+|------|--------|--------|
+| W1 (3/27-4/2) | 15 users | **In progress** — Reddit posted (4 subs), Play Store review pending |
+| W2 (4/3-4/9) | 30 users | Planned — Reddit wave 2 (r/musicsuggestions), Twitter/Bluesky content |
+| W3 (4/10-4/16) | 50 users | Planned — Product Hunt prep |
+| W4 (4/17-4/23) | 80 users | Planned — Product Hunt launch |
 
-**Active Channels:** Twitter/X [@tasteroulette](https://x.com/tasteroulette) · [Bluesky](https://bsky.app/profile/musictasteroulette.bsky.social) · Discord · Reddit
+**Active Channels:** Twitter/X [@tasteroulette](https://x.com/tasteroulette) · [Bluesky](https://bsky.app/profile/musictasteroulette.bsky.social) · Reddit ([u/tasteroulette](https://reddit.com/u/tasteroulette))
 
 ## Core Concept
 
@@ -122,7 +124,9 @@ taste-roulette/
 - **Onboarding Reminder** — push notification 24h after signup if onboarding not completed
 - **Pool Auto-Alert** — matching engine alerts CEO agent when pool drops below 50 tracks
 
-### Recent Fixes (2026-03-26)
+### Recent Fixes (2026-03-27)
+- **Streak calculation rewrite** — streak_count now recomputes from opened_at history (self-healing), fixing bug where all real users showed streak=0
+- **Orphaned pool entries** — prevent orphaned records in user_recommendations when track lookup fails; detect and clean existing orphans
 - **Push notifications fixed** — Supabase FK join query corrected + missing Android notification channels added
 - **Profile page scrollable** — login/delete buttons now reachable on all screen sizes
 - **Badge deduplication** — badges shown only on Journey tab (removed from Profile)
@@ -293,7 +297,7 @@ Badge Categories (6):
 ## Testing
 
 ```bash
-cd apps/api && npm test              # 246 tests (14 suites)
+cd apps/api && npm test              # 246 tests (14 suites, all passing)
 ```
 
 | Test Suite | Coverage |

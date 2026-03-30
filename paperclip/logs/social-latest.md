@@ -1,34 +1,28 @@
-# Social Media Manager — 2026-03-26
+# Social Media Manager — 2026-03-28
+
 ## Status: ok
 
-## Inbox
-- No inbox file found
-
 ## Summary
-- Queried real user stats: 3 users (is_seed=false), 1 active streak, 2 feedbacks today (1 surprised / 1 okay)
-- Discord #daily-surprise: SKIPPED — 0 cards delivered today, stats not meaningful
-- Discord #general: POSTED Thursday song rec as Calvin — February Nights / Andrew Gialanella (classical) (rc:0)
-- Bluesky: POSTED — auth now working (Calvin rotated App Password). URI: at://did:plc:svqwdy7qhsy673qhaizs4vhb/app.bsky.feed.post/3mhwmbf6t6y2x
-- Twitter draft: written to paperclip/drafts/twitter-2026-03-26.md (3 options, awaiting Calvin)
+- Bluesky posted (auto): anti-algorithm philosophy, 285 chars, URI 3mi3q23pdrf2u
+- Discord #general posted (auto): Friday weekend challenge (Calvin persona, lowercase, genuine)
+- Twitter draft written: paperclip/drafts/twitter-2026-03-28.md — 3 options (A/B/C), requires Calvin approval
 
-## Metrics (real users only, is_seed=false)
-| Metric | Value | Note |
-|--------|-------|------|
-| Real users | 3 | Below 20-user threshold for stats posts |
-| Active streaks | 1 | 1 user on day 1 streak |
-| Feedbacks today | 2 | 1 surprised, 1 okay — not enough for #daily-surprise |
-| Cards today | 0 | Matching engine not running daily for real users yet |
-| Discord #general | ✓ posted | Thursday song rec |
-| Bluesky | ✓ posted | 294 chars, genre-crossing theme |
-| Twitter | draft ready | Calvin selects option and posts manually |
+## Metrics
+- Real users: 3 | New today: 0
+- Cards delivered today (real): 0 (cron fires 13:00 UTC, not yet)
+- Real user feedbacks all-time: 3 (surprised ×2, okay ×1)
+- Stats post threshold (20+ users): NOT MET — no stats in public posts
+
+## Inbox
+None (paperclip/inbox/social.md did not exist)
 
 ## Issues
-- Stats posts (#daily-surprise, Twitter stats-based content) still on hold — need ~20 real users
-- #daily-surprise will remain empty until matching engine delivers real cards daily
-- Discord #daily-surprise: skip threshold = 0 cards. Will auto-resume when cron delivers cards
+- Taste distance field NULL on all cards (seed + real) — can't report "boldest card" metric yet
+- 3 real users only — all stat-based content types still on hold per calendar rules (20+ user threshold)
+- Discord #daily-surprise skipped: 0 real cards delivered today at time of run
 
 ## Next Actions
-- Calvin: review twitter draft at paperclip/drafts/twitter-2026-03-26.md (Option C recommended for reach)
-- Bluesky now operational — daily auto-posts resuming from next heartbeat
-- Next heartbeat (Fri 2026-03-27): weekend prompt to #general + music rec to Bluesky
-- Unlock stats posts when real user count reaches 20+
+- Calvin: pick Twitter Option A, B, or C — post manually via @tasteroulette
+- Next Monday (3/31): first weekly content calendar review (Sunday was missed this week — first full week)
+- Week 2 kicks off 4/1: shift to stats + dev diary content mix
+- Watch for Play Store alpha approval — announcement post ready to draft once confirmed
