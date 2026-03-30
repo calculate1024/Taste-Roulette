@@ -1,5 +1,5 @@
 // Pre-written curator reasons for seed tracks.
-// Each track gets a warm, human-sounding reason instead of generic "Curator 精選推薦".
+// Each track gets a warm, human-sounding reason instead of generic fallback.
 
 export const CURATOR_REASONS: Record<string, string> = {
   // Bohemian Rhapsody - Queen
@@ -32,7 +32,6 @@ export const CURATOR_REASONS: Record<string, string> = {
   '04TshWXkhV1qkqHzf31Hn6': '米津玄師的旋律感是超越語言的，聽不懂歌詞也會被打動',
   // No Woman No Cry - Bob Marley
   '3PQLYVskjUeRmRIfECsL0X': '雷鬼的慵懶裡藏著最深的溫柔，適合雨天反覆聽',
-  // --- Batch 2 ---
   // Basket Case - Green Day
   '3bhiCVExl89MfoAjx9fMuE': '龐克不需要技巧，需要的是一股不管不顧的衝勁',
   // The Thrill Is Gone - B.B. King
@@ -93,18 +92,20 @@ export const GENRE_CURATOR_LABELS: Record<string, string> = {
   'funk': '放克玩家',
 };
 
-/** Get a human-sounding reason for a curator track. Falls back to a generic genre-based reason. */
-export function getCuratorReason(spotifyId: string, genres: string[]): string {
+// Casual fallback reasons — genre-agnostic, like a friend sharing a link
+const FALLBACK_POOL = [
+  '推', '試試看', '聽聽看', '我覺得不錯', '分享一下', '給你聽聽', '推薦', '你聽這首',
+  '很舒服的一首', '意外好聽', '越聽越有味道', '很耐聽', '聽完心情很好',
+  '適合一個人的時候聽', '隨機聽到的，滿喜歡', '蠻好聽的', '單曲循環好幾次了',
+  '聽完會想再聽一次', '滿推的', '偶然發現的好歌', '氣氛很對',
+];
+
+/** Get a human-sounding reason for a curator track. Falls back to casual short reason. */
+export function getCuratorReason(spotifyId: string, _genres: string[]): string {
   if (CURATOR_REASONS[spotifyId]) {
     return CURATOR_REASONS[spotifyId];
   }
-  // Fallback: genre-based generic reason
-  const genre = genres[0] || 'music';
-  const label = GENRE_CURATOR_LABELS[genre.toLowerCase()];
-  if (label) {
-    return `一位${label}覺得這首值得被更多人聽到`;
-  }
-  return '有人覺得這首歌值得被更多人聽到';
+  return FALLBACK_POOL[Math.floor(Math.random() * FALLBACK_POOL.length)];
 }
 
 /** Get a taste label for curator picks based on the track's genre. */
