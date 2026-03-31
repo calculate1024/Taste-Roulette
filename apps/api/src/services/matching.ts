@@ -434,9 +434,21 @@ export async function updateTasteVectorFromFeedback(
     .update({ taste_vector: newVector })
     .eq('id', userId);
 
-  // 6. Find dominant shift (largest absolute delta)
+  // 6. Find dominant shift — use track's primary genre (first in array) when deltas are tied
   let maxIdx = 0;
   let maxAbs = 0;
+  // Prioritize track's own genre order: check track genres first
+  const trackGenreIndices = genres
+    .map((g: string) => GENRE_INDEX[g.toLowerCase()] ?? -1)
+    .filter((i: number) => i >= 0);
+
+  for (const i of trackGenreIndices) {
+    if (Math.abs(delta[i]) > maxAbs) {
+      maxAbs = Math.abs(delta[i]);
+      maxIdx = i;
+    }
+  }
+  // Then check remaining indices (shouldn't matter, but safety)
   for (let i = 0; i < delta.length; i++) {
     if (Math.abs(delta[i]) > maxAbs) {
       maxAbs = Math.abs(delta[i]);
