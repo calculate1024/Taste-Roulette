@@ -19,7 +19,7 @@ router.get('/today', async (req: Request, res: Response) => {
   const { data: card, error } = await supabaseAdmin
     .from('roulette_cards')
     .select(`
-      id, reason, taste_distance, recommender_taste_label, status, delivered_at, opened_at,
+      id, reason, reason_en, taste_distance, recommender_taste_label, status, delivered_at, opened_at,
       tracks:track_id (spotify_id, title, artist, album, cover_url, spotify_url, genres)
     `)
     .eq('recipient_id', userId)

@@ -33,12 +33,13 @@ async function main() {
     curatorMap[c.id] = c.display_name.replace(' Editors', '');
   });
 
-  // Get all harvest recommendations
+  // Get harvest recommendations missing English reason
   const { data: recs } = await sb
     .from('user_recommendations')
-    .select('id, track_id, reason, user_id')
+    .select('id, track_id, reason, reason_en, user_id')
     .in('user_id', curatorIds)
-    .eq('used', false);
+    .is('reason_en', null)
+    .limit(1000);
 
   if (!recs?.length) {
     console.log('No harvest recs to rewrite');

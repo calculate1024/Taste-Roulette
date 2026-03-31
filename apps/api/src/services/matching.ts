@@ -223,7 +223,7 @@ export async function runDailyMatching(): Promise<MatchingSummary> {
   // Include is_curator_pick flag so we can prioritize curator recommendations
   const { data: poolRecs } = await supabaseAdmin
     .from('user_recommendations')
-    .select('id, user_id, track_id, reason, is_curator_pick')
+    .select('id, user_id, track_id, reason, reason_en, is_curator_pick')
     .eq('used', false);
 
   const availableRecs = poolRecs || [];
@@ -311,6 +311,7 @@ export async function runDailyMatching(): Promise<MatchingSummary> {
             recommender_id: best.rec.user_id,
             track_id: best.rec.track_id,
             reason: best.rec.reason,
+            reason_en: best.rec.reason_en || null,
             taste_distance: best.dist,
             recommender_taste_label: tasteLabel,
             status: 'pending',

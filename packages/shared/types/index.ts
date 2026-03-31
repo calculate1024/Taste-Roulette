@@ -30,6 +30,7 @@ export interface RouletteCard {
   recommenderId: string | null;
   trackId: string;
   reason: string | null;
+  reasonEn: string | null;
   tasteDistance: number | null;
   recommenderTasteLabel: string | null;
   status: CardStatus;
