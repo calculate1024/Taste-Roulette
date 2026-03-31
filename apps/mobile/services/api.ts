@@ -162,6 +162,7 @@ export async function getTodayCard(
     recommenderId: cardData.recommender_id,
     trackId: cardData.track_id,
     reason: cardData.reason,
+    reasonEn: cardData.reason_en ?? null,
     tasteDistance: cardData.taste_distance,
     recommenderTasteLabel: cardData.recommender_taste_label ?? null,
     status: cardData.status,

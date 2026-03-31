@@ -28,6 +28,7 @@ export interface HarvestResult {
 
 export interface SourceConfig {
   name: string;
+  displayName?: string; // human-readable source name for LLM reasons
   baseUrl: string;
   listUrl: string;
   dominantGenres: string[];

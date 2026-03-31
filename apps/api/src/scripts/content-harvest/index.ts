@@ -15,6 +15,7 @@ import { isAllowedByRobots } from './robots';
 import { throttledFetch } from './rate-limiter';
 import { matchToSpotify, loadExistingIds } from './spotify-matcher';
 import { ensureCuratorProfile, insertRecommendations, recalculateCuratorVector } from './curator-inserter';
+import { supabaseAdmin } from '../../services/supabase';
 import { resetReasonBatch } from './reason-rewriter';
 import { earmilkParser } from './parsers/earmilk';
 import { stereofoxParser } from './parsers/stereofox';
@@ -234,6 +235,36 @@ async function harvestSource(
     // Recalculate curator taste vector from actual genre distribution
     if (inserted > 0 && !dryRun) {
       await recalculateCuratorVector(curatorId);
+
+      // LLM rewrite reasons (if ANTHROPIC_API_KEY available)
+      try {
+        const { batchRewrite } = await import('./llm-rewriter');
+        const rewriteInputs = allMatched.map(t => ({
+          artist: t.artist,
+          title: t.title,
+          genres: t.genres || [],
+          sourceName: config.displayName || config.name,
+          excerpt: t.excerpt,
+        }));
+        console.log(`[${config.name}] Rewriting ${rewriteInputs.length} reasons via LLM...`);
+        const results = await batchRewrite(rewriteInputs, 20);
+
+        // Update DB with LLM reasons
+        for (const t of allMatched) {
+          const key = `${t.artist}|||${t.title}`;
+          const rewritten = results.get(key);
+          if (rewritten) {
+            await supabaseAdmin
+              .from('user_recommendations')
+              .update({ reason: rewritten.zh, reason_en: rewritten.en })
+              .eq('track_id', t.spotifyId)
+              .eq('user_id', curatorId);
+          }
+        }
+        console.log(`[${config.name}] LLM rewrite: ${results.size} reasons updated`);
+      } catch (err: any) {
+        if (verbose) console.log(`[${config.name}] LLM rewrite skipped: ${err.message}`);
+      }
     }
   }
 

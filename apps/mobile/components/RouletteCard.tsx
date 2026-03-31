@@ -51,7 +51,7 @@ function revealReducer(state: RevealStep, action: RevealAction): RevealStep {
 }
 
 export default function RouletteCard({ card, onFeedback }: RouletteCardProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { width: SCREEN_WIDTH } = useWindowDimensions();
   const CARD_WIDTH = SCREEN_WIDTH - 48;
 
@@ -274,7 +274,7 @@ export default function RouletteCard({ card, onFeedback }: RouletteCardProps) {
               <Animated.View style={infoAnimStyle}>
                 {card.reason && (
                   <Text style={styles.reason} numberOfLines={3}>
-                    「{card.reason}」
+                    「{(i18n.language === 'en' && (card as any).reasonEn) ? (card as any).reasonEn : card.reason}」
                   </Text>
                 )}
 
