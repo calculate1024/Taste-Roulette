@@ -8,6 +8,7 @@
 
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../../../.env') });
 
@@ -69,6 +70,20 @@ function parseArgs() {
   };
 }
 
+// Root of the monorepo — two directories up from apps/api
+const REPO_ROOT = path.resolve(__dirname, '../../../../../');
+
+/** Write a step snapshot to paperclip/harvest/{source}-{date}/{step}.json */
+function writeMeta(runDir: string, step: string, data: Record<string, unknown>): void {
+  try {
+    if (!fs.existsSync(runDir)) fs.mkdirSync(runDir, { recursive: true });
+    const file = path.join(runDir, `${step}.json`);
+    fs.writeFileSync(file, JSON.stringify({ timestamp: new Date().toISOString(), ...data }, null, 2));
+  } catch {
+    // Non-fatal — harvest continues even if meta write fails
+  }
+}
+
 /** Harvest from a single source. */
 async function harvestSource(
   parser: SourceParser,
@@ -89,9 +104,14 @@ async function harvestSource(
   const { config } = parser;
   resetReasonBatch();
 
+  // Run directory for step-level _meta.json snapshots
+  const dateStr = new Date().toISOString().slice(0, 10);
+  const runDir = path.join(REPO_ROOT, 'paperclip', 'harvest', `${config.name}-${dateStr}`);
+
   // Step 1: Check robots.txt
   console.log(`\n[${config.name}] Checking robots.txt...`);
   const allowed = await isAllowedByRobots(config.listUrl);
+  writeMeta(runDir, '01-robots', { source: config.name, allowed, listUrl: config.listUrl });
   if (!allowed) {
     console.log(`[${config.name}] BLOCKED by robots.txt — skipping`);
     result.errors.push('Blocked by robots.txt');
@@ -104,6 +124,7 @@ async function harvestSource(
   let curatorId: string;
   try {
     curatorId = await ensureCuratorProfile(config);
+    writeMeta(runDir, '02-curator', { source: config.name, curatorId });
   } catch (err: any) {
     console.error(`[${config.name}] Failed to create curator profile:`, err.message);
     result.errors.push(`Curator profile creation failed: ${err.message}`);
@@ -113,6 +134,11 @@ async function harvestSource(
   // Step 3: Load existing IDs for dedup
   const { existingTrackIds, existingSourceUrls } = await loadExistingIds(curatorId);
   console.log(`[${config.name}] Existing: ${existingTrackIds.size} tracks, ${existingSourceUrls.size} source URLs`);
+  writeMeta(runDir, '03-dedup', {
+    source: config.name,
+    existingTrackCount: existingTrackIds.size,
+    existingSourceUrlCount: existingSourceUrls.size,
+  });
 
   // Step 4: Fetch listing pages (with pagination)
   console.log(`[${config.name}] Fetching article listings...`);
@@ -167,6 +193,12 @@ async function harvestSource(
   // Trim to limit
   const trimmedLinks = articleLinks.slice(0, limit);
   console.log(`[${config.name}] Found ${trimmedLinks.length} articles across ${Math.min(Math.ceil(articleLinks.length / 10), maxPages)} page(s) (limit: ${limit})`);
+  writeMeta(runDir, '04-listing', {
+    source: config.name,
+    articleCount: trimmedLinks.length,
+    limit,
+    articles: trimmedLinks.map(a => ({ url: a.url, title: a.title })),
+  });
 
   if (trimmedLinks.length === 0) {
     console.log(`[${config.name}] No articles found — parser may need updating`);
@@ -220,6 +252,15 @@ async function harvestSource(
     }
   }
 
+  writeMeta(runDir, '05-matching', {
+    source: config.name,
+    articlesScraped: result.articlesScraped,
+    tracksExtracted: result.tracksExtracted,
+    tracksMatched: result.tracksMatched,
+    tracksDuplicate: result.tracksDuplicate,
+    matched: allMatched.map(t => ({ artist: t.artist, title: t.title, spotifyId: t.spotifyId, genres: t.genres })),
+  });
+
   // Step 7: Insert recommendations
   if (allMatched.length > 0) {
     console.log(`\n[${config.name}] Inserting ${allMatched.length} recommendations...`);
@@ -231,6 +272,12 @@ async function harvestSource(
     );
     result.tracksInserted = inserted;
     result.tracksDuplicate += duplicate;
+    writeMeta(runDir, '06-insertion', {
+      source: config.name,
+      dryRun,
+      inserted,
+      duplicate,
+    });
 
     // Recalculate curator taste vector from actual genre distribution
     if (inserted > 0 && !dryRun) {
@@ -262,8 +309,14 @@ async function harvestSource(
           }
         }
         console.log(`[${config.name}] LLM rewrite: ${results.size} reasons updated`);
+        writeMeta(runDir, '07-llm-rewrite', {
+          source: config.name,
+          rewrittenCount: results.size,
+          inputCount: rewriteInputs.length,
+        });
       } catch (err: any) {
         if (verbose) console.log(`[${config.name}] LLM rewrite skipped: ${err.message}`);
+        writeMeta(runDir, '07-llm-rewrite', { source: config.name, skipped: true, reason: err.message });
       }
     }
   }
