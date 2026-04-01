@@ -125,16 +125,29 @@ quality_criteria:
     - "Top genre share < 25% of total pool"
     - "At least 30% of pool added in last 7 days (freshness)"
 
-# Per-curator daily submission limit (Calvin decision 2026-03-23)
-# Background: "World Wanderer" curator submitted 91 tracks in one batch,
-# overwhelming pool diversity. Quality agent flagged it.
+# Curator submission limits (updated 2026-04-01)
+# System curators (is_seed=true): automated pipelines, diversity controlled by genre rules
+# Real user curators (is_seed=false): manual submissions, keep caps to prevent spam
 curator_submission_limits:
-  max_per_curator_per_day: 10
+  system_curator:  # is_seed=true (harvest agents, seed users)
+    max_per_curator_per_day: 100
+    max_per_curator_per_month: null  # no monthly cap — genre rules enforce diversity
+  real_user_curator:  # is_seed=false
+    max_per_curator_per_day: 10
+    max_per_curator_per_month: 50
+  diversity_rules: |
+    Diversity is enforced by genre distribution rules, NOT by quantity caps:
+    - Top genre share < 25% of total pool
+    - Genre imbalance ratio < 3x (highest vs lowest)
+    - Single artist max 3 tracks/month
+    - At least 30% of pool added in last 7 days (freshness)
   enforcement: |
-    When processing user_recommendations or curator submissions:
-    - Count submissions from same recommender_id in last 24h
-    - If >= 10, mark excess as used=true (retire without delivering)
-    - Flag high-volume curators in daily log for review
+    When processing submissions:
+    - Check is_seed flag on recommender profile
+    - Apply system_curator or real_user_curator limits accordingly
+    - If over daily limit: mark excess as used=true (retire without delivering)
+    - Flag high-volume REAL users in daily log for review
+    - System curators: only flag if genre diversity rules are violated
 
 # Environment Setup (CRITICAL — do this first every heartbeat)
 env_setup: |

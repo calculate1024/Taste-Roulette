@@ -1,8 +1,13 @@
-# Calvin Correction — NPR Music Editors 非 Bot
+# Calvin 指令 — 規則更新 (2026-04-01)
 
-b46309a2 (NPR Music Editors) 是合法的 seed curator (is_seed=true)，由 harvest agent 於 2026-03-26 建立。
+## 1. Curator 提交限制分級
+curator.yaml 已更新。兩級制度：
+- **系統 curator (is_seed=true)**：100/天，無月度上限
+- **真實用戶 curator (is_seed=false)**：10/天，50/月（維持不變）
+- Bot 偵測只套用於 is_seed=false 的 profile
 
-- 74-84 筆提交是正常的批次匯入，**非真實用戶違規**
-- 請移除此 profile 的所有 flag/凍結
-- 未來 is_seed=true 的 profile 不應觸發 bot 偵測規則
-- 調整規則：bot 偵測只套用於 is_seed=false 的用戶
+## 2. "alternative" genre 假警報取消
+Curator 確認：genres.ts 將 alternative/alt-rock 正規化為 "rock" 或 "indie"。
+- "alternative: 0" 是追蹤假象，不是真正缺失
+- 請從 genre gap alerts 中移除 "alternative"
+- 實際覆蓋：rock 137+, indie 107+
