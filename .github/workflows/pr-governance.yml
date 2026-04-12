@@ -1,18 +1,35 @@
 name: PR Governance
 
+# Pattern sources:
+# - cal.com (.github/workflows/labeler.yml, semantic-pull-requests.yml)
+# - vercel/next.js, expo/expo (concurrency + minimal permissions)
+
 on:
   pull_request:
     types: [opened, edited, synchronize, reopened, labeled, unlabeled]
+  # pull_request_target lets the semantic-title job run with write perms on
+  # fork PRs (cal.com pattern). Safe here because the job only reads
+  # PR metadata (title) — never checks out PR code.
+  pull_request_target:
+    types: [opened, edited, synchronize, reopened]
 
-permissions:
-  contents: read
-  pull-requests: write
+# Cancel stale runs on the same PR to save CI minutes.
+concurrency:
+  group: pr-governance-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+# Default to no permissions; each job grants its own minimum.
+permissions: {}
 
 jobs:
   # ─── Auto-label by file path (cal.com pattern) ───
   label:
     name: Auto Label
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/labeler@v5
         with:
@@ -22,7 +39,10 @@ jobs:
   # ─── PR size labels (XS/S/M/L/XL) ───
   size-label:
     name: PR Size Label
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - uses: codelytv/pr-size-labeler@v1
         with:
@@ -38,7 +58,7 @@ jobs:
           xl_label: "size:XL"
           fail_if_xl: false
           message_if_xl: >
-            :warning: This PR exceeds 800 lines. Please consider splitting it
+            ⚠️ This PR exceeds 800 lines. Please consider splitting it
             into smaller PRs (target < 400 lines per PR).
             See [CONTRIBUTING.md](../blob/dev/CONTRIBUTING.md#pull-request-流程).
           files_to_ignore: |
@@ -47,11 +67,17 @@ jobs:
             *.snap
 
   # ─── Conventional Commit PR title enforcement ───
+  # Uses pull_request_target so it can comment on fork PRs (cal.com pattern).
+  # Posts a friendly sticky comment when the title fails validation.
   semantic-title:
     name: Semantic PR Title
+    if: github.event_name == 'pull_request_target'
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - uses: amannn/action-semantic-pull-request@v5
+        id: lint_pr_title
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -82,3 +108,33 @@ jobs:
               feat(api): add daily card delivery endpoint
               fix(mobile): prevent crash when preview_url is null
               chore(ci): add type-check step to CI pipeline
+
+      # Sticky comment with friendly guidance when the title check fails.
+      - uses: marocchino/sticky-pull-request-comment@v2
+        if: always() && (steps.lint_pr_title.outputs.error_message != null)
+        with:
+          header: pr-title-lint-error
+          message: |
+            👋 Thanks for opening this PR!
+
+            We require PR titles to follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) spec:
+
+            ```
+            <type>(<scope>): <description>
+            ```
+
+            Allowed types: `feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `chore`, `style`, `ci`
+            Allowed scopes: `mobile`, `api`, `recommender`, `db`, `paperclip`, `ci` (optional)
+
+            Validator says:
+
+            ```
+            ${{ steps.lint_pr_title.outputs.error_message }}
+            ```
+
+      # Delete the sticky comment once the title is fixed.
+      - if: ${{ steps.lint_pr_title.outputs.error_message == null }}
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: pr-title-lint-error
+          delete: true

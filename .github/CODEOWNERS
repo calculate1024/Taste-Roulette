@@ -15,10 +15,19 @@ apps/recommender/           @calculate1024
 # ─── Sensitive areas (always require Calvin) ───
 supabase/migrations/        @calculate1024
 .env.example                @calculate1024
-.github/workflows/          @calculate1024
+.github/                    @calculate1024
+/CODEOWNERS                 @calculate1024
+/SECURITY.md                @calculate1024
 paperclip/agents/           @calculate1024
 paperclip/company.yaml      @calculate1024
 paperclip/security-policy.md @calculate1024
+
+# ─── Root-level config (sensitive — easy to break tooling) ───
+/package.json               @calculate1024
+/pnpm-lock.yaml             @calculate1024
+/tsconfig.json              @calculate1024
+/.gitignore                 @calculate1024
+/CLAUDE.md                  @calculate1024
 
 # ─── Test files: exempt from mandatory review (cal.com pattern) ───
 # This avoids bottlenecks when contributors add tests.

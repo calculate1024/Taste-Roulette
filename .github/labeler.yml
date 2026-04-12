@@ -33,19 +33,22 @@ area:docs:
           - '!CHANGELOG.md'
 
 # ─── High-signal warning labels (cal.com pattern) ───
-# These flag the two most operationally risky change types.
+# These flag the most operationally risky change types.
+# NOTE: GitHub label names are plain text — they do NOT parse markdown emoji
+# shortcodes like `:warning:`. Use real Unicode emoji instead. (cal.com uses
+# `❗️` in their labeler.yml for the same reason.)
 
-":warning: migrations":
+"⚠️ migrations":
   - changed-files:
       - any-glob-to-any-file: 'supabase/migrations/**'
 
-":warning: env changes":
+"⚠️ env changes":
   - changed-files:
       - any-glob-to-any-file:
           - '.env.example'
           - '.env.*'
 
-":warning: security-policy":
+"⚠️ security-policy":
   - changed-files:
       - any-glob-to-any-file: 'paperclip/security-policy.md'
 

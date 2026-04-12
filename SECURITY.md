@@ -8,7 +8,21 @@ If you discover a security vulnerability in Taste Roulette, please report it res
 
 ### How to Report
 
-Email: **security@taste-roulette.app** (or contact @calculate1024 directly)
+**Preferred: GitHub Private Vulnerability Reporting**
+
+Open a private report via the repository's Security tab → "Report a vulnerability".
+Direct link: <https://github.com/calculate1024/taste-roulette/security/advisories/new>
+
+This is the recommended channel — it gives us a private, auditable thread, lets us
+coordinate a fix through a [GitHub Security Advisory], and supports CVE assignment
+if needed. (Same approach as `microsoft/vscode`, `vercel/next.js`, and `npm/cli`.)
+
+[GitHub Security Advisory]: https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability
+
+**Fallback: Email**
+
+If you cannot use GitHub, email **security@taste-roulette.app** (or contact
+@calculate1024 directly).
 
 Please include:
 - Description of the vulnerability
