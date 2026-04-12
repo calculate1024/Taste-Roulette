@@ -25,6 +25,9 @@ infrastructure:
 budget:
   monthly_cap_usd: 120
   alert_threshold_pct: 80  # Alert Calvin at 80% usage
+  # Per-agent budget breakdown:
+  # CEO $30, Curator $15, Social $12, Analytics $10, Dev-Lifecycle $10,
+  # DevOps $8, Quality $5, Outreach $5, Bug-Triage $3, Feedback $3 = $101
 
 # Approval policy — actions requiring Calvin's explicit approval
 approval_required:
@@ -33,6 +36,17 @@ approval_required:
   - feature_flag_toggle
   - database_migration
   - budget_increase
+  - architecture_refactor  # Major refactoring decisions require Calvin approval
+
+# Development workflow references (team-readable governance)
+dev_workflow:
+  contributing: CONTRIBUTING.md
+  workflow: docs/dev-workflow.md
+  testing: docs/testing-standards.md
+  code_review: docs/code-review-guidelines.md
+  ci_pipeline: .github/workflows/ci.yml
+  issue_templates: .github/ISSUE_TEMPLATE/
+  pr_template: .github/PULL_REQUEST_TEMPLATE.md
 
 # KPI targets (agents reference these for goal alignment)
 kpi_targets:

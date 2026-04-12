@@ -1,0 +1,109 @@
+name: Optimization
+description: 提出效能、程式品質或 UX 優化項目
+title: "[Optimize] "
+labels: ["optimization"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        發現了可以改善的地方？可能是效能瓶頸、技術債、程式碼品質問題或 UX 改善。
+        此模板也供 Dev-Lifecycle agent 自動建立優化 Issue 使用。
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: 優化類別
+      description: 這個優化主要屬於哪個類別？
+      options:
+        - Performance — 效能優化（回應時間、查詢效率）
+        - Code Quality — 程式碼品質（重複、複雜度、可讀性）
+        - Tech Debt — 技術債（過時依賴、暫時方案需永久化）
+        - Security — 安全強化
+        - DX — 開發者體驗（工具、流程、文件）
+        - UX — 用戶體驗改善
+        - Observability — 監控與可觀測性
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: 影響領域
+      description: 這個優化涉及哪個模組？
+      options:
+        - Mobile (React Native / Expo)
+        - API (Node.js backend)
+        - Recommender (Python taste engine)
+        - Infrastructure (CI/CD, deploy, monitoring)
+        - Paperclip (AI agent framework)
+        - Database (Supabase)
+        - Cross-module (跨模組)
+      multiple: true
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 優先級
+      options:
+        - P1 — 嚴重影響（效能瓶頸、安全漏洞）
+        - P2 — 重要改善
+        - P3 — Nice-to-have
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_state
+    attributes:
+      label: 現狀描述
+      description: 描述目前的問題或不理想的狀態
+      placeholder: |
+        目前的狀態是什麼？有什麼具體的數據或證據？
+        例如：「GET /api/roulette/today 的 P95 回應時間為 800ms」
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_improvement
+    attributes:
+      label: 建議改善方案
+      description: 你建議怎麼改善？
+      placeholder: |
+        描述改善方案和預期效果。
+    validations:
+      required: true
+
+  - type: textarea
+    id: measurement
+    attributes:
+      label: 衡量方式
+      description: 如何衡量改善是否成功？
+      placeholder: |
+        改善前後如何對比？用什麼指標？
+        例如：「P95 回應時間從 800ms 降到 200ms 以下」
+    validations:
+      required: true
+
+  - type: textarea
+    id: files
+    attributes:
+      label: 相關檔案
+      description: 列出涉及的主要檔案（如已知）
+      placeholder: |
+        - apps/api/src/services/matching.ts
+        - apps/recommender/app/taste_engine.py
+
+  - type: dropdown
+    id: source
+    attributes:
+      label: 發現來源
+      description: 這個優化項目是如何被發現的？
+      options:
+        - Dev-Lifecycle agent 自動掃描
+        - Code Review 中發現
+        - 開發者手動識別
+        - Sentry 錯誤分析
+        - PostHog 數據分析
+        - 用戶回饋
+        - 依賴更新檢查

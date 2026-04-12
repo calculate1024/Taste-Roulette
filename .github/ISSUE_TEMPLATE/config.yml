@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Paperclip Agent Logs
+    url: https://github.com/calculate1024/taste-roulette/tree/main/paperclip/logs
+    about: 查看 AI Agent 的運作日誌
+  - name: Development Plan
+    url: https://github.com/calculate1024/taste-roulette/blob/main/docs/development-plan.md
+    about: 查看 14 週開發計畫了解目前進度

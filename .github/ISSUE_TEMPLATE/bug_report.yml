@@ -1,0 +1,100 @@
+name: Bug Report
+description: 回報一個已知的錯誤或異常行為
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感謝你回報 Bug！請盡可能詳細描述，幫助我們快速定位問題。
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 優先級
+      description: 請評估這個 Bug 的嚴重程度
+      options:
+        - P0 — 線上事故，核心功能不可用
+        - P1 — 嚴重影響，部分用戶受影響
+        - P2 — 重要但不緊急
+        - P3 — 低影響改善
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: 影響領域
+      description: 這個 Bug 主要影響哪個模組？
+      options:
+        - Mobile (React Native / Expo)
+        - API (Node.js backend)
+        - Recommender (Python taste engine)
+        - Infrastructure (CI/CD, deploy, monitoring)
+        - Paperclip (AI agent framework)
+        - Database (Supabase)
+      multiple: true
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 問題描述
+      description: 清楚描述發生了什麼
+      placeholder: |
+        什麼功能出了問題？你看到了什麼？
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 重現步驟
+      description: 讓我們能重現這個問題的步驟
+      placeholder: |
+        1. 開啟 APP
+        2. 進入 '...'
+        3. 點擊 '...'
+        4. 看到錯誤
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 預期行為
+      description: 你預期應該發生什麼？
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 實際行為
+      description: 實際發生了什麼？
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 環境資訊
+      description: 提供相關的環境資訊
+      placeholder: |
+        - 裝置：iPhone 15 / Pixel 8 / Simulator
+        - OS：iOS 17.4 / Android 14
+        - App 版本：1.0.0
+        - 相關 Sentry event ID（如有）：
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 錯誤日誌 / 截圖
+      description: 附上相關的錯誤日誌、截圖或錄影
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 其他資訊
+      description: 任何有助於理解問題的額外資訊

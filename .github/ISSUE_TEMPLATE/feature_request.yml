@@ -1,0 +1,107 @@
+name: Feature Request
+description: 提出新功能需求
+title: "[Feature] "
+labels: ["feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        有新的功能想法？請描述你的需求，幫助我們評估和規劃。
+
+  - type: dropdown
+    id: phase
+    attributes:
+      label: 對應開發階段
+      description: 這個功能屬於哪個開發階段？（參考 CLAUDE.md）
+      options:
+        - Phase 0 — Foundation（基礎建設）
+        - Phase 1 — Core Loop（核心循環）
+        - Phase 2 — Stickiness（黏著度）
+        - Phase 3 — Growth（成長）
+        - 未歸類
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: 影響領域
+      description: 這個功能主要涉及哪個模組？
+      options:
+        - Mobile (React Native / Expo)
+        - API (Node.js backend)
+        - Recommender (Python taste engine)
+        - Infrastructure (CI/CD, deploy, monitoring)
+        - Paperclip (AI agent framework)
+        - Database (Supabase)
+        - Cross-module (跨模組)
+      multiple: true
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 問題或動機
+      description: 這個功能要解決什麼問題？為什麼需要它？
+      placeholder: |
+        描述用戶或開發者面臨的問題，以及為什麼現有方案不足。
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: 期望解決方案
+      description: 你希望怎麼解決這個問題？
+      placeholder: |
+        描述你期望的功能行為。越具體越好。
+    validations:
+      required: true
+
+  - type: textarea
+    id: user_story
+    attributes:
+      label: 用戶故事 (User Story)
+      description: 從用戶角度描述這個功能
+      placeholder: |
+        作為 [角色]，我想要 [功能]，這樣我就能 [價值]。
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: 預估複雜度
+      description: 粗估這個功能的開發複雜度
+      options:
+        - S — 簡單 (< 2h, 1-2 個檔案)
+        - M — 中等 (2h-1天, 多個檔案)
+        - L — 大型 (1-3天, 跨模組)
+        - XL — 特大 (>3天, 需拆分)
+        - 不確定
+
+  - type: textarea
+    id: design
+    attributes:
+      label: 技術方案 (可選)
+      description: 如果你已有初步的技術想法，可以在這裡描述
+      placeholder: |
+        - 涉及的 API 端點變更
+        - DB schema 變更
+        - 演算法調整
+        - UI/UX 設計
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 替代方案
+      description: 你考慮過其他解決方案嗎？
+
+  - type: textarea
+    id: kpi_impact
+    attributes:
+      label: KPI 影響 (可選)
+      description: 這個功能預期對哪些 KPI 有影響？
+      placeholder: |
+        - D7 retention: +X%
+        - Daily open rate: +X%
+        - Surprise rate: ...

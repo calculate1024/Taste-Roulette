@@ -16,6 +16,7 @@
     { "slug": "bug-triage", "file": "agents/bug-triage.yaml" },
     { "slug": "social", "file": "agents/social.yaml" },
     { "slug": "outreach", "file": "agents/outreach.yaml" },
-    { "slug": "feedback", "file": "agents/feedback.yaml" }
+    { "slug": "feedback", "file": "agents/feedback.yaml" },
+    { "slug": "dev-lifecycle", "file": "agents/dev-lifecycle.yaml" }
   ]
 }
