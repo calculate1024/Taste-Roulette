@@ -1,0 +1,30 @@
+# Taste Roulette — CODEOWNERS
+# Auto-assigns reviewers based on file paths.
+# Reference: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Pattern: cal.com exempts test files from owner approval to reduce bottleneck.
+
+# Default owner — all PRs require Calvin's review
+*                           @calculate1024
+
+# ─── App modules ───
+apps/mobile/                @calculate1024
+apps/api/                   @calculate1024
+apps/recommender/           @calculate1024
+
+# ─── Sensitive areas (always require Calvin) ───
+supabase/migrations/        @calculate1024
+.env.example                @calculate1024
+.github/workflows/          @calculate1024
+paperclip/agents/           @calculate1024
+paperclip/company.yaml      @calculate1024
+paperclip/security-policy.md @calculate1024
+
+# ─── Test files: exempt from mandatory review (cal.com pattern) ───
+# This avoids bottlenecks when contributors add tests.
+# *.test.ts
+# *.test.tsx
+# *.spec.ts
+# *.spec.tsx
+# tests/
+# __tests__/

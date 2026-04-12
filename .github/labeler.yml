@@ -1,0 +1,68 @@
+# Auto-label PRs based on changed file paths
+# Used by: .github/workflows/pr-governance.yml (actions/labeler@v5)
+# Pattern from: cal.com (labels migrations + .env changes for high-signal alerts)
+
+# ─── Area labels ───
+area:mobile:
+  - changed-files:
+      - any-glob-to-any-file: 'apps/mobile/**'
+
+area:api:
+  - changed-files:
+      - any-glob-to-any-file: 'apps/api/**'
+
+area:recommender:
+  - changed-files:
+      - any-glob-to-any-file: 'apps/recommender/**'
+
+area:infra:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**'
+          - 'scripts/**'
+
+area:paperclip:
+  - changed-files:
+      - any-glob-to-any-file: 'paperclip/**'
+
+area:docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'docs/**'
+          - '*.md'
+          - '!CHANGELOG.md'
+
+# ─── High-signal warning labels (cal.com pattern) ───
+# These flag the two most operationally risky change types.
+
+":warning: migrations":
+  - changed-files:
+      - any-glob-to-any-file: 'supabase/migrations/**'
+
+":warning: env changes":
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.env.example'
+          - '.env.*'
+
+":warning: security-policy":
+  - changed-files:
+      - any-glob-to-any-file: 'paperclip/security-policy.md'
+
+# ─── Type labels ───
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.test.ts'
+          - '**/*.test.tsx'
+          - '**/*.spec.ts'
+          - '**/tests/**'
+          - '**/test_*.py'
+          - '**/conftest.py'
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/package.json'
+          - '**/pnpm-lock.yaml'
+          - '**/requirements.txt'
