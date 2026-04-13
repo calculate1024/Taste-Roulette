@@ -1,12 +1,11 @@
-# Data Analyst — 2026-03-29
+# Data Analyst — 2026-04-13
 
 ## Status: warning
 
 ## Summary
-- Inbox empty; no corrections from Calvin
-- Queried Supabase + PostHog for daily KPI snapshot; real users filtered with is_seed=false
-- Surprise rate 7-day hit 60.0% (n=10, new high); recommend_submitted×2 today — genuine user engagement signal
-- Streak P1 day 5: 87cd9416 streak=2 (+1 confirmed working), 696dd7fb streak=0 still stuck
+- Queried Supabase for full KPI snapshot; PostHog unavailable (project API key `phc_` cannot authenticate to REST API — ongoing limitation)
+- Real user count updated: **6 real users** (up from 3 on 2026-03-29); 3 actively engaged (streak ≥ 1, onboarding complete), 3 inactive/incomplete
+- Zero feedbacks in last 8 days (2026-04-06 to 2026-04-13); no engagement activity from new users post-join
 
 ## Inbox
 - None
@@ -14,33 +13,35 @@
 ## Metrics
 | Metric | Value |
 |--------|-------|
-| Total profiles | 122 (3 real + 119 seed; unchanged) |
-| Real users | 3 (87cd9416 streak=2, 696dd7fb streak=0, 0dd353a4 onboarding=false) |
-| DAU today login_success | 0 (session persistent; no new login needed) |
-| DAU today actual activity | 1 (14 PostHog events confirmed) |
-| DAU yesterday 3/28 | 0 login_success; 1 event-based |
-| Cards today (DB, cron in progress) | 1 (final ~121 expected) |
-| Cards yesterday 3/28 | 121 delivered, 1 opened (0.8%) |
-| Feedbacks today 3/29 | 1 (surprised=1 / 100%) |
-| Feedbacks yesterday 3/28 | 1 (surprised=1 / 100%) |
-| Surprise rate 7-day (3/22-3/29) | 60.0% (6/10) — zero not_for_me 8 days |
-| recommend_submitted today | 2 (new high) |
-| Pool unused | 1,685 (-5 consumed) |
-| Pool total | 3,162 (+102 new tracks) |
-| Pool days remaining | ~13.9 days |
-| Active streaks >=3 (real) | 0 / 3 |
-
-## PostHog 今日事件 (3/29)
-card_opened×4, card_viewed×3, recommend_submitted×2, feedback_given×1, profile_viewed×1, recommend_back_pressed×1, recommend_track_selected×1, card_feedback_submitted×1 — Total: 14
+| Total profiles | 125 (6 real + 119 seed) |
+| Real users (is_seed=false) | 6 (up from 3 on 3/29) |
+| Active users (onboarded + streak≥1) | 3 (87cd9416 streak=1, 620c24da streak=1, 65ff10cc streak=1) |
+| Stuck users (onboarding incomplete) | 2 (0dd353a4 day 20+, 80d73fe3 day 12) |
+| DAU today (DB proxy) | 0 (cron not yet fired — 13:00 UTC) |
+| DAU yesterday (4/12) | 1 (87cd9416 opened 2 cards from 4/11 batch) |
+| Cards today (4/13) | 0 (cron fires 13:00 UTC) |
+| Cards yesterday (4/12) | 123 delivered, 0 opened (batch pending) |
+| Feedbacks last 7d (4/6–4/13) | 0 — CRITICAL drop |
+| Feedbacks last 14d (3/30–4/13) | 10 (4 surprised, 5 okay, 1 not_for_me) |
+| Surprise rate 7d | N/A (0 feedbacks) |
+| Surprise rate 14d | 40.0% (4/10, n=10) |
+| Pool unused | 1,047 (down 638 from 1,685 on 3/29) |
+| Pool consumption rate | ~42.5/day (15d avg) |
+| Pool days remaining | ~24.6 days |
+| Tracks total | 5,111 |
+| PostHog | ❌ Auth failed (project key; need personal key) |
 
 ## Issues
-- CRITICAL P1 (day 5): 696dd7fb streak=0 (still stuck); 87cd9416 streak=2 (fix working going forward)
-- 0dd353a4 onboarding_completed DB=false vs PostHog events (day 5); card delivery may be affected
-- Open rate 0.8% on 3/28 (1/121); needs monitoring
-- DAU login_success=0 daily due to session persistence; extended definition pending Calvin approval
+- CRITICAL: Zero feedbacks in 8 days (4/6–4/13) — engagement stall; feedback flow may be broken
+- CRITICAL: 6 real users vs 50 month1 target (CEO had stale count of 3)
+- P2: 87cd9416 streak regression 2→1; most engaged user
+- P2: PostHog API unavailable (ongoing) — no DAU funnel data
+- P2: 2 users stuck in onboarding
+- P3: Cron produced 1–12 cards/day on 4/7–4/11 (vs expected 123); restored 4/12
 
 ## Next Actions
-- Bug Triage: streak P1 day 5 — why does 696dd7fb not increment while 87cd9416 now does?
-- Bug Triage: 0dd353a4 onboarding sync still unresolved (day 5)
-- CEO briefing: recommend_submitted×2 today is a positive engagement signal
-- Await cron completion to confirm final cards delivered count
+- Dev: Investigate feedback submission flow (cards openable, no feedback following)
+- CEO: Update real user count to 6; 8-day feedback gap needs attention
+- DevOps: Verify cron logs for 4/7–4/11 low card counts
+- Analytics: Add POSTHOG_PERSONAL_API_KEY to .env for proper tracking
+- Dev/CEO: Onboarding dropout review (2 stuck users)
