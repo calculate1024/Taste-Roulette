@@ -12,6 +12,7 @@ concurrency:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   run-social:
@@ -49,12 +50,21 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          OUTPUT=$(echo "You are the social agent for Taste Roulette. Read your config at paperclip/agents/social.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Post to Discord via webhooks. Write your log to paperclip/logs/social-$(date +%Y-%m-%d).md and update paperclip/logs/social-latest.md." | \
+          echo "You are the social agent for Taste Roulette. Read your config at paperclip/agents/social.yaml and execute your daily heartbeat workflow. Follow env_setup instructions exactly. Post to Discord via webhooks. Write your log to paperclip/logs/social-$(date +%Y-%m-%d).md and update paperclip/logs/social-latest.md." | \
           claude -p . \
             --allowedTools "Bash,Read,Write,Edit,Glob,Grep" \
-            --output-format json 2>/dev/null || echo '{"total_cost_usd":0}')
-          COST=$(echo "$OUTPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('total_cost_usd',0))" 2>/dev/null || echo 0)
-          python3 -c "import json; d=json.load(open('/tmp/agent-costs.json')); d['social']=float('$COST'); json.dump(d,open('/tmp/agent-costs.json','w'))"
+            --output-format json > /tmp/claude-output.json 2>/tmp/claude-stderr.log || true
+          COST=$(python3 -c "
+          import json, sys
+          try:
+              data = json.load(open('/tmp/claude-output.json'))
+              print(data.get('total_cost_usd', 0))
+          except Exception as e:
+              print(f'WARN: social cost parse failed: {e}', file=sys.stderr)
+              print(0)
+          ")
+          echo "  social cost: \$${COST}"
+          python3 -c "import json; d=json.load(open('/tmp/agent-costs.json')); d['social']=float('${COST}'); json.dump(d,open('/tmp/agent-costs.json','w'))"
 
       - name: Append cost to tracker
         run: |
@@ -89,10 +99,23 @@ jobs:
           print(f"Social cost: ${sum(costs.values()):.4f}")
           PYEOF
 
-      - name: Commit social logs
+      - name: Commit social logs via PR
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "Paperclip Bot"
           git config user.email "paperclip@taste-roulette.local"
           git add paperclip/logs/*.md paperclip/logs/cost-tracker.json paperclip/drafts/*.md 2>/dev/null || true
-          git diff --cached --quiet || git commit -m "chore: paperclip social agent $(date +%Y-%m-%d)"
-          git push || true
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          BRANCH="paperclip/social-$(date +%Y-%m-%d)"
+          git checkout -b "$BRANCH"
+          git commit -m "chore: paperclip social agent $(date +%Y-%m-%d)"
+          git push -u origin "$BRANCH"
+          gh pr create \
+            --title "chore: paperclip social logs $(date +%Y-%m-%d)" \
+            --body "Automated paperclip social agent logs and cost tracking." \
+            --base main --head "$BRANCH"
+          gh pr merge "$BRANCH" --auto --squash --delete-branch || true
