@@ -135,7 +135,6 @@
 - [ ] Google Play 提交
 - [ ] Landing page
 - [ ] Launch 社群宣傳素材
-- [ ] → 轉入 Paperclip 經營模式
 
 ---
 
