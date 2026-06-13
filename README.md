@@ -41,7 +41,6 @@ Every day you receive one music recommendation from a stranger whose taste is *d
 | State Management | Zustand + AsyncStorage |
 | Deployment | Vercel (API) + EAS Build (Mobile) |
 | Monitoring | Sentry (error tracking) + PostHog (analytics) |
-| AI Ops | [Paperclip](https://github.com/paperclipai/paperclip) (9-agent orchestration) |
 
 ## Project Structure
 
@@ -68,14 +67,6 @@ taste-roulette/
 │           └── models.py
 ├── packages/
 │   └── shared/              # Shared TypeScript types
-├── paperclip/               # AI agent orchestration (→ paperclip/README.md)
-│   ├── README.md            # Full Paperclip documentation
-│   ├── company.yaml         # Company config & KPI targets
-│   ├── agents/              # 9 agent definitions (CEO → specialists)
-│   ├── skills/              # Agent skill procedures & SQL queries
-│   ├── logs/                # Agent execution logs + cost tracker
-│   ├── inbox/               # Calvin → Agent instructions
-│   └── drafts/              # Social content awaiting approval
 ├── supabase/
 │   └── migrations/          # Database schema
 └── .claude/
@@ -150,22 +141,6 @@ taste-roulette/
 - **Last.fm genre tagging** — multi-source genre enrichment via Last.fm API
 - **MusicBrainz fallback** — secondary genre source when Last.fm data is sparse
 - **Spotify popularity deprecation** — adapted to Spotify API no longer returning popularity field
-
-### Paperclip AI Operations
-
-9 autonomous agents manage post-MVP operations via [Paperclip](https://github.com/paperclipai/paperclip). Executed by GitHub Actions on two schedules (morning batch + social batch) — runs even when your computer is off.
-
-**→ Full documentation: [`paperclip/README.md`](paperclip/README.md)**
-
-| Agent | Role | Schedule (UTC+8) |
-|-------|------|-------------------|
-| CEO | Strategic oversight | 07:00 |
-| Curator | Pool management | 06:00 |
-| Analytics | KPI snapshots | 09:00 |
-| DevOps | Health monitoring | 08:00 |
-| Social | Discord/Bluesky/Twitter | 18:00 |
-| Quality | Content moderation | 10:00 |
-| Bug Triage | Sentry triage | 11:00 |
 
 ## Internationalization (i18n)
 
@@ -352,7 +327,6 @@ Frequent iteration expected during beta. Apple review takes 1-3 days per update;
 | Item | Monthly |
 |------|---------|
 | Growth (ads, tools) | $50-100 |
-| Paperclip AI agents | $120 |
 | Supabase | Free tier |
 | Vercel | Free tier |
 | Google Play | $25 one-time |

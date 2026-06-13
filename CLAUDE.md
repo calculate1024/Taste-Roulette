@@ -30,7 +30,6 @@ taste-roulette/
 ├── docs/
 │   ├── development-plan.md    # 14 週分階段開發計畫
 │   ├── architecture.md        # 系統架構圖與資料流
-│   ├── paperclip-ops.md       # Paperclip 經營階段轉移計畫
 │   └── competitive-landscape.md
 ├── apps/
 │   ├── mobile/                # React Native (Expo) APP

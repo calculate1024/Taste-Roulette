@@ -163,6 +163,5 @@
 | Google Play developer | — | $25 (one-time) | Month 1 |
 | Apple Developer | — | $99 (deferred) | Month 3+ |
 | Growth ads budget | $50-100 | — | Month 2-3 |
-| Paperclip agents | $120 | — | Ongoing |
-| **Total Month 1** | **$120** | | |
-| **Total Month 2-3** | **$170-220** | | |
+| **Total Month 1** | **~$0** (+$25 one-time Google Play) | | |
+| **Total Month 2-3** | **$50-100** | | |
